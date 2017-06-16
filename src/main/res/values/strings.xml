@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Buglife</string>
+    <string name="screenshot_annotator_activity_label">Screenshot</string>
+    <string name="what_happened_edit_text">What happened?</string>
+    <string name="sending_toast">Submitting bug report…</string>
+    <string name="thanks_for_filing_a_bug">Thanks for filing a bug!</string>
+    <string name="error_unable_to_read_screenshot">Oops! Buglife was unable to capture your screenshot.</string>
+    <string name="help_us_make_this_app_better">Help us make this app better!</string>
+    <string name="report_a_bug">Report a Bug</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="send">Send</string>
+    <string name="error_dialog_title">Oops!</string>
+    <string name="error_dialog_message">Something went wrong submitting your bug report. Please try again.</string>
+</resources>

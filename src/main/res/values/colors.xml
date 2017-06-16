@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="arrow_annotation_fill_color">#f00060</color>
+    <color name="arrow_annotation_stroke_color">#ffffff</color>
+</resources>
