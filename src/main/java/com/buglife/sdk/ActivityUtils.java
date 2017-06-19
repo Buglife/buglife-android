@@ -20,12 +20,22 @@ package com.buglife.sdk;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.ColorInt;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
+import android.text.Html;
 import android.view.Window;
 import android.view.WindowManager;
 
 final class ActivityUtils {
+    static final String INTENT_KEY_BUG_CONTEXT = "INTENT_KEY_BUG_CONTEXT";
+    static final String INTENT_KEY_ATTACHMENT = "INTENT_KEY_ATTACHMENT";
+
     static void setStatusBarColor(Activity activity) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return;
@@ -46,5 +56,18 @@ final class ActivityUtils {
         }
 
         return true;
+    }
+
+    static @NonNull Drawable getTintedDrawable(@NonNull Context context, @DrawableRes int id) {
+        int titleTextColor = Buglife.getColorPalette().getTextColorPrimary();
+        Drawable drawable = context.getResources().getDrawable(id);
+        drawable = DrawableCompat.wrap(drawable);
+        DrawableCompat.setTint(drawable, titleTextColor);
+        return drawable;
+    }
+
+    static @NonNull CharSequence getTextWithColor(@NonNull Context context, @ColorInt int color, @StringRes int stringId) {
+        String hexColor = ColorPalette.getHexColor(color);
+        return Html.fromHtml("<font color='" + hexColor + "'>" + context.getString(stringId) + "</font>");
     }
 }

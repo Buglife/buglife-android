@@ -24,6 +24,9 @@ import android.os.FileObserver;
 
 import java.io.File;
 
+/**
+ * When running on anything prior to Android M, we use FileObserver to detect screenshots
+ */
 final class ScreenshotFileObserver extends FileObserver implements ScreenshotObserver {
     private static final String PATH = Environment.getExternalStorageDirectory().toString() + "/Pictures/Screenshots/";
 

@@ -34,6 +34,9 @@ import android.widget.Toast;
 
 import java.io.File;
 
+/**
+ * On Android M and above, we use a ContentObserver to detect screenshots.
+ */
 @TargetApi(Build.VERSION_CODES.M)
 final class ScreenshotContentObserver implements ScreenshotObserver {
     private static final String TAG = "ScreenshotObserver";

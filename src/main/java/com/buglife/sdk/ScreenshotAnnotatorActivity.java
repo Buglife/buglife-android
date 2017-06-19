@@ -18,6 +18,7 @@
 package com.buglife.sdk;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
@@ -25,24 +26,49 @@ import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.Spanned;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
+import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
+import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
+import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
+
+/**
+ * Activity for annotating screenshots.
+ *
+ * This activity can be presented either as the initial activity of the bug reporter flow,
+ * or as a "child" of ReportActivity. For the former, the ScreenshotAnnotatorActivity
+ * should be given both an Attachment & a BugContext on initialization; both objects are
+ * then passed on to the subsequent ReportActivity.
+ *
+ * When presented as a "child" of ReportActivity, it should be initialized via
+ * startActivityForResult(), along with an Attachment object (no BugContext).
+ */
 public class ScreenshotAnnotatorActivity extends AppCompatActivity {
 
-    static final String INTENT_KEY_ATTACHMENT = "INTENT_KEY_ATTACHMENT";
+    private static final int NEXT_MENU_ITEM = 1;
     static final int REQUEST_CODE = 100;
     private static final float MINIMUM_ANNOTATION_SIZE_PERCENT = 0.05f;
 
-    private Attachment mAttachment;
+    // The screenshot attachment being annotated.
+    private @NonNull Attachment mAttachment;
+    // The BugContext, which is required if & only if this is the initial activity in the
+    // reporter flow.
+    private @Nullable BugContext mBugContext;
     private ImageView mImageView;
     private View mGestureView;
     private BlurAnnotationView mBlurAnnotationView;
@@ -54,7 +80,8 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     private PointF mMovingEndPoint = null;
     private PointF mMultiTouch0 = null;
     private PointF mMultiTouch1 = null;
-    private boolean mTouchesFlipped = false; // Used for two-finger touch events, i.e. rotate
+    // Used for two-finger gestures, i.e. rotating annotations
+    private boolean mTouchesFlipped = false;
     private Annotation.Type mSelectedTool;
     private View mAnnotationToolbar;
     private ImageButton mArrowTool;
@@ -74,6 +101,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         mAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
+        mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
         Bitmap bitmap = mAttachment.getBitmap();
         mImageView.setImageBitmap(bitmap);
@@ -117,19 +145,80 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         if (actionBar != null) {
             int colorPrimary = Buglife.getColorPalette().getColorPrimary();
             int titleTextColor = Buglife.getColorPalette().getTextColorPrimary();
-            String titleTextColorHex = ColorPalette.getHexColor(titleTextColor);
-            Drawable drawable = getResources().getDrawable(R.drawable.buglife_abc_ic_ab_back_mtrl_am_alpha);
-            drawable = DrawableCompat.wrap(drawable);
-            DrawableCompat.setTint(drawable, titleTextColor);
+            final @DrawableRes int homeAsUpIndicatorDrawableId;
+            final @StringRes int titleStringId;
 
+            if (isInitialScreenshotAnnotationActivity()) {
+                // If this is the initial screenshot activity, show a different title
+                // along with close + next buttons
+                homeAsUpIndicatorDrawableId = android.R.drawable.ic_menu_close_clear_cancel;
+                titleStringId = R.string.report_a_bug;
+            } else {
+                // Otherwise, this is a child activity of ReportActivity
+                homeAsUpIndicatorDrawableId = R.drawable.buglife_abc_ic_ab_back_mtrl_am_alpha;
+                titleStringId = R.string.screenshot_annotator_activity_label;
+            }
+
+            Drawable homeAsUpIndicator = ActivityUtils.getTintedDrawable(this, homeAsUpIndicatorDrawableId);
+            CharSequence title = ActivityUtils.getTextWithColor(this, titleTextColor, titleStringId);
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeAsUpIndicator(drawable);
-            actionBar.setDisplayShowHomeEnabled(true);
+            actionBar.setHomeAsUpIndicator(homeAsUpIndicator);
             actionBar.setBackgroundDrawable(new ColorDrawable(colorPrimary));
-            actionBar.setTitle(Html.fromHtml("<font color='" + titleTextColorHex + "'>" + getString(R.string.screenshot_annotator_activity_label) + "</font>"));
+            actionBar.setTitle(title);
         }
 
         ActivityUtils.setStatusBarColor(this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (isInitialScreenshotAnnotationActivity()) {
+            MenuItem sendItem = menu.add(0, NEXT_MENU_ITEM, Menu.NONE, R.string.next);
+            sendItem.setShowAsAction(SHOW_AS_ACTION_ALWAYS);
+            Drawable drawable = ActivityUtils.getTintedDrawable(this, R.drawable.ic_arrow_right);
+            sendItem.setIcon(drawable);
+            return true;
+        } else {
+            return super.onCreateOptionsMenu(menu);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                willGoBackOrDismiss();
+                return true;
+            case NEXT_MENU_ITEM:
+                continueToReportActivity();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        willGoBackOrDismiss();
+        super.onBackPressed();
+    }
+
+    private void willGoBackOrDismiss() {
+        if (isInitialScreenshotAnnotationActivity()) {
+            cancelReporterFlow();
+        } else {
+            setAttachmentResult();
+        }
+    }
+
+    private void continueToReportActivity() {
+        Attachment attachment = getAttachmentCopyWithAnnotations();
+        mBugContext.addAttachment(attachment);
+
+        Context context = this;
+        Intent intent = new Intent(context, ReportActivity.class);
+        intent.putExtra(INTENT_KEY_BUG_CONTEXT, mBugContext);
+        context.startActivity(intent);
     }
 
     private boolean onMultitouchEvent(View view, MotionEvent event) {
@@ -377,20 +466,27 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         return null;
     }
 
-    private void setAttachmentResult() {
+    private @NonNull Attachment getAttachmentCopyWithAnnotations() {
         View canvasView = findViewById(R.id.canvas_view);
         Screenshotter screenshotter = new Screenshotter(canvasView);
         Bitmap bitmap = screenshotter.getBitmap();
-        Attachment attachment = mAttachment.getCopy(bitmap);
+        return mAttachment.getCopy(bitmap);
+    }
+
+    private void setAttachmentResult() {
+        Attachment attachment = getAttachmentCopyWithAnnotations();
         Intent intent = new Intent();
         intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
         setResult(Activity.RESULT_OK, intent);
     }
 
-    @Override
-    public void finish() {
-        setAttachmentResult();
-        super.finish();
+    private void cancelReporterFlow() {
+        Buglife.onFinishReportFlow();
+        finish();
+    }
+
+    private boolean isInitialScreenshotAnnotationActivity() {
+        return mBugContext != null;
     }
 
     private int getToolColorFilter() {

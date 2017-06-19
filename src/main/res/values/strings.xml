@@ -9,6 +9,7 @@
     <string name="report_a_bug">Report a Bug</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
+    <string name="next">Next</string>
     <string name="send">Send</string>
     <string name="error_dialog_title">Oops!</string>
     <string name="error_dialog_message">Something went wrong submitting your bug report. Please try again.</string>

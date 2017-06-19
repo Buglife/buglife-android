@@ -20,6 +20,7 @@ package com.buglife.sdk;
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import junit.framework.Assert;
 
@@ -39,6 +40,10 @@ final class BugContext implements Parcelable {
         mAttachments = new ArrayList<Attachment>();
         source.readTypedList(mAttachments, Attachment.CREATOR);
         mEnvironmentSnapshot = source.readParcelable(EnvironmentSnapshot.class.getClassLoader());
+    }
+
+    void addAttachment(@NonNull Attachment attachment) {
+        mAttachments.add(attachment);
     }
 
     List<Attachment> getAttachments() {

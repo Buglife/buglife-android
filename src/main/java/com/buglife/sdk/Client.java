@@ -55,6 +55,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
+import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
 
 final class Client implements ForegroundDetector.OnForegroundListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
@@ -260,8 +262,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         }
 
         Attachment screenshotAttachment = getScreenshotBuilder().build(bitmap);
-        addAttachment(screenshotAttachment);
-        showAlertDialog();
+        showAlertDialog(screenshotAttachment);
     }
 
     private void onScreenshotTaken(File screenshotFile) {
@@ -279,15 +280,14 @@ final class Client implements ForegroundDetector.OnForegroundListener {
             return;
         }
 
-        addAttachment(screenshotAttachment);
-        showAlertDialog();
+        showAlertDialog(screenshotAttachment);
     }
 
     private boolean canInvokeBugReporter() {
         return !mReportFlowVisible && mForegroundDetector.getForegrounded();
     }
 
-    private void showAlertDialog() {
+    private void showAlertDialog(@NonNull final Attachment screenshotAttachment) {
         mReportFlowVisible = true;
         final AlertDialog alertDialog = new AlertDialog.Builder(mAppContext, R.style.buglife_alert_dialog).create();
         alertDialog.setTitle(R.string.help_us_make_this_app_better);
@@ -297,7 +297,8 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, mAppContext.getString(R.string.report_a_bug), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                showReporter();
+                // Show the reporter flow starting with the screenshot annotator
+                startBuglifeActivity(ScreenshotAnnotatorActivity.class, screenshotAttachment);
                 alertDialog.dismiss();
             }
         });
@@ -320,10 +321,31 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     }
 
     void showReporter() {
+        // showReporter() can be called manually, so check to make sure it isn't already visible
         if (mReportFlowVisible) {
+            Log.e("Unable to show reporter; Buglife is already visible. Did you call showReporter() twice?");
             return;
         }
 
+        startBuglifeActivity(ReportActivity.class, null);
+    }
+
+    private void startBuglifeActivity(Class cls, @Nullable Attachment screenshotAttachment) {
+        BugContext bugContext = buildBugContext();
+
+        mReportFlowVisible = true;
+        Intent intent = new Intent(mAppContext, cls);
+        intent.setFlags(intent.getFlags() | FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(INTENT_KEY_BUG_CONTEXT, bugContext);
+
+        if (screenshotAttachment != null) {
+            intent.putExtra(INTENT_KEY_ATTACHMENT, screenshotAttachment);
+        }
+
+        mAppContext.startActivity(intent);
+    }
+
+    private @NonNull BugContext buildBugContext() {
         BugContext.Builder builder = new BugContext.Builder(mAppContext);
 
         if (mListener != null) {
@@ -334,13 +356,9 @@ final class Client implements ForegroundDetector.OnForegroundListener {
             builder.addAttachment(attachment);
         }
 
-        BugContext bugContext = builder.build();
+        mQueuedAttachments.clear();
 
-        mReportFlowVisible = true;
-        Intent intent = new Intent(mAppContext, ReportActivity.class);
-        intent.setFlags(intent.getFlags() | FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(ReportActivity.INTENT_KEY_BUG_CONTEXT, bugContext);
-        mAppContext.startActivity(intent);
+        return builder.build();
     }
 
     void submitReport(Report report, RequestHandler requestHandler) {
@@ -362,7 +380,6 @@ final class Client implements ForegroundDetector.OnForegroundListener {
      */
     void onFinishReportFlow() {
         mReportFlowVisible = false;
-        mQueuedAttachments.clear();
         AttachmentDataCache.getInstance().clear();
     }
 

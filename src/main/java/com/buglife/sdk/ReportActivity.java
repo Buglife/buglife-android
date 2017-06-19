@@ -44,10 +44,11 @@ import com.android.volley.RequestQueue;
 import java.util.List;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
+import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
+import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
 
 public class ReportActivity extends AppCompatActivity {
 
-    static final String INTENT_KEY_BUG_CONTEXT = "INTENT_KEY_BUG_CONTEXT";
     private static final int SEND_MENU_ITEM = 1;
 
     private BugContext mBugContext;
@@ -92,7 +93,7 @@ public class ReportActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
 
         if (actionBar != null) {
-            Drawable drawable = getTintedDrawable(android.R.drawable.ic_menu_close_clear_cancel);
+            Drawable drawable = ActivityUtils.getTintedDrawable(this, android.R.drawable.ic_menu_close_clear_cancel);
 
             actionBar.setHomeAsUpIndicator(drawable);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -107,18 +108,10 @@ public class ReportActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuItem sendItem = menu.add(0, SEND_MENU_ITEM, Menu.NONE, R.string.send);
         sendItem.setShowAsAction(SHOW_AS_ACTION_ALWAYS);
-        Drawable drawable = getTintedDrawable(android.R.drawable.ic_menu_send);
+        Drawable drawable = ActivityUtils.getTintedDrawable(this, android.R.drawable.ic_menu_send);
         sendItem.setIcon(drawable);
 
         return true;
-    }
-
-    private Drawable getTintedDrawable(int id) {
-        int titleTextColor = Buglife.getColorPalette().getTextColorPrimary();
-        Drawable drawable = getResources().getDrawable(id);
-        drawable = DrawableCompat.wrap(drawable);
-        DrawableCompat.setTint(drawable, titleTextColor);
-        return drawable;
     }
 
     @Override
@@ -137,7 +130,7 @@ public class ReportActivity extends AppCompatActivity {
 
     private void showScreenshotAnnotatorActivity(Attachment attachment) {
         Intent intent = new Intent(this, ScreenshotAnnotatorActivity.class);
-        intent.putExtra(ScreenshotAnnotatorActivity.INTENT_KEY_ATTACHMENT, attachment);
+        intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
         startActivityForResult(intent, ScreenshotAnnotatorActivity.REQUEST_CODE);
     }
 
@@ -147,19 +140,11 @@ public class ReportActivity extends AppCompatActivity {
 
         if (requestCode == ScreenshotAnnotatorActivity.REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                Attachment attachment = data.getParcelableExtra(ScreenshotAnnotatorActivity.INTENT_KEY_ATTACHMENT);
+                Attachment attachment = data.getParcelableExtra(INTENT_KEY_ATTACHMENT);
                 mBugContext.updateAttachment(attachment);
                 mAttachmentAdapter.setAttachments(mBugContext.getAttachments());
             }
         }
-    }
-
-    /**
-     * Buton tap handlers
-     */
-
-    public void cancelButtonPressed(View view) {
-        dismiss();
     }
 
     public void sendButtonPressed(MenuItem item) {

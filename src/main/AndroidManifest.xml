@@ -21,6 +21,7 @@
             android:name=".ScreenshotAnnotatorActivity"
             android:label="@string/screenshot_annotator_activity_label"
             android:theme="@style/NoActionBarTheme"
+            android:noHistory="true"
             />
     </application>
 
