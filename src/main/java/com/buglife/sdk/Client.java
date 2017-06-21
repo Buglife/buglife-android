@@ -52,7 +52,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
@@ -83,7 +86,8 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     private final ForegroundDetector mForegroundDetector;
     @Nullable private String mUserIdentifier = null;
     @Nullable private String mUserEmail = null;
-    private final ArrayList<Attachment> mQueuedAttachments;
+    @NonNull private final ArrayList<Attachment> mQueuedAttachments;
+    @NonNull private final AttributeMap mAttributes;
     private boolean mReportFlowVisible = false;
     @NonNull private final ColorPalette mColorPallete;
 
@@ -91,7 +95,8 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         mAppContext = application.getApplicationContext();
         mApiKey = apiKey;
         mEmail = email;
-        mQueuedAttachments = new ArrayList<>();
+        mQueuedAttachments = new ArrayList();
+        mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
         mColorPallete = new ColorPalette.Builder(mAppContext).build();
 
@@ -215,6 +220,10 @@ final class Client implements ForegroundDetector.OnForegroundListener {
 
     void addAttachment(Attachment attachment) {
         mQueuedAttachments.add(attachment);
+    }
+
+    void putAttribute(@NonNull String key, @Nullable String value) {
+        mAttributes.put(key, value);
     }
 
     private final ShakeDetector.OnShakeListener mOnShakeListener = new ShakeDetector.OnShakeListener() {
@@ -352,11 +361,10 @@ final class Client implements ForegroundDetector.OnForegroundListener {
             mListener.onAttachmentRequest();
         }
 
-        for (Attachment attachment : mQueuedAttachments) {
-            builder.addAttachment(attachment);
-        }
-
+        builder.setAttachments(mQueuedAttachments);
         mQueuedAttachments.clear();
+
+        builder.setAttributes(mAttributes);
 
         return builder.build();
     }
@@ -443,6 +451,20 @@ final class Client implements ForegroundDetector.OnForegroundListener {
 
         if (attachmentsParams.length() > 0) {
             reportParams.put("attachments", attachmentsParams);
+        }
+
+        // Attributes
+        JSONObject attributesParams = new JSONObject();
+
+        for (Map.Entry<String, String> attribute : mAttributes.entrySet()) {
+            JSONObject attributeParams = new JSONObject();
+            attributeParams.put("attribute_type", 0);
+            attributeParams.put("attribute_value", attribute.getValue());
+            attributesParams.put(attribute.getKey(), attributeParams);
+        }
+
+        if (attributesParams.length() > 0) {
+            reportParams.put("attributes", attributesParams);
         }
 
         appParams.put("bundle_short_version", bundleShortVersion);

@@ -116,6 +116,19 @@ public final class Buglife {
     }
 
     /**
+     * Adds custom data to bug reports. Set a `null` value for a given attribute to delete its
+     * current value.
+     *
+     * Custom attributes are not automatically cleared after a bug report is submitted.
+     *
+     * @param key The attribute key
+     * @param value The attribute value
+     */
+    public static void putAttribute(@NonNull String key, @Nullable String value) {
+        getClient().putAttribute(key, value);
+    }
+
+    /**
      * Sets a listener for Buglife-related callbacks.
      *
      * @param listener The listener

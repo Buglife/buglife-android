@@ -21,24 +21,32 @@ import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import junit.framework.Assert;
 
+import org.w3c.dom.Attr;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 final class BugContext implements Parcelable {
     private final ArrayList<Attachment> mAttachments;
+    private final AttributeMap mAttributes;
     private final EnvironmentSnapshot mEnvironmentSnapshot;
 
-    private BugContext(List<Attachment> attachments, EnvironmentSnapshot environment) {
+    private BugContext(@NonNull List<Attachment> attachments, @NonNull AttributeMap attributes, @NonNull EnvironmentSnapshot environment) {
         mAttachments = new ArrayList<Attachment>(attachments);
+        mAttributes = attributes;
         mEnvironmentSnapshot = environment;
     }
 
     public BugContext(Parcel source) {
-        mAttachments = new ArrayList<Attachment>();
+        mAttachments = new ArrayList();
         source.readTypedList(mAttachments, Attachment.CREATOR);
+        mAttributes = source.readParcelable(AttributeMap.class.getClassLoader());
         mEnvironmentSnapshot = source.readParcelable(EnvironmentSnapshot.class.getClassLoader());
     }
 
@@ -74,6 +82,7 @@ final class BugContext implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeTypedList(mAttachments);
+        dest.writeParcelable(mAttributes, flags);
         dest.writeParcelable(mEnvironmentSnapshot, flags);
     }
 
@@ -92,22 +101,27 @@ final class BugContext implements Parcelable {
             };
 
     static class Builder {
-        private ArrayList<Attachment> mAttachments;
-        private final Context mContext;
+        private @NonNull ArrayList<Attachment> mAttachments = new ArrayList();
+        private @NonNull AttributeMap mAttributeMap = new AttributeMap();
+        private final @NonNull Context mContext;
 
-        public Builder(Context context) {
+        Builder(@NonNull Context context) {
             mContext = context;
-            mAttachments = new ArrayList<>();
         }
 
-        public Builder addAttachment(Attachment attachment) {
-            mAttachments.add(attachment);
+        Builder setAttachments(@NonNull List<Attachment> attachments) {
+            mAttachments = new ArrayList(attachments);
+            return this;
+        }
+
+        Builder setAttributes(@NonNull AttributeMap attributes) {
+            mAttributeMap = new AttributeMap(attributes);
             return this;
         }
 
         public BugContext build() {
             EnvironmentSnapshot environment = new EnvironmentSnapshot.Builder(mContext).build();
-            return new BugContext(mAttachments, environment);
+            return new BugContext(mAttachments, mAttributeMap, environment);
         }
     }
 }
