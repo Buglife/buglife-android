@@ -188,6 +188,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 willGoBackOrDismiss();
+                finish();
                 return true;
             case NEXT_MENU_ITEM:
                 continueToReportActivity();

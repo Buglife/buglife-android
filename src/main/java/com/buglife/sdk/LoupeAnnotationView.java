@@ -35,7 +35,7 @@ import com.buglife.sdk.AnnotationView;
 /**
  * Annotation view that renders loupe annotations.
  */
-final class LoupeAnnotationView extends AnnotationView {
+public final class LoupeAnnotationView extends AnnotationView {
 
     private static final int MAGNIFICATION_FACTOR = 2;
 
@@ -43,20 +43,16 @@ final class LoupeAnnotationView extends AnnotationView {
     private final Matrix mMatrix = new Matrix();
     private final Paint mBorderPaint = new Paint();
 
-    LoupeAnnotationView(Context context) {
+    public LoupeAnnotationView(Context context) {
         this(context, null);
     }
 
-    LoupeAnnotationView(Context context, @Nullable AttributeSet attrs) {
+    public LoupeAnnotationView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    LoupeAnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public LoupeAnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    private void init() {
         float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics());
         mBorderPaint.setStrokeWidth(strokeWidth);
         mBorderPaint.setStyle(Paint.Style.STROKE);

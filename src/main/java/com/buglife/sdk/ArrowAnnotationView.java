@@ -36,20 +36,20 @@ import java.util.ArrayList;
 /**
  * Annotation view that renders arrow annotations.
  */
-final class ArrowAnnotationView extends AnnotationView {
+public final class ArrowAnnotationView extends AnnotationView {
 
     private Paint mFillPaint;
     private Paint mStrokePaint;
 
-    ArrowAnnotationView(Context context) {
+    public ArrowAnnotationView(Context context) {
         this(context, null, 0);
     }
 
-    ArrowAnnotationView(Context context, @Nullable AttributeSet attrs) {
+    public ArrowAnnotationView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    ArrowAnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ArrowAnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

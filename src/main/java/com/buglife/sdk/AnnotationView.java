@@ -33,19 +33,19 @@ import java.util.List;
 /**
  * View that contains a collection of annotations of a certain type.
  */
-abstract class AnnotationView extends View {
+public abstract class AnnotationView extends View {
 
     final private ArrayList<Annotation> mAnnotations = new ArrayList<>();
 
-    AnnotationView(Context context) {
+    public AnnotationView(Context context) {
         this(context, null);
     }
 
-    AnnotationView(Context context, @Nullable AttributeSet attrs) {
+    public AnnotationView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    AnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public AnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
