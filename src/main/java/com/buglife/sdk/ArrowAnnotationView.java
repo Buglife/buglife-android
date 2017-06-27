@@ -38,7 +38,6 @@ import java.util.ArrayList;
  */
 public final class ArrowAnnotationView extends AnnotationView {
 
-    private Paint mFillPaint;
     private Paint mStrokePaint;
 
     public ArrowAnnotationView(Context context) {
@@ -51,101 +50,16 @@ public final class ArrowAnnotationView extends AnnotationView {
 
     public ArrowAnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+
+        // Allows the shadow to work
+        setLayerType(LAYER_TYPE_SOFTWARE, mStrokePaint);
     }
 
     @Override
     protected void drawAnnotation(Annotation annotation, Canvas canvas) {
-        PointF startPoint = getPointFromPercentPoint(annotation.getStartPercentPoint());
-        PointF endPoint = getPointFromPercentPoint(annotation.getEndPercentPoint());
-
-        float arrowLength = getLength(annotation);
-        float tailWidth = getTailWidthForArrowLength(arrowLength);
-        float headLength = getHeadLengthForArrowLength(arrowLength);
-        float headWidth = getHeadWidthForArrowWithHeadLength(headLength);
-        float strokeWidth = Math.max(1.0f, tailWidth * 0.25f);
-
-        Path arrowPath = getArrowPath(startPoint, endPoint, arrowLength, tailWidth, headWidth, headLength);
-
-        if (arrowPath != null) {
-            Paint fillPaint = getFillPaint();
-            Paint strokePaint = getStrokePaint();
-            strokePaint.setStrokeWidth(strokeWidth);
-
-            canvas.drawPath(arrowPath, strokePaint);
-            canvas.drawPath(arrowPath, fillPaint);
-        }
-    }
-
-    private Paint getFillPaint() {
-        if (mFillPaint == null) {
-            mFillPaint = new Paint();
-            mFillPaint.setColor(getResources().getColor(R.color.arrow_annotation_fill_color));
-            mFillPaint.setAntiAlias(true);
-        }
-
-        return mFillPaint;
-    }
-
-    private Paint getStrokePaint() {
-        if (mStrokePaint == null) {
-            mStrokePaint = new Paint();
-            mStrokePaint.setColor(getResources().getColor(R.color.arrow_annotation_stroke_color));
-            mStrokePaint.setAntiAlias(true);
-            mStrokePaint.setStyle(Paint.Style.STROKE);
-            mStrokePaint.setStrokeJoin(Paint.Join.ROUND);
-            mStrokePaint.setStrokeCap(Paint.Cap.ROUND);
-            mStrokePaint.setShadowLayer(8, 0, 0, Color.BLACK);
-
-            // Allows the shadow to work
-            setLayerType(LAYER_TYPE_SOFTWARE, mStrokePaint);
-        }
-
-        return mStrokePaint;
-    }
-
-    private static float getTailWidthForArrowLength(float arrowLength) {
-        return Math.max(4.0f, arrowLength * 0.07f);
-    }
-
-    private static float getHeadLengthForArrowLength(float arrowLength) {
-        return Math.max(arrowLength / 3.0f, 10.0f);
-    }
-
-    private static float getHeadWidthForArrowWithHeadLength(float headLength) {
-        return (headLength * 0.9f);
-    }
-
-    private static @Nullable Path getArrowPath(PointF startPoint, PointF endPoint, float arrowLength, float tailWidth, float headWidth, float headLength) {
-        if (arrowLength < 0.1) {
-            return null;
-        }
-
-        float tailLength = arrowLength - headLength;
-
-        Path path = new Path();
-        path.moveTo(0, tailWidth / 2.0f);
-
-        ArrayList<PointF> points = new ArrayList<>();
-        points.add(new PointF(tailLength, tailWidth / 2.0f));
-        points.add(new PointF(tailLength, headWidth / 2.0f));
-        points.add(new PointF(arrowLength, 0));
-        points.add(new PointF(tailLength, -headWidth / 2.0f));
-        points.add(new PointF(tailLength, -tailWidth / 2.0f));
-        points.add(new PointF(0, -tailWidth / 2.0f));
-
-        for (PointF point : points) {
-            path.lineTo(point.x, point.y);
-        }
-
-        path.close();
-
-        float cosine = (endPoint.x - startPoint.x) / arrowLength;
-        float sine = (endPoint.y - startPoint.y) / arrowLength;
-        Matrix matrix = new Matrix();
-        matrix.setValues(new float[] { cosine, -sine, startPoint.x, sine, cosine, startPoint.y, 0, 0, 1 });
-
-        path.transform(matrix);
-
-        return path;
+        int fillColor = getResources().getColor(R.color.arrow_annotation_fill_color);
+        int strokeColor = getResources().getColor(R.color.arrow_annotation_stroke_color);
+        ArrowRenderer arrowRenderer = new ArrowRenderer(fillColor, strokeColor);
+        arrowRenderer.drawAnnotation(annotation, canvas);
     }
 }

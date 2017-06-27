@@ -86,6 +86,10 @@ final class AttributeMap implements Parcelable {
         mAttributes.put(key, value);
     }
 
+    @Nullable String get(@NonNull String key) {
+        return mAttributes.get(key);
+    }
+
     void clear() {
         mAttributes.clear();
     }

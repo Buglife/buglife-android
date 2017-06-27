@@ -22,14 +22,14 @@
         android:layout_height="1dp"
         android:background="#D9D9D9" />
 
-    <EditText
-        android:id="@+id/what_happened_edit_text"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:hint="@string/what_happened_edit_text"
-        android:gravity="top"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        />
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:id="@+id/input_field_layout"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </ScrollView>
 
 </LinearLayout>

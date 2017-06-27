@@ -22,6 +22,8 @@ import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.List;
+
 /**
  * Buglife! Handles initialization and configuration of Buglife.
  */
@@ -126,6 +128,21 @@ public final class Buglife {
      */
     public static void putAttribute(@NonNull String key, @Nullable String value) {
         getClient().putAttribute(key, value);
+    }
+
+    /**
+     * Returns the input fields to the shown in the bug reporter UI.
+     */
+    static @NonNull List<InputField> getInputFields() {
+        return getClient().getInputFields();
+    }
+
+    /**
+     * Configures the input fields to be shown in the bug reporter UI.
+     * @param inputFields The input fields
+     */
+    public static void setInputFields(@NonNull InputField... inputFields) {
+        getClient().setInputFields(inputFields);
     }
 
     /**

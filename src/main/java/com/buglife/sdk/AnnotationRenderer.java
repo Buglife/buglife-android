@@ -17,17 +17,17 @@
 
 package com.buglife.sdk;
 
-/**
- * Represents a bug report draft.
- */
-public final class Report {
-    private final BugContext mBugContext;
+import android.graphics.PointF;
 
-    public Report(BugContext bugContext) {
-        mBugContext = bugContext;
+abstract class AnnotationRenderer {
+
+    final static PointF getPointFromPercentPoint(PercentPoint percentPoint, float width, float height) {
+        return new PointF(percentPoint.x * width, percentPoint.y * height);
     }
 
-    public BugContext getBugContext() {
-        return mBugContext;
+    final static float getLength(Annotation annotation, float width, float height) {
+        PointF a = getPointFromPercentPoint(annotation.getStartPercentPoint(), width, height);
+        PointF b = getPointFromPercentPoint(annotation.getEndPercentPoint(), width, height);
+        return (float) Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
     }
 }

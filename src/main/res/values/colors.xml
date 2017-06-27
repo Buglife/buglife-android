@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="buglife_reporter_background_color">#fafafa</color>
     <color name="arrow_annotation_fill_color">#f00060</color>
     <color name="arrow_annotation_stroke_color">#ffffff</color>
 </resources>

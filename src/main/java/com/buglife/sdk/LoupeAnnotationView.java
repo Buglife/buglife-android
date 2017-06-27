@@ -37,11 +37,7 @@ import com.buglife.sdk.AnnotationView;
  */
 public final class LoupeAnnotationView extends AnnotationView {
 
-    private static final int MAGNIFICATION_FACTOR = 2;
-
-    private Bitmap mSourceBitmap;
-    private final Matrix mMatrix = new Matrix();
-    private final Paint mBorderPaint = new Paint();
+    final private LoupeRenderer mLoupeRenderer;
 
     public LoupeAnnotationView(Context context) {
         this(context, null);
@@ -53,37 +49,16 @@ public final class LoupeAnnotationView extends AnnotationView {
 
     public LoupeAnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics());
-        mBorderPaint.setStrokeWidth(strokeWidth);
-        mBorderPaint.setStyle(Paint.Style.STROKE);
-        mBorderPaint.setColor(Color.BLACK);
+        float strokeWidth = LoupeRenderer.getStrokeWidth(context);
+        mLoupeRenderer = new LoupeRenderer(strokeWidth);
     }
 
     void setSourceBitmap(Bitmap bitmap) {
-        mSourceBitmap = bitmap;
+        mLoupeRenderer.setSourceBitmap(bitmap);
     }
 
     @Override
     protected void drawAnnotation(Annotation annotation, Canvas canvas) {
-        canvas.save();
-
-        float radius = getLength(annotation);
-        PointF center = getPointFromPercentPoint(annotation.getStartPercentPoint());
-        Path loupePath = new Path();
-        loupePath.addCircle(center.x, center.y, radius, Path.Direction.CW);
-        canvas.clipPath(loupePath);
-
-        mMatrix.reset();
-        mMatrix.preScale(MAGNIFICATION_FACTOR, MAGNIFICATION_FACTOR);
-
-        float px = center.x;
-        float py = center.y;
-        mMatrix.postTranslate(-px * (MAGNIFICATION_FACTOR - 1), -py * (MAGNIFICATION_FACTOR - 1));
-
-        // Draw loupe contents
-        canvas.drawBitmap(mSourceBitmap, mMatrix, null);
-        // Draw loupe border
-        canvas.drawCircle(center.x, center.y, radius, mBorderPaint);
-        canvas.restore();
+        mLoupeRenderer.drawAnnotation(annotation, canvas);
     }
 }

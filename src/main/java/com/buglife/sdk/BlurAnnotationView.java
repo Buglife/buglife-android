@@ -26,16 +26,12 @@ import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 
-import com.buglife.sdk.Annotation;
-import com.buglife.sdk.AnnotationView;
-import com.buglife.sdk.Blur;
-
 /**
  * Annotation view that renders blur annotations.
  */
 public final class BlurAnnotationView extends AnnotationView {
 
-    private Bitmap mSourceBitmap;
+    private BlurRenderer mBlurRenderer;
 
     public BlurAnnotationView(Context context) {
         this(context, null, 0);
@@ -49,21 +45,12 @@ public final class BlurAnnotationView extends AnnotationView {
         super(context, attrs, defStyleAttr);
     }
 
-    public void setSourceBitamp(Bitmap bitmap) {
-        mSourceBitmap = bitmap;
+    public void setSourceBitmap(Bitmap bitmap) {
+        mBlurRenderer = new BlurRenderer(bitmap);
     }
 
     @Override
     protected void drawAnnotation(Annotation annotation, Canvas canvas) {
-        Rect inBounds = annotation.getRect(mSourceBitmap.getWidth(), mSourceBitmap.getHeight());
-        Rect outBounds = annotation.getRect(canvas.getWidth(), canvas.getHeight());
-
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);
-        Blur.draw(mSourceBitmap, inBounds, canvas, outBounds, paint);
-
-        Paint borderPaint = new Paint();
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.RED);
-        canvas.drawRect(outBounds, paint);
+        mBlurRenderer.drawAnnotation(annotation, canvas);
     }
 }

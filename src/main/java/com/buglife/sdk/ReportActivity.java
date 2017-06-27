@@ -25,22 +25,29 @@ import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
@@ -54,9 +61,8 @@ public class ReportActivity extends AppCompatActivity {
     private BugContext mBugContext;
     private AttachmentAdapter mAttachmentAdapter;
     private ListView mAttachmentListView;
-    private EditText mWhatHappenedEditText;
-    private ProgressDialog mProgressDialog;
-    private RequestQueue mRequestQueue;
+    private @NonNull List<InputField> mInputFields;
+    private @NonNull List<InputFieldView> mInputFieldViews;
 
     public ReportActivity() {
     }
@@ -66,7 +72,6 @@ public class ReportActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report);
 
-        mWhatHappenedEditText = (EditText) findViewById(R.id.what_happened_edit_text);
         mAttachmentListView = (ListView) findViewById(R.id.attachment_list_view);
 
         Intent intent = getIntent();
@@ -83,6 +88,37 @@ public class ReportActivity extends AppCompatActivity {
                 showScreenshotAnnotatorActivity(attachment);
             }
         });
+
+        mInputFields = Buglife.getInputFields();
+        ArrayList<InputFieldView> inputFieldViews = new ArrayList();
+
+        LinearLayout inputFieldLayout = (LinearLayout) findViewById(R.id.input_field_layout);
+
+        for (final InputField inputField : mInputFields) {
+            final InputFieldView inputFieldView;
+            final String currentValue = getValueForInputField(inputField);
+
+            if (inputField instanceof TextInputField) {
+                inputFieldView = new TextInputFieldView(this);
+            } else if (inputField instanceof PickerInputField) {
+                inputFieldView = new PickerInputFieldView(this);
+            } else {
+                throw new Buglife.BuglifeException("Unexpected input field type: " + inputField);
+            }
+
+            inputFieldView.configureWithInputField(inputField, new InputFieldView.ValueCoordinator() {
+                @Override
+                public void onValueChanged(@NonNull InputField inputField, @Nullable String newValue) {
+                    setValueForInputField(inputField, newValue);
+                }
+            });
+
+            inputFieldLayout.addView(inputFieldView);
+            inputFieldViews.add(inputFieldView);
+            inputFieldView.setValue(currentValue);
+        }
+
+        mInputFieldViews = inputFieldViews;
 
         int colorPrimary = Buglife.getColorPalette().getColorPrimary();
         int titleTextColor = Buglife.getColorPalette().getTextColorPrimary();
@@ -102,6 +138,16 @@ public class ReportActivity extends AppCompatActivity {
         }
 
         ActivityUtils.setStatusBarColor(this);
+    }
+
+    private @Nullable String getValueForInputField(@NonNull InputField inputField) {
+        String attributeName = inputField.getAttributeName();
+        return mBugContext.getAttribute(attributeName);
+    }
+
+    void setValueForInputField(@NonNull InputField inputField, @Nullable String value) {
+        String attributeName = inputField.getAttributeName();
+        mBugContext.putAttribute(attributeName, value);
     }
 
     @Override
@@ -165,8 +211,7 @@ public class ReportActivity extends AppCompatActivity {
         final Context context = this;
         final ProgressDialog progressDialog = ProgressDialog.show(this, getString(R.string.sending_toast), "");
 
-        String whatHappened = mWhatHappenedEditText.getText().toString();
-        Report report = new Report(mBugContext, whatHappened);
+        Report report = new Report(mBugContext);
         Buglife.submitReport(report, new RequestHandler() {
             @Override
             public void onSuccess() {

@@ -9,13 +9,12 @@
     <uses-feature android:name="android.hardware.sensor.accelerometer" />
 
     <application
-        android:allowBackup="true"
-        android:label="@string/app_name"
-        android:supportsRtl="true">
+        android:label="@string/app_name">
         <activity
             android:name=".ReportActivity"
             android:label="@string/report_a_bug"
             android:theme="@style/NoActionBarTheme"
+            android:windowSoftInputMode="adjustPan"
             />
         <activity
             android:name=".ScreenshotAnnotatorActivity"

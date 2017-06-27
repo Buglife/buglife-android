@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
@@ -104,8 +105,10 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
         Bitmap bitmap = mAttachment.getBitmap();
+        final float bitmapWidth = bitmap.getWidth();
+        final float bitmapHeight = bitmap.getHeight();
         mImageView.setImageBitmap(bitmap);
-        mBlurAnnotationView.setSourceBitamp(bitmap);
+        mBlurAnnotationView.setSourceBitmap(bitmap);
         mLoupeAnnotationView.setSourceBitmap(bitmap);
 
         // Annotation tools
@@ -168,6 +171,10 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         }
 
         ActivityUtils.setStatusBarColor(this);
+
+        float aspectRatio = bitmapWidth / bitmapHeight;
+        AspectFitFrameLayout canvasView = (AspectFitFrameLayout) findViewById(R.id.canvas_view);
+        canvasView.setAspectRatio(aspectRatio);
     }
 
     @Override
@@ -283,6 +290,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
                 Annotation.Type annotationType = mMutatingAnnotation.getAnnotationType();
                 AnnotationView annotationView = getAnnotationView(annotationType);
                 annotationView.invalidate();
+                annotationsWithTypeDidChange(annotationType);
                 break;
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP:
@@ -364,6 +372,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
                 }
 
                 annotationView.invalidate();
+                annotationsWithTypeDidChange(annotationType);
 
                 break;
             }
@@ -379,6 +388,15 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    private void annotationsWithTypeDidChange(Annotation.Type annotationType) {
+        // When blur annotations are drawn or moved, update the loupes which are on top of them
+        if (annotationType == Annotation.Type.BLUR) {
+            Bitmap screenshotWithBlurs = createBitmapWithBlurAnnotations();
+            mLoupeAnnotationView.setSourceBitmap(screenshotWithBlurs);
+            mLoupeAnnotationView.invalidate();;
+        }
     }
 
     @Override
@@ -468,10 +486,30 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     }
 
     private @NonNull Attachment getAttachmentCopyWithAnnotations() {
-        View canvasView = findViewById(R.id.canvas_view);
-        Screenshotter screenshotter = new Screenshotter(canvasView);
-        Bitmap bitmap = screenshotter.getBitmap();
-        return mAttachment.getCopy(bitmap);
+        final Context context = this;
+        final Bitmap destinationBitmap = createBitmapWithBlurAnnotations();
+        final Canvas canvas = new Canvas(destinationBitmap);
+        float strokeWidth = LoupeRenderer.getStrokeWidth(context);
+        final LoupeRenderer loupeRenderer = new LoupeRenderer(destinationBitmap, strokeWidth);
+
+        for (Annotation annotation : mLoupeAnnotationView.getAnnotations()) {
+            loupeRenderer.drawAnnotation(annotation, canvas);
+        }
+
+        int fillColor = getResources().getColor(R.color.arrow_annotation_fill_color);
+        int strokeColor = getResources().getColor(R.color.arrow_annotation_stroke_color);
+        ArrowRenderer arrowRenderer = new ArrowRenderer(fillColor, strokeColor);
+
+        for (Annotation annotation : mArrowAnnotationView.getAnnotations()) {
+            arrowRenderer.drawAnnotation(annotation, canvas);
+        }
+
+        return mAttachment.getCopy(destinationBitmap);
+    }
+
+    private @NonNull Bitmap createBitmapWithBlurAnnotations() {
+        final Bitmap sourceBitmap = mAttachment.getBitmap();
+        return BitmapAnnotator.createBitmapWithBlurAnnotations(sourceBitmap, mBlurAnnotationView.getAnnotations());
     }
 
     private void setAttachmentResult() {

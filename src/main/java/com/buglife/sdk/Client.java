@@ -47,6 +47,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
@@ -88,6 +89,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     @Nullable private String mUserEmail = null;
     @NonNull private final ArrayList<Attachment> mQueuedAttachments;
     @NonNull private final AttributeMap mAttributes;
+    @Nullable private ArrayList<InputField> mInputFields;
     private boolean mReportFlowVisible = false;
     @NonNull private final ColorPalette mColorPallete;
 
@@ -224,6 +226,24 @@ final class Client implements ForegroundDetector.OnForegroundListener {
 
     void putAttribute(@NonNull String key, @Nullable String value) {
         mAttributes.put(key, value);
+    }
+
+    void setInputFields(@NonNull InputField... inputFields) {
+        mInputFields = new ArrayList(Arrays.asList(inputFields));
+    }
+
+    List<InputField> getInputFields() {
+        ArrayList<InputField> inputFields = mInputFields;
+
+        if (inputFields == null || inputFields.isEmpty()) {
+            TextInputField summaryInputField = TextInputField.summaryInputField();
+            inputFields = new ArrayList();
+            inputFields.add(summaryInputField);
+        }
+
+        // return a copy of the array so that adding new fields during
+        // a report flow doesn't break things
+        return new ArrayList(inputFields);
     }
 
     private final ShakeDetector.OnShakeListener mOnShakeListener = new ShakeDetector.OnShakeListener() {
@@ -392,7 +412,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     }
 
     private JSONObject getReportParams(Report report) throws JSONException {
-        String whatHappened = report.getWhatHappened();
+        String whatHappened = report.getBugContext().getAttribute(TextInputField.SUMMARY_ATTRIBUTE_NAME);
         String bundleIdentifier = mAppContext.getPackageName();
         String bundleName = Client.getApplicationName(mAppContext);
         String operatingSystemVersion = android.os.Build.VERSION.RELEASE;

@@ -74,6 +74,14 @@ final class BugContext implements Parcelable {
         Assert.fail("Unable to find existing copy of attachment");
     }
 
+    void putAttribute(@NonNull String key, @Nullable String value) {
+        mAttributes.put(key, value);
+    }
+
+    @Nullable String getAttribute(@NonNull String key) {
+        return mAttributes.get(key);
+    }
+
     @Override
     public int describeContents() {
         return 0;
