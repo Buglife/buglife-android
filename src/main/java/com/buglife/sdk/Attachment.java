@@ -103,7 +103,7 @@ public class Attachment implements Parcelable {
         return getIdentifier() == attachment.getIdentifier();
     }
 
-    byte[] getData() {
+    AttachmentData getData() {
         return AttachmentDataCache.getInstance().getData(mIdentifier);
     }
 
@@ -123,7 +123,7 @@ public class Attachment implements Parcelable {
     }
 
     String getBase64EncodedData() {
-        return Base64.encodeToString(getData(), Base64.DEFAULT);
+        return getData().getBase64EncodedData();
     }
 
     Bitmap getBitmap() {
@@ -131,8 +131,8 @@ public class Attachment implements Parcelable {
             throw new Buglife.BuglifeException("No bitmap available for attachment of type " + mType);
         }
 
-        byte[] data = getData();
-        return BitmapFactory.decodeByteArray(data, 0, data.length);
+        BitmapData bitmapData = (BitmapData)getData();
+        return bitmapData.getBitmap();
     }
 
     Attachment getCopy(Bitmap newBitmap) {
@@ -183,14 +183,16 @@ public class Attachment implements Parcelable {
          * @throws IOException
          */
         public @NonNull Attachment build(@NonNull File file) throws IOException {
-            int size = (int) file.length();
-            byte[] bytes = new byte[size];
-            FileInputStream fileInputStream = new FileInputStream(file);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-            bufferedInputStream.read(bytes, 0, bytes.length);
-            bufferedInputStream.close();
-            AttachmentDataCache.getInstance().putData(mIdentifier, bytes);
-            return new Attachment(mIdentifier, mFilename, mType);
+//            int size = (int) file.length();
+//            byte[] bytes = new byte[size];
+//            FileInputStream fileInputStream = new FileInputStream(file);
+//            BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+//            bufferedInputStream.read(bytes, 0, bytes.length);
+//            bufferedInputStream.close();
+//            AttachmentDataCache.getInstance().putData(mIdentifier, bytes);
+//            return new Attachment(mIdentifier, mFilename, mType);
+
+            throw new Buglife.BuglifeException("Unimplemented");
         }
 
         /**
@@ -199,10 +201,8 @@ public class Attachment implements Parcelable {
          * @return The attachment
          */
         public @NonNull Attachment build(@NonNull Bitmap bitmap) {
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(DEFAULT_SCREENSHOT_FORMAT, DEFAULT_SCREENSHOT_COMPRESSION_QUALITY, stream);
-            byte[] data = stream.toByteArray();
-            AttachmentDataCache.getInstance().putData(mIdentifier, data);
+            BitmapData bitmapData = new BitmapData(bitmap);
+            AttachmentDataCache.getInstance().putData(mIdentifier, bitmapData);
             return new Attachment(mIdentifier, mFilename, mType);
         }
 
