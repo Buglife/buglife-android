@@ -22,7 +22,7 @@ import java.util.Map;
 
 final class AttachmentDataCache {
     private static AttachmentDataCache mInstance;
-    private final Map<Integer, byte[]> mDataCache = new HashMap<>();
+    private final Map<Integer, AttachmentData> mDataCache = new HashMap<>();
 
     static synchronized AttachmentDataCache getInstance() {
         if (mInstance == null) {
@@ -32,15 +32,16 @@ final class AttachmentDataCache {
         return mInstance;
     }
 
-    void putData(int attachmentIdentifier, byte[] data) {
+    void putData(int attachmentIdentifier, AttachmentData data) {
         mDataCache.put(attachmentIdentifier, data);
     }
 
-    byte[] getData(int attachmentIdentifier) {
+    AttachmentData getData(int attachmentIdentifier) {
         return mDataCache.get(attachmentIdentifier);
     }
 
     void clear() {
         mDataCache.clear();
+        // TODO: Collect all the garbage and eat it
     }
 }

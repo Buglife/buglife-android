@@ -41,9 +41,17 @@ class Screenshotter {
 
     Bitmap getBitmap() {
         boolean drawingCacheWasEnabled = mRootView.isDrawingCacheEnabled();
-        mRootView.setDrawingCacheEnabled(true);
-        Bitmap bitmap = Bitmap.createBitmap(mRootView.getDrawingCache());
-        mRootView.setDrawingCacheEnabled(drawingCacheWasEnabled);
-        return bitmap;
+
+        if (drawingCacheWasEnabled) {
+            Bitmap sourceBitmap = mRootView.getDrawingCache();
+            Bitmap copiedBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), false);
+            return copiedBitmap;
+        } else {
+            mRootView.setDrawingCacheEnabled(true);
+            Bitmap sourceBitmap = mRootView.getDrawingCache();
+            Bitmap copiedBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), false);
+            mRootView.setDrawingCacheEnabled(drawingCacheWasEnabled);
+            return copiedBitmap;
+        }
     }
 }

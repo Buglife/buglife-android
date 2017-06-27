@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Base64;
 
 import org.json.JSONException;
@@ -103,7 +104,7 @@ public class Attachment implements Parcelable {
         return getIdentifier() == attachment.getIdentifier();
     }
 
-    byte[] getData() {
+    AttachmentData getData() {
         return AttachmentDataCache.getInstance().getData(mIdentifier);
     }
 
@@ -123,20 +124,24 @@ public class Attachment implements Parcelable {
     }
 
     String getBase64EncodedData() {
-        return Base64.encodeToString(getData(), Base64.DEFAULT);
+        return getData().getBase64EncodedData();
     }
 
     Bitmap getBitmap() {
-        if (!(mType.equals(TYPE_JPEG) || mType.equals(TYPE_PNG))) {
+        if (!isImageAttachmentType(mType)) {
             throw new Buglife.BuglifeException("No bitmap available for attachment of type " + mType);
         }
 
-        byte[] data = getData();
-        return BitmapFactory.decodeByteArray(data, 0, data.length);
+        BitmapData bitmapData = (BitmapData)getData();
+        return bitmapData.getBitmap();
     }
 
     Attachment getCopy(Bitmap newBitmap) {
         return new Builder(mFilename, mType).setIdentifier(mIdentifier).build(newBitmap);
+    }
+
+    static boolean isImageAttachmentType(@NonNull String attachmentType) {
+        return attachmentType.equals(TYPE_PNG) || attachmentType.equals(TYPE_JPEG);
     }
 
     /**
@@ -183,14 +188,21 @@ public class Attachment implements Parcelable {
          * @throws IOException
          */
         public @NonNull Attachment build(@NonNull File file) throws IOException {
-            int size = (int) file.length();
-            byte[] bytes = new byte[size];
-            FileInputStream fileInputStream = new FileInputStream(file);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-            bufferedInputStream.read(bytes, 0, bytes.length);
-            bufferedInputStream.close();
-            AttachmentDataCache.getInstance().putData(mIdentifier, bytes);
-            return new Attachment(mIdentifier, mFilename, mType);
+            if (isImageAttachmentType(mType)) {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+                return build(bitmap);
+            } else {
+                int size = (int) file.length();
+                byte[] bytes = new byte[size];
+                FileInputStream fileInputStream = new FileInputStream(file);
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+                bufferedInputStream.read(bytes, 0, bytes.length);
+                bufferedInputStream.close();
+                FileData fileData = new FileData(bytes);
+                AttachmentDataCache.getInstance().putData(mIdentifier, fileData);
+                return new Attachment(mIdentifier, mFilename, mType);
+            }
         }
 
         /**
@@ -199,10 +211,8 @@ public class Attachment implements Parcelable {
          * @return The attachment
          */
         public @NonNull Attachment build(@NonNull Bitmap bitmap) {
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(DEFAULT_SCREENSHOT_FORMAT, DEFAULT_SCREENSHOT_COMPRESSION_QUALITY, stream);
-            byte[] data = stream.toByteArray();
-            AttachmentDataCache.getInstance().putData(mIdentifier, data);
+            BitmapData bitmapData = new BitmapData(bitmap);
+            AttachmentDataCache.getInstance().putData(mIdentifier, bitmapData);
             return new Attachment(mIdentifier, mFilename, mType);
         }
 
