@@ -475,12 +475,20 @@ final class Client implements ForegroundDetector.OnForegroundListener {
 
         // Attributes
         JSONObject attributesParams = new JSONObject();
+        AttributeMap attributes = report.getBugContext().getAttributes();
 
-        for (Map.Entry<String, String> attribute : mAttributes.entrySet()) {
+        for (Map.Entry<String, String> attribute : attributes.entrySet()) {
+            String attributeName = attribute.getKey();
+
+            if (attributeName.equals(TextInputField.SUMMARY_ATTRIBUTE_NAME)) {
+                // Skip system attributes
+                continue;
+            }
+
             JSONObject attributeParams = new JSONObject();
             attributeParams.put("attribute_type", 0);
             attributeParams.put("attribute_value", attribute.getValue());
-            attributesParams.put(attribute.getKey(), attributeParams);
+            attributesParams.put(attributeName, attributeParams);
         }
 
         if (attributesParams.length() > 0) {

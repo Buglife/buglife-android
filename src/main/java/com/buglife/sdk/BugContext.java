@@ -82,6 +82,10 @@ final class BugContext implements Parcelable {
         return mAttributes.get(key);
     }
 
+    @NonNull AttributeMap getAttributes() {
+        return mAttributes;
+    }
+
     @Override
     public int describeContents() {
         return 0;
