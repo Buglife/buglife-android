@@ -20,8 +20,8 @@ allprojects {
 ext {
     PUBLISH_GROUP_ID = 'com.buglife.sdk'
     PUBLISH_ARTIFACT_ID = 'buglife-android'
-    PUBLISH_VERSION_CODE = 29
-    PUBLISH_VERSION_NAME = '0.9.9'
+    PUBLISH_VERSION_CODE = 30
+    PUBLISH_VERSION_NAME = '0.9.10'
 }
 
 android {
