@@ -1,21 +1,18 @@
 package com.buglife.android.example;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.app.Activity;
+import android.content.Intent;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.InvocationMethod;
-
-import static com.buglife.sdk.Attachment.TYPE_PNG;
+import com.buglife.sdk.screenrecorder.ScreenRecorder;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,17 +27,38 @@ public class MainActivity extends AppCompatActivity {
         introTextView.setText(getIntroText());
     }
 
+    private ScreenRecorder mScreenRecorder;
+    private static final int SCREEN_RECORD_REQUEST_CODE = 1234;
+
     void reportBugButtonTapped(View view) {
-        Bitmap screenshot = Buglife.getScreenshotBitmap();
-        Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
-        Buglife.addAttachment(attachment);
+//        Bitmap screenshot = Buglife.getScreenshotBitmap();
+//        Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
+//        Buglife.addAttachment(attachment);
+//
+//
+//        Bitmap walter = BitmapFactory.decodeResource(getResources(), R.drawable.walter);
+//        Attachment attachment1 = new Attachment.Builder("walter.jpg", Attachment.TYPE_JPEG).build(walter);
+//        Buglife.addAttachment(attachment1);
+//
+//        Buglife.showReporter();
 
+        MediaProjectionManager manager =
+                (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+        Intent intent = manager.createScreenCaptureIntent();
+        startActivityForResult(intent, SCREEN_RECORD_REQUEST_CODE);
+    }
 
-        Bitmap walter = BitmapFactory.decodeResource(getResources(), R.drawable.walter);
-        Attachment attachment1 = new Attachment.Builder("walter.jpg", Attachment.TYPE_JPEG).build(walter);
-        Buglife.addAttachment(attachment1);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode != SCREEN_RECORD_REQUEST_CODE) {
+            super.onActivityResult(requestCode, resultCode, data);
+            return;
+        }
 
-        Buglife.showReporter();
+        if (resultCode == Activity.RESULT_OK) {
+            mScreenRecorder = new ScreenRecorder(this, resultCode, data);
+            mScreenRecorder.start();
+        }
     }
 
     private String getIntroText() {
