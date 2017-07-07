@@ -3,12 +3,15 @@ package com.buglife.android.example;
 import android.app.Activity;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.InvocationMethod;
@@ -28,7 +31,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private ScreenRecorder mScreenRecorder;
-    private static final int SCREEN_RECORD_REQUEST_CODE = 1234;
+    private static final int SCREEN_OVERLAY_REQUEST_CODE = 1234;
+    private static final int SCREEN_RECORD_REQUEST_CODE = 12345;
 
     void reportBugButtonTapped(View view) {
 //        Bitmap screenshot = Buglife.getScreenshotBitmap();
@@ -42,6 +46,20 @@ public class MainActivity extends AppCompatActivity {
 //
 //        Buglife.showReporter();
 
+        startScreenRecording();
+    }
+
+    private void startScreenRecording() {
+        // First make sure we can draw an overlay
+        if (!Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, SCREEN_OVERLAY_REQUEST_CODE);
+        } else {
+            onOverlayPermissionsGranted();
+        }
+    }
+
+    private void onOverlayPermissionsGranted() {
         MediaProjectionManager manager =
                 (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         Intent intent = manager.createScreenCaptureIntent();
@@ -50,14 +68,19 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode != SCREEN_RECORD_REQUEST_CODE) {
+        if (requestCode == SCREEN_OVERLAY_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                onOverlayPermissionsGranted();
+            } else {
+                Toast.makeText(this, "Screen overlays must be enabled to perform screen recording", Toast.LENGTH_LONG).show();
+            }
+        } else if (requestCode == SCREEN_RECORD_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                mScreenRecorder = new ScreenRecorder(this, resultCode, data);
+                mScreenRecorder.start();
+            }
+        } else {
             super.onActivityResult(requestCode, resultCode, data);
-            return;
-        }
-
-        if (resultCode == Activity.RESULT_OK) {
-            mScreenRecorder = new ScreenRecorder(this, resultCode, data);
-            mScreenRecorder.start();
         }
     }
 
