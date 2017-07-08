@@ -66,9 +66,8 @@ public final class ScreenRecorder {
         mContext = context;
         mResultCode = resultCode;
         mData = data;
-        File moviesDirectory = Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES);
-        // TODO: Change this
-        mOutputDirectory = new File(moviesDirectory, "Buglife");
+        File externalFilesDir = context.getExternalFilesDir(null);
+        mOutputDirectory = new File(externalFilesDir, "Buglife");
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         mMediaProjectionManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
     }
