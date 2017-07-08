@@ -21,6 +21,7 @@ import android.view.Surface;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.Log;
 
@@ -37,6 +38,7 @@ import static android.media.MediaRecorder.OutputFormat.MPEG_4;
 import static android.media.MediaRecorder.VideoEncoder.H264;
 import static android.media.MediaRecorder.VideoSource.SURFACE;
 import static android.os.Environment.DIRECTORY_MOVIES;
+import static com.buglife.sdk.Attachment.TYPE_MP4;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public final class ScreenRecorder {
@@ -185,23 +187,38 @@ public final class ScreenRecorder {
         mIsRecording = false;
 
         hideOverlay();
-        mMediaProjection.stop();
-        mMediaRecorder.stop();
+
+        try {
+            mMediaProjection.stop();
+            mMediaRecorder.stop();
+        } catch (RuntimeException e) {
+            Log.e("Error stopping the media recorder", e);
+        }
+
         mMediaRecorder.release();
         mVirtualDisplay.release();
 
         MediaScannerConnection.scanFile(mContext, new String[]{mOutputFilePath}, null, new MediaScannerConnection.OnScanCompletedListener() {
             @Override
-            public void onScanCompleted(String path, final Uri uri) {
+            public void onScanCompleted(final String path, final Uri uri) {
                 mMainThread.post(new Runnable() {
                     @Override
                     public void run() {
                         Log.d("Recording complete: " + uri);
-                        // TODO: Remove this
-                        Toast.makeText(mContext, "Recording saved to " + uri, Toast.LENGTH_LONG).show();
+                        onRecordingFinished(path);
                     }
                 });
             }
         });
+    }
+
+    private void onRecordingFinished(String path) {
+        Attachment attachment;
+        File file = new File(path);
+
+        attachment = new Attachment.Builder("ScreenRecording.mp4", TYPE_MP4).build(file);
+
+        Buglife.addAttachment(attachment);
+        Buglife.showReporter();
     }
 }

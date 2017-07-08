@@ -299,16 +299,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
             return;
         }
 
-        Attachment screenshotAttachment = null;
-
-        try {
-            screenshotAttachment = getScreenshotBuilder().build(screenshotFile);
-        } catch (IOException e) {
-            Log.e("IOException capturing screenshot: " + screenshotFile, e);
-            Toast.makeText(mAppContext, R.string.error_unable_to_read_screenshot, Toast.LENGTH_LONG).show();
-            return;
-        }
-
+        Attachment screenshotAttachment = getScreenshotBuilder().build(screenshotFile);
         showAlertDialog(screenshotAttachment);
     }
 

@@ -17,20 +17,19 @@
 
 package com.buglife.sdk;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.util.Base64;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -44,6 +43,7 @@ public class Attachment implements Parcelable {
     public static final String TYPE_SQLITE = "application/x-sqlite3";
     public static final String TYPE_PNG = "image/png";
     public static final String TYPE_JPEG = "image/jpeg";
+    public static final String TYPE_MP4 = "video/mp4";
 
     private static final Bitmap.CompressFormat DEFAULT_SCREENSHOT_FORMAT = Bitmap.CompressFormat.PNG;
     private static final int DEFAULT_SCREENSHOT_COMPRESSION_QUALITY = 100;
@@ -127,13 +127,20 @@ public class Attachment implements Parcelable {
         return getData().getBase64EncodedData();
     }
 
-    Bitmap getBitmap() {
-        if (!isImageAttachmentType(mType)) {
-            throw new Buglife.BuglifeException("No bitmap available for attachment of type " + mType);
+    Bitmap getBitmap(Context context) {
+        if (isImageAttachmentType(mType)) {
+            BitmapData bitmapData = (BitmapData) getData();
+            return bitmapData.getBitmap();
+        } else if (mType.equals(TYPE_MP4)) {
+            FileData fileData = (FileData) getData();
+            Uri fileUri = fileData.getUri();
+            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+            mediaMetadataRetriever.setDataSource(context, fileUri);
+            Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime(0);
+            return bitmap;
         }
 
-        BitmapData bitmapData = (BitmapData)getData();
-        return bitmapData.getBitmap();
+        throw new Buglife.BuglifeException("No bitmap available for attachment of type " + mType);
     }
 
     Attachment getCopy(Bitmap newBitmap) {
@@ -174,34 +181,26 @@ public class Attachment implements Parcelable {
          *
          * @param uri The resource URI
          * @return The attachment
-         * @throws IOException
          */
-        public @NonNull Attachment build(@NonNull Uri uri) throws IOException {
-            File file = new File(uri.getPath());
-            return build(file);
+        public @NonNull Attachment build(@NonNull Uri uri) {
+            FileData fileData = new FileData(uri);
+            AttachmentDataCache.getInstance().putData(mIdentifier, fileData);
+            return new Attachment(mIdentifier, mFilename, mType);
         }
 
         /**
          * Builds an attachment using a File reference.
          * @param file The file
          * @return The attachment
-         * @throws IOException
          */
-        public @NonNull Attachment build(@NonNull File file) throws IOException {
+        public @NonNull Attachment build(@NonNull File file) {
             if (isImageAttachmentType(mType)) {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
                 return build(bitmap);
             } else {
-                int size = (int) file.length();
-                byte[] bytes = new byte[size];
-                FileInputStream fileInputStream = new FileInputStream(file);
-                BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-                bufferedInputStream.read(bytes, 0, bytes.length);
-                bufferedInputStream.close();
-                FileData fileData = new FileData(bytes);
-                AttachmentDataCache.getInstance().putData(mIdentifier, fileData);
-                return new Attachment(mIdentifier, mFilename, mType);
+                Uri uri = Uri.fromFile(file);
+                return build(uri);
             }
         }
 

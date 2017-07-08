@@ -71,7 +71,7 @@ class AttachmentAdapter extends BaseAdapter {
 
         Attachment attachment = getItem(position);
 
-        thumbnailView.setImageBitmap(attachment.getBitmap());
+        thumbnailView.setImageBitmap(attachment.getBitmap(rowView.getContext()));
         titleView.setText(attachment.getFilename());
 
         return rowView;

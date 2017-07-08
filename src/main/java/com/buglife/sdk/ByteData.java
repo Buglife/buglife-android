@@ -19,22 +19,19 @@ package com.buglife.sdk;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Base64;
 
-final class FileData extends AttachmentData {
+final class ByteData extends AttachmentData {
 
-    final private Uri mUri;
+    private @NonNull byte[] mData;
 
-    FileData(Uri uri) {
-        mUri = uri;
+    ByteData(@NonNull byte[] data) {
+        mData = data;
     }
 
-    Uri getUri() {
-        return mUri;
+    @Override @NonNull String getBase64EncodedData() {
+        return Base64.encodeToString(mData, Base64.DEFAULT);
     }
 
-    @NonNull
-    @Override
-    String getBase64EncodedData() {
-        return null;
-    }
+
 }

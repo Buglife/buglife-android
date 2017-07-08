@@ -104,7 +104,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         mAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
         mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
-        Bitmap bitmap = mAttachment.getBitmap();
+        Bitmap bitmap = mAttachment.getBitmap(this);
         final float bitmapWidth = bitmap.getWidth();
         final float bitmapHeight = bitmap.getHeight();
         mImageView.setImageBitmap(bitmap);
@@ -508,7 +508,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     }
 
     private @NonNull Bitmap createBitmapWithBlurAnnotations() {
-        final Bitmap sourceBitmap = mAttachment.getBitmap();
+        final Bitmap sourceBitmap = mAttachment.getBitmap(this);
         return BitmapAnnotator.createBitmapWithBlurAnnotations(sourceBitmap, mBlurAnnotationView.getAnnotations());
     }
 
