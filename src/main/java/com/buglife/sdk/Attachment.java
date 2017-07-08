@@ -137,6 +137,7 @@ public class Attachment implements Parcelable {
             MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
             mediaMetadataRetriever.setDataSource(context, fileUri);
             Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime(0);
+            mediaMetadataRetriever.release();
             return bitmap;
         }
 
