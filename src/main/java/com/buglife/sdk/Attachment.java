@@ -131,7 +131,7 @@ public class Attachment implements Parcelable {
         if (isImageAttachmentType(mType)) {
             BitmapData bitmapData = (BitmapData) getData();
             return bitmapData.getBitmap();
-        } else if (mType.equals(TYPE_MP4)) {
+        } else if (isVideoAttachmentType(mType)) {
             FileData fileData = (FileData) getData();
             Uri fileUri = fileData.getUri();
             MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
@@ -148,8 +148,20 @@ public class Attachment implements Parcelable {
         return new Builder(mFilename, mType).setIdentifier(mIdentifier).build(newBitmap);
     }
 
+    boolean isImageAttachment() {
+        return isImageAttachmentType(mType);
+    }
+
+    boolean isVideoAttachment() {
+        return isVideoAttachmentType(mType);
+    }
+
     static boolean isImageAttachmentType(@NonNull String attachmentType) {
         return attachmentType.equals(TYPE_PNG) || attachmentType.equals(TYPE_JPEG);
+    }
+
+    static boolean isVideoAttachmentType(@NonNull String attachmentType) {
+        return attachmentType.equals(TYPE_MP4);
     }
 
     /**

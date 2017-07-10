@@ -85,7 +85,7 @@ public class ReportActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Attachment attachment = mAttachmentAdapter.getItem(position);
-                showScreenshotAnnotatorActivity(attachment);
+                showActivityForAttachment(attachment);
             }
         });
 
@@ -174,10 +174,24 @@ public class ReportActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void showActivityForAttachment(Attachment attachment) {
+        if (attachment.isImageAttachment()) {
+            showScreenshotAnnotatorActivity(attachment);
+        } else if (attachment.isVideoAttachment()) {
+            showVideoActivity(attachment);
+        }
+    }
+
     private void showScreenshotAnnotatorActivity(Attachment attachment) {
         Intent intent = new Intent(this, ScreenshotAnnotatorActivity.class);
         intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
         startActivityForResult(intent, ScreenshotAnnotatorActivity.REQUEST_CODE);
+    }
+
+    private void showVideoActivity(Attachment attachment) {
+        Intent intent = new Intent(this, VideoActivity.class);
+        intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
+        startActivity(intent);
     }
 
     @Override
