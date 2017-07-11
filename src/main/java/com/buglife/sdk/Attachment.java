@@ -133,9 +133,9 @@ public class Attachment implements Parcelable {
             return bitmapData.getBitmap();
         } else if (isVideoAttachmentType(mType)) {
             FileData fileData = (FileData) getData();
-            Uri fileUri = fileData.getUri();
+            File file = fileData.getFile();
             MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-            mediaMetadataRetriever.setDataSource(context, fileUri);
+            mediaMetadataRetriever.setDataSource(context, Uri.fromFile(file));
             Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime(0);
             mediaMetadataRetriever.release();
             return bitmap;
@@ -190,18 +190,6 @@ public class Attachment implements Parcelable {
         }
 
         /**
-         * Builds an attachment using a resource URI.
-         *
-         * @param uri The resource URI
-         * @return The attachment
-         */
-        public @NonNull Attachment build(@NonNull Uri uri) {
-            FileData fileData = new FileData(uri);
-            AttachmentDataCache.getInstance().putData(mIdentifier, fileData);
-            return new Attachment(mIdentifier, mFilename, mType);
-        }
-
-        /**
          * Builds an attachment using a File reference.
          * @param file The file
          * @return The attachment
@@ -212,8 +200,9 @@ public class Attachment implements Parcelable {
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
                 return build(bitmap);
             } else {
-                Uri uri = Uri.fromFile(file);
-                return build(uri);
+                FileData fileData = new FileData(file);
+                AttachmentDataCache.getInstance().putData(mIdentifier, fileData);
+                return new Attachment(mIdentifier, mFilename, mType);
             }
         }
 

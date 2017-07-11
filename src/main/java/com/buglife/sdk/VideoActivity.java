@@ -12,8 +12,10 @@ import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.VideoView;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URI;
 
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
 
@@ -32,8 +34,8 @@ public final class VideoActivity extends Activity {
         Intent intent = getIntent();
         Attachment videoAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
         FileData fileData = (FileData) videoAttachment.getData();
-        Uri uri = fileData.getUri();
-        mVideoView.setVideoURI(uri);
+        File file = fileData.getFile();
+        mVideoView.setVideoURI(Uri.fromFile(file));
         mVideoView.start();
 
         mMediaController = new MediaController(this);
