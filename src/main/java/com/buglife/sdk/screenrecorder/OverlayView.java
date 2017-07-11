@@ -45,6 +45,10 @@ final class OverlayView extends FrameLayout {
         });
     }
 
+    public Button getStopButton() {
+        return (Button) findViewById(R.id.stop_button);
+    }
+
     @Override
     public WindowInsets onApplyWindowInsets(WindowInsets insets) {
         ViewGroup.LayoutParams layoutParams = getLayoutParams();

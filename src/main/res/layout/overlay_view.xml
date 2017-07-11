@@ -12,8 +12,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:background="#FF0000"
-            android:text="Stop recording"
-            />
+            android:text="@string/stop_recording" />
 
     </LinearLayout>
 

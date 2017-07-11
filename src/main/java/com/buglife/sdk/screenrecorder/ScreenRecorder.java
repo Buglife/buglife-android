@@ -11,6 +11,7 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -19,11 +20,13 @@ import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.Log;
+import com.buglife.sdk.R;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +34,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Timer;
 
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 import static android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION;
@@ -49,6 +53,7 @@ public final class ScreenRecorder {
     private static final int VIDEO_SCALE = 100;
     private static final int VIDEO_ENCODING_BITRATE = 8 * 1000 * 1000;
     private static final String VIRTUAL_DISPLAY_NAME = "buglife";
+    private static final int MAX_RECORD_TIME_MS = 30 * 1000;
 
     private final @NonNull Handler mMainThread = new Handler(Looper.getMainLooper());
     private final @NonNull Context mContext;
@@ -63,6 +68,7 @@ public final class ScreenRecorder {
     private final MediaProjectionManager mMediaProjectionManager;
     private VirtualDisplay mVirtualDisplay;
     private boolean mIsRecording;
+    private CountDownTimer mCountdownTimer;
 
     public ScreenRecorder(Context context, int resultCode, Intent data) {
         mContext = context;
@@ -173,6 +179,18 @@ public final class ScreenRecorder {
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(VIRTUAL_DISPLAY_NAME, width, height, density, VIRTUAL_DISPLAY_FLAG_PRESENTATION, surface, null, null);
         mMediaRecorder.start();
         mIsRecording = true;
+        mCountdownTimer = new CountDownTimer(MAX_RECORD_TIME_MS, 1000) { //create a timer that ticks every second
+            public void onTick(long millisecondsUntilFinished) {
+                Button stopButton = mOverlayView.getStopButton();
+                String base = mContext.getString(R.string.stop_recording);
+                stopButton.setText(base + " " + String.valueOf(millisecondsUntilFinished/1000));
+            }
+
+            public void onFinish() {
+                stopRecording();
+            }
+
+        }.start();
 
         Log.d("Screen recording started");
     }
@@ -183,6 +201,7 @@ public final class ScreenRecorder {
         if (!mIsRecording) {
             throw new Buglife.BuglifeException("Attempted to stop screen recorder, but it isn't currently recording");
         }
+        mCountdownTimer.cancel();
 
         mIsRecording = false;
 
