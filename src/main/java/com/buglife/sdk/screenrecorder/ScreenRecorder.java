@@ -52,12 +52,10 @@ import static com.buglife.sdk.Attachment.TYPE_MP4;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public final class ScreenRecorder {
 
-    private static final int CAMCORDER_PROFILE_QUALITY = CamcorderProfile.QUALITY_HIGH;
     private static final String MIME_TYPE = "video/avc";
-    private static final int DEFAULT_CAMERA_FRAME_RATE = 30; // Framerate if no camera profile is found
     private static final int DEFAULT_MEDIA_CODEC_FRAME_RATE = 30;
     private static final int VIDEO_SCALE = 25;
-    private static final int VIDEO_ENCODING_BITRATE = 8 * 1000 * 1000;
+    private static final int VIDEO_ENCODING_BITRATE = 375 * 1000;
     private static final String VIRTUAL_DISPLAY_NAME = "buglife";
     private static final int MAX_RECORD_TIME_MS = 30 * 1000;
 
@@ -126,7 +124,6 @@ public final class ScreenRecorder {
             return;
         }
 
-        CamcorderProfile camcorderProfile = CamcorderProfile.get(CAMCORDER_PROFILE_QUALITY);
         DisplayMetrics displayMetrics = new DisplayMetrics();
         WindowManager windowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         windowManager.getDefaultDisplay().getRealMetrics(displayMetrics);
@@ -134,33 +131,9 @@ public final class ScreenRecorder {
         final int scaledDisplayWidth = (displayMetrics.widthPixels * VIDEO_SCALE) / 100;
         final int scaledDisplayHeight = (displayMetrics.heightPixels * VIDEO_SCALE) / 100;
         final int density = displayMetrics.densityDpi;
-        final int width, height, frameRate;
-
-        if (camcorderProfile != null) {
-            int cameraWidth = camcorderProfile.videoFrameWidth;
-            int cameraHeight = camcorderProfile.videoFrameHeight;
-            frameRate = camcorderProfile.videoFrameRate;
-
-            int rotatedWidth = landscape ? cameraWidth : cameraHeight;
-            int rotatedHeight = landscape ? cameraHeight : cameraWidth;
-
-            if (rotatedWidth >= scaledDisplayWidth && rotatedHeight >= scaledDisplayHeight) {
-                width = scaledDisplayWidth;
-                height = scaledDisplayHeight;
-            } else {
-                if (landscape) {
-                    width = (scaledDisplayWidth * rotatedHeight) / scaledDisplayHeight;
-                    height = rotatedHeight;
-                } else {
-                    width = rotatedWidth;
-                    height = (scaledDisplayHeight * rotatedWidth) / scaledDisplayWidth;
-                }
-            }
-        } else {
-            width = scaledDisplayWidth;
-            height = scaledDisplayHeight;
-            frameRate = DEFAULT_CAMERA_FRAME_RATE;
-        }
+        final int width, height;
+        width = scaledDisplayWidth;
+        height = scaledDisplayHeight;
 //
         final DateFormat fileFormat = new SimpleDateFormat("'Buglife_'yyyy-MM-dd-HH-mm-ss'.mp4'", Locale.US);
         String outputFilename = fileFormat.format(new Date());
@@ -205,7 +178,7 @@ public final class ScreenRecorder {
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, videoWidth, videoHeight);
 
         int frameRate = DEFAULT_MEDIA_CODEC_FRAME_RATE;
-        int bitRate = 375000; // 3.75 Mpbs;
+        int bitRate = VIDEO_ENCODING_BITRATE; // 3.75 Mpbs;
 
         // Set some required properties. The media codec may fail if these aren't defined.
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
