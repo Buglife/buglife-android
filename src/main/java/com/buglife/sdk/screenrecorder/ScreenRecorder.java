@@ -5,6 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.display.VirtualDisplay;
 import android.media.CamcorderProfile;
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.media.MediaRecorder;
 import android.media.MediaScannerConnection;
 import android.media.projection.MediaProjection;
@@ -30,6 +34,7 @@ import com.buglife.sdk.R;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -48,8 +53,9 @@ import static com.buglife.sdk.Attachment.TYPE_MP4;
 public final class ScreenRecorder {
 
     private static final int CAMCORDER_PROFILE_QUALITY = CamcorderProfile.QUALITY_HIGH;
-    private static final String MIME_TYPE = "video/mp4";
+    private static final String MIME_TYPE = "video/avc";
     private static final int DEFAULT_CAMERA_FRAME_RATE = 30; // Framerate if no camera profile is found
+    private static final int DEFAULT_MEDIA_CODEC_FRAME_RATE = 30;
     private static final int VIDEO_SCALE = 100;
     private static final int VIDEO_ENCODING_BITRATE = 8 * 1000 * 1000;
     private static final String VIRTUAL_DISPLAY_NAME = "buglife";
@@ -63,7 +69,10 @@ public final class ScreenRecorder {
     private final @NonNull Intent mData;
     private @Nullable OverlayView mOverlayView;
     private final @NonNull WindowManager mWindowManager;
-    private MediaRecorder mMediaRecorder;
+    private MediaMuxer mMediaMuxer;
+    private Surface mInputSurface;
+    private MediaCodec mVideoEncoder;
+    private MediaCodec.BufferInfo mVideoBufferInfo;
     private MediaProjection mMediaProjection;
     private final MediaProjectionManager mMediaProjectionManager;
     private VirtualDisplay mVirtualDisplay;
@@ -152,32 +161,28 @@ public final class ScreenRecorder {
             height = scaledDisplayHeight;
             frameRate = DEFAULT_CAMERA_FRAME_RATE;
         }
-
-        mMediaRecorder = new MediaRecorder();
-        mMediaRecorder.setVideoSource(SURFACE);
-        mMediaRecorder.setOutputFormat(MPEG_4);
-        mMediaRecorder.setVideoFrameRate(frameRate);
-        mMediaRecorder.setVideoEncoder(H264);
-        mMediaRecorder.setVideoSize(width, height);
-        mMediaRecorder.setVideoEncodingBitRate(VIDEO_ENCODING_BITRATE);
-
+//
         final DateFormat fileFormat = new SimpleDateFormat("'Buglife_'yyyy-MM-dd-HH-mm-ss'.mp4'", Locale.US);
         String outputFilename = fileFormat.format(new Date());
         mOutputFilePath = new File(mOutputDirectory, outputFilename).getAbsolutePath();
-        mMediaRecorder.setOutputFile(mOutputFilePath);
+        Log.d("output file path = " + mOutputFilePath);
+
+        prepareVideoEncoder(width, height);
 
         try {
-            mMediaRecorder.prepare();
-        } catch (IOException e) {
-            Log.e("Error preparing screen recorder", e);
-            throw new Buglife.BuglifeException("Error preparing screen recorder");
+            mMediaMuxer = new MediaMuxer(mOutputFilePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+        } catch (IOException ioe) {
+            throw new RuntimeException("MediaMuxer creation failed", ioe);
         }
 
         mMediaProjection = mMediaProjectionManager.getMediaProjection(mResultCode, mData);
+        Surface surface = mInputSurface;
 
-        Surface surface = mMediaRecorder.getSurface();
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(VIRTUAL_DISPLAY_NAME, width, height, density, VIRTUAL_DISPLAY_FLAG_PRESENTATION, surface, null, null);
-        mMediaRecorder.start();
+
+        // Starts recording
+        drainEncoder();
+
         mIsRecording = true;
         mCountdownTimer = new CountDownTimer(MAX_RECORD_TIME_MS, 1000) { //create a timer that ticks every second
             public void onTick(long millisecondsUntilFinished) {
@@ -195,6 +200,133 @@ public final class ScreenRecorder {
         Log.d("Screen recording started");
     }
 
+    private void prepareVideoEncoder(int videoWidth, int videoHeight) {
+        int width = videoWidth;
+        int height = videoHeight;
+        mVideoBufferInfo = new MediaCodec.BufferInfo();
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, width, height);
+
+        int frameRate = DEFAULT_MEDIA_CODEC_FRAME_RATE;
+        int bitRate = 6000000; // 6Mpbs;
+
+        // Set some required properties. The media codec may fail if these aren't defined.
+        format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
+                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+        format.setInteger(MediaFormat.KEY_BIT_RATE, bitRate); // 6Mbps
+        format.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
+        format.setInteger(MediaFormat.KEY_CAPTURE_RATE, frameRate);
+        format.setInteger(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 1000000 / frameRate);
+        format.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 1);
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1); // 1 seconds between I-frames
+
+        // Create a MediaCodec encoder and configure it. Get a Surface we can use for recording into.
+        try {
+            mVideoEncoder = MediaCodec.createEncoderByType(MIME_TYPE);
+            mVideoEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            mInputSurface = mVideoEncoder.createInputSurface();
+            mVideoEncoder.start();
+        } catch (IOException e) {
+            releaseEncoders();
+        }
+    }
+
+    private void releaseEncoders() {
+        mDrainHandler.removeCallbacks(mDrainEncoderRunnable);
+
+        if (mMediaMuxer != null) {
+            if (mMuxerStarted) {
+                mMediaMuxer.stop();
+            }
+
+            mMediaMuxer.release();
+            mMediaMuxer = null;
+            mMuxerStarted = false;
+        }
+
+        if (mVideoEncoder != null) {
+            mVideoEncoder.stop();
+            mVideoEncoder.release();
+            mVideoEncoder = null;
+        }
+
+        if (mInputSurface != null) {
+            mInputSurface.release();
+            mInputSurface = null;
+        }
+
+        if (mMediaProjection != null) {
+            mMediaProjection.stop();
+            mMediaProjection = null;
+        }
+
+        mVideoBufferInfo = null;
+        mDrainEncoderRunnable = null;
+        mTrackIndex = -1;
+    }
+
+    private boolean mMuxerStarted = false;
+    private int mTrackIndex = -1;
+    private final Handler mDrainHandler = new Handler(Looper.getMainLooper());
+    private Runnable mDrainEncoderRunnable = new Runnable() {
+        @Override
+        public void run() {
+            drainEncoder();
+        }
+    };
+
+    private boolean drainEncoder() {
+        mDrainHandler.removeCallbacks(mDrainEncoderRunnable);
+
+        while (true) {
+            int bufferIndex = mVideoEncoder.dequeueOutputBuffer(mVideoBufferInfo, 0);
+
+            if (bufferIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                // nothing available yet
+                break;
+            } else if (bufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                // should happen before receiving buffers, and should only happen once
+                if (mTrackIndex >= 0) {
+                    throw new RuntimeException("format changed twice");
+                }
+                mTrackIndex = mMediaMuxer.addTrack(mVideoEncoder.getOutputFormat());
+                if (!mMuxerStarted && mTrackIndex >= 0) {
+                    mMediaMuxer.start();
+                    mMuxerStarted = true;
+                }
+            } else if (bufferIndex < 0) {
+                // not sure what's going on, ignore it
+            } else {
+                ByteBuffer encodedData = mVideoEncoder.getOutputBuffer(bufferIndex);
+                if (encodedData == null) {
+                    throw new RuntimeException("couldn't fetch buffer at index " + bufferIndex);
+                }
+
+                if ((mVideoBufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                    mVideoBufferInfo.size = 0;
+                }
+
+                if (mVideoBufferInfo.size != 0) {
+                    if (mMuxerStarted) {
+                        encodedData.position(mVideoBufferInfo.offset);
+                        encodedData.limit(mVideoBufferInfo.offset + mVideoBufferInfo.size);
+                        mMediaMuxer.writeSampleData(mTrackIndex, encodedData, mVideoBufferInfo);
+                    } else {
+                        // muxer not started
+                    }
+                }
+
+                mVideoEncoder.releaseOutputBuffer(bufferIndex, false);
+
+                if ((mVideoBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    break;
+                }
+            }
+        }
+
+        mDrainHandler.postDelayed(mDrainEncoderRunnable, 10);
+        return false;
+    }
+
     private void stopRecording() {
         Log.d("Stopping screen recording");
 
@@ -209,12 +341,11 @@ public final class ScreenRecorder {
 
         try {
             mMediaProjection.stop();
-            mMediaRecorder.stop();
         } catch (RuntimeException e) {
             Log.e("Error stopping the media recorder", e);
         }
 
-        mMediaRecorder.release();
+        releaseEncoders();
         mVirtualDisplay.release();
 
         MediaScannerConnection.scanFile(mContext, new String[]{mOutputFilePath}, null, new MediaScannerConnection.OnScanCompletedListener() {
