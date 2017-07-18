@@ -56,7 +56,7 @@ public final class ScreenRecorder {
     private static final String MIME_TYPE = "video/avc";
     private static final int DEFAULT_CAMERA_FRAME_RATE = 30; // Framerate if no camera profile is found
     private static final int DEFAULT_MEDIA_CODEC_FRAME_RATE = 30;
-    private static final int VIDEO_SCALE = 100;
+    private static final int VIDEO_SCALE = 25;
     private static final int VIDEO_ENCODING_BITRATE = 8 * 1000 * 1000;
     private static final String VIRTUAL_DISPLAY_NAME = "buglife";
     private static final int MAX_RECORD_TIME_MS = 30 * 1000;
@@ -201,13 +201,11 @@ public final class ScreenRecorder {
     }
 
     private void prepareVideoEncoder(int videoWidth, int videoHeight) {
-        int width = videoWidth;
-        int height = videoHeight;
         mVideoBufferInfo = new MediaCodec.BufferInfo();
-        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, width, height);
+        MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, videoWidth, videoHeight);
 
         int frameRate = DEFAULT_MEDIA_CODEC_FRAME_RATE;
-        int bitRate = 6000000; // 6Mpbs;
+        int bitRate = 375000; // 3.75 Mpbs;
 
         // Set some required properties. The media codec may fail if these aren't defined.
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
@@ -216,7 +214,7 @@ public final class ScreenRecorder {
         format.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
         format.setInteger(MediaFormat.KEY_CAPTURE_RATE, frameRate);
         format.setInteger(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 1000000 / frameRate);
-        format.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 1);
+        format.setInteger(MediaFormat.KEY_CHANNEL_COUNT, 0);
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1); // 1 seconds between I-frames
 
         // Create a MediaCodec encoder and configure it. Get a Surface we can use for recording into.
@@ -274,6 +272,8 @@ public final class ScreenRecorder {
         }
     };
 
+    private static final int DRAIN_INTERVAL = 100;
+
     private boolean drainEncoder() {
         mDrainHandler.removeCallbacks(mDrainEncoderRunnable);
 
@@ -323,7 +323,7 @@ public final class ScreenRecorder {
             }
         }
 
-        mDrainHandler.postDelayed(mDrainEncoderRunnable, 10);
+        mDrainHandler.postDelayed(mDrainEncoderRunnable, DRAIN_INTERVAL);
         return false;
     }
 
