@@ -49,10 +49,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +75,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
     private static final String SDK_NAME = "Buglife Android";
     private static final String PLATFORM = "android";
-    private static final String BUGLIFE_URL = "https://www.buglife.com/api/v1/reports.json";
+    private static final String BUGLIFE_URL = "https://127.0.0.1:3000/api/v1/reports.json";
     private static final String PERMISSION_INTERNET = "android.permission.INTERNET";
     private static final String PERMISSION_WRITE_EXTERNAL_STORAGE = "android.permission.WRITE_EXTERNAL_STORAGE";
     private static final String PERMISSION_READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
@@ -92,6 +101,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     @Nullable private ArrayList<InputField> mInputFields;
     private boolean mReportFlowVisible = false;
     @NonNull private final ColorPalette mColorPallete;
+    private File mReportsDir;
 
     private Client(Application application, @Nullable String apiKey, @Nullable String email) {
         mAppContext = application.getApplicationContext();
@@ -101,6 +111,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
         mColorPallete = new ColorPalette.Builder(mAppContext).build();
+        mReportsDir = new File(mAppContext.getFilesDir(), "BugLife Reports");
 
         boolean hasPermissions = checkPermissions();
 
@@ -110,6 +121,107 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         }
 
         setInvocationMethod(DEFAULT_INVOCATION_METHOD);
+
+        submitPendingReports();
+    }
+
+    private void submitPendingReports() {
+        HashMap<File, JSONObject> pendingReports = pendingReports();
+        if (pendingReports.isEmpty()) {
+            return;
+        }
+        File files[] = new File[pendingReports.size()];
+        pendingReports.keySet().toArray(files);
+        Arrays.sort(files, new Comparator<File>() {
+            @Override
+            public int compare(File lhs, File rhs) {
+                long lhslm = lhs.lastModified();
+                long rhslm = rhs.lastModified();
+                return (int)(rhslm-lhslm);
+            }
+        });
+        for (final File reportFile: files) {
+            final JSONObject pendingReport = pendingReports.get(reportFile);
+            try {
+                int submissionCount = pendingReport.getInt("submission_attempts");
+                submissionCount++;
+                pendingReport.put("submission_attempts", submissionCount);
+            } catch (JSONException e) {
+                Log.e("Failed to get or set submission count from previously saved report");
+                // this is not a fatal error... probably
+            }
+            makeJsonObjectRequest(pendingReport, new RequestHandler() {
+                @Override
+                public void onSuccess() {
+                    Log.d("Successfully uploaded previously saved report: " + reportFile.getName());
+                    reportFile.delete();
+                }
+
+                @Override
+                public void onFailure(Throwable e) {
+                    Log.e("Failed to upload previously saved report: " + e.toString());
+                    savePendingReport(pendingReport);
+                }
+            });
+        }
+    }
+
+    private void savePendingReport(JSONObject pendingReport) {
+        if (!mReportsDir.exists()) {
+            if (!mReportsDir.mkdirs())
+            {
+                Log.e("Unable to create \"BugLife Reports\" directory");
+                return;
+            }
+        }
+        if (!mReportsDir.isDirectory()) {
+            Log.e("Someone has created a file named \"BugLife Reports\" here already.");
+            return;
+        }
+        try {
+            FileOutputStream outputStream = new FileOutputStream(new File(mReportsDir, pendingReport.getJSONObject("report").getString("invoked_at") + ".json"));
+            OutputStreamWriter osw = new OutputStreamWriter(outputStream);
+            osw.write(pendingReport.toString());
+            osw.close();
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private HashMap<File, JSONObject> pendingReports() {
+        HashMap<File, JSONObject> pendingReports = new HashMap<File, JSONObject>();
+        File pendingReportFiles[] = mReportsDir.listFiles();
+        if (pendingReportFiles == null) {
+            return pendingReports;
+        }
+        for (File reportFile: pendingReportFiles) {
+            StringBuffer jsonContent = new StringBuffer();
+            try {
+                FileInputStream jsonInputStream = new FileInputStream(reportFile);
+                byte[] buffer = new byte[1024];
+                int n = 0;
+                while ((n = jsonInputStream.read(buffer)) != -1) {
+                    jsonContent.append(new String(buffer, 0, n));
+                }
+                jsonInputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e("Failed to read pending report file, abandoning");
+            }
+            try {
+                JSONObject report = new JSONObject(jsonContent.toString());
+                pendingReports.put(reportFile, report);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.e("Failed to convert report to JSON object, abandoning");
+            }
+        }
+        return pendingReports;
     }
 
     private boolean checkPermissions() {
@@ -452,6 +564,11 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         reportParams.put("wifi_connected", environmentSnapshot.getWifiConnected());
         reportParams.put("locale", environmentSnapshot.getLocale());
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZ");
+
+        reportParams.put("invoked_at", sdf.format(environmentSnapshot.getInvokedAt()));
+        reportParams.put("submission_attempts", 1);
+
         // Attachments
         JSONArray attachmentsParams = new JSONArray();
 
@@ -520,7 +637,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
      * NETWORKING
      ***************************/
 
-    private void makeJsonObjectRequest(JSONObject parameters, final RequestHandler requestHandler) {
+    private void makeJsonObjectRequest(final JSONObject parameters, final RequestHandler requestHandler) {
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, BUGLIFE_URL, parameters, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -529,6 +646,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                savePendingReport(parameters);
                 requestHandler.onFailure(error);
             }
         });

@@ -28,8 +28,10 @@ import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.StatFs;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -45,8 +47,9 @@ final class EnvironmentSnapshot implements Parcelable {
     private final int mMobileNetworkSubtype;
     private final boolean mWifiConnected;
     @Nullable private final String mLocale;
+    @NonNull private final Date mInvokedAt;
 
-    private EnvironmentSnapshot(float batteryLevel, long freeMemoryBytes, long totalMemoryBytes, long freeCapacityBytes, long totalCapacityBytes, String carrierName, int mobileNetworkSubtype, boolean wifiConnected, String locale) {
+    private EnvironmentSnapshot(float batteryLevel, long freeMemoryBytes, long totalMemoryBytes, long freeCapacityBytes, long totalCapacityBytes, String carrierName, int mobileNetworkSubtype, boolean wifiConnected, String locale, @NonNull Date invokedAt) {
         mBatteryLevel= batteryLevel;
         mFreeMemoryBytes = freeMemoryBytes;
         mTotalMemoryBytes = totalMemoryBytes;
@@ -56,6 +59,7 @@ final class EnvironmentSnapshot implements Parcelable {
         mMobileNetworkSubtype = mobileNetworkSubtype;
         mWifiConnected = wifiConnected;
         mLocale = locale;
+        mInvokedAt = invokedAt;
     }
 
     EnvironmentSnapshot(Parcel source) {
@@ -68,6 +72,7 @@ final class EnvironmentSnapshot implements Parcelable {
         mMobileNetworkSubtype = source.readInt();
         mWifiConnected = source.readInt() == 1;
         mLocale = source.readString();
+        mInvokedAt = new Date(source.readLong());
     }
 
     float getBatteryLevel() {
@@ -106,6 +111,8 @@ final class EnvironmentSnapshot implements Parcelable {
         return mLocale;
     }
 
+    Date getInvokedAt() {return  mInvokedAt; }
+
     @Override
     public int describeContents() {
         return 0;
@@ -122,6 +129,7 @@ final class EnvironmentSnapshot implements Parcelable {
         dest.writeInt(mMobileNetworkSubtype);
         dest.writeInt(mWifiConnected ? 1 : 0);
         dest.writeString(mLocale);
+        dest.writeLong(mInvokedAt.getTime());
     }
 
     public static final Parcelable.Creator CREATOR =
@@ -170,8 +178,9 @@ final class EnvironmentSnapshot implements Parcelable {
             boolean wifiConnected = connectivity.isConnectedToWiFi();
             Locale locale = getLocale(mContext);
             String localeString = (locale != null ? locale.toString() : null);
+            Date date = new Date();
 
-            return new EnvironmentSnapshot(batteryLevel, freeMemoryBytes, totalMemoryBytes, freeCapacityBytes, totalCapacityBytes, carrierName, mobileNetworkSubtype, wifiConnected, localeString);
+            return new EnvironmentSnapshot(batteryLevel, freeMemoryBytes, totalMemoryBytes, freeCapacityBytes, totalCapacityBytes, carrierName, mobileNetworkSubtype, wifiConnected, localeString, date);
         }
 
         private float getBatteryLevel() {
