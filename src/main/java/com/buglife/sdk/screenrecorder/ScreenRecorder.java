@@ -55,7 +55,7 @@ public final class ScreenRecorder {
     private static final String MIME_TYPE = "video/avc";
     private static final int DEFAULT_MEDIA_CODEC_FRAME_RATE = 30;
     private static final int VIDEO_SCALE = 25;
-    private static final int VIDEO_ENCODING_BITRATE = 375 * 1000;
+    private static final int VIDEO_ENCODING_BITRATE =  1 * 1000 * 1000;
     private static final String VIRTUAL_DISPLAY_NAME = "buglife";
     private static final int MAX_RECORD_TIME_MS = 30 * 1000;
 
@@ -178,12 +178,12 @@ public final class ScreenRecorder {
         MediaFormat format = MediaFormat.createVideoFormat(MIME_TYPE, videoWidth, videoHeight);
 
         int frameRate = DEFAULT_MEDIA_CODEC_FRAME_RATE;
-        int bitRate = VIDEO_ENCODING_BITRATE; // 3.75 Mpbs;
+        int bitRate = VIDEO_ENCODING_BITRATE;
 
         // Set some required properties. The media codec may fail if these aren't defined.
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
-        format.setInteger(MediaFormat.KEY_BIT_RATE, bitRate); // 6Mbps
+        format.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
         format.setInteger(MediaFormat.KEY_CAPTURE_RATE, frameRate);
         format.setInteger(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, 1000000 / frameRate);
@@ -245,7 +245,7 @@ public final class ScreenRecorder {
         }
     };
 
-    private static final int DRAIN_INTERVAL = 100;
+    private static final int DRAIN_INTERVAL = 10;
 
     private boolean drainEncoder() {
         mDrainHandler.removeCallbacks(mDrainEncoderRunnable);
