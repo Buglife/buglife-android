@@ -29,9 +29,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-final class FileData extends AttachmentData {
+class FileData extends AttachmentData {
 
-    final private File mFile;
+    final protected File mFile;
 
     FileData(File file) {
         mFile = file;

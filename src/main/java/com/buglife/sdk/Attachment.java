@@ -199,11 +199,23 @@ public class Attachment implements Parcelable {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
                 return build(bitmap);
-            } else {
-                FileData fileData = new FileData(file);
-                AttachmentDataCache.getInstance().putData(mIdentifier, fileData);
-                return new Attachment(mIdentifier, mFilename, mType);
             }
+            FileData fileData = new FileData(file);
+            //could combine these two lines but this makes it more debuggable.
+            return makeCachedAttachment(fileData);
+        }
+        /**
+         * Builds an attachment using a File reference.
+         * @param file The file
+         * @param temporaryFile The file will be deleted when no references to it remain. Calls build(file) if false.
+         * @return The attachment
+         */
+        public @NonNull Attachment build(@NonNull File file, boolean temporaryFile) {
+            if (!temporaryFile) {
+                return build(file);
+            }
+            TempFileData fileData = new TempFileData(file);
+            return makeCachedAttachment(fileData);
         }
 
         /**
@@ -213,7 +225,12 @@ public class Attachment implements Parcelable {
          */
         public @NonNull Attachment build(@NonNull Bitmap bitmap) {
             BitmapData bitmapData = new BitmapData(bitmap);
-            AttachmentDataCache.getInstance().putData(mIdentifier, bitmapData);
+            return makeCachedAttachment(bitmapData);
+        }
+
+        // helper method for build()s
+        private @NonNull Attachment makeCachedAttachment(AttachmentData data) {
+            AttachmentDataCache.getInstance().putData(mIdentifier, data);
             return new Attachment(mIdentifier, mFilename, mType);
         }
 

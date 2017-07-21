@@ -37,7 +37,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -47,25 +46,19 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
@@ -112,7 +105,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
         mColorPallete = new ColorPalette.Builder(mAppContext).build();
-        mReportsDir = new File(mAppContext.getFilesDir(), "Buglife Reports");
+        mReportsDir = new File(mAppContext.getExternalCacheDir(), "Buglife Reports");
 
         boolean hasPermissions = checkPermissions();
 
@@ -130,10 +123,23 @@ final class Client implements ForegroundDetector.OnForegroundListener {
             @Override
             public void run() {
                 submitPendingReports();
+                clearPreviouslySavedRecordings();
             }
         }, SUBMIT_PENDING_REPORTS_DELAY);
     }
 
+    // If the user kills the app or it crashes during the report activity,
+    // then there's nothing sensible to be done with the recordings except to delete them.
+    // It's not polite to waste the user's disk space.
+    private void clearPreviouslySavedRecordings() {
+        File recordingsFolder = new File(mAppContext.getExternalCacheDir(), "Buglife");
+        if (recordingsFolder.exists() && recordingsFolder.isDirectory()) {
+            File ls[] = recordingsFolder.listFiles();
+            for (File f: ls) {
+                f.delete();
+            }
+        }
+    }
     private void submitPendingReports() {
         HashMap<File, JSONObject> pendingReports = pendingReports();
         if (pendingReports.isEmpty()) {

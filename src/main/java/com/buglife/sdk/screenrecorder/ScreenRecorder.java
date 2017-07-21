@@ -81,8 +81,8 @@ public final class ScreenRecorder {
         mContext = context;
         mResultCode = resultCode;
         mData = data;
-        File externalFilesDir = context.getExternalFilesDir(null);
-        mOutputDirectory = new File(externalFilesDir, "Buglife");
+        File externalCacheDir = context.getExternalCacheDir();
+        mOutputDirectory = new File(externalCacheDir, "Buglife");
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         mMediaProjectionManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
     }
@@ -339,7 +339,7 @@ public final class ScreenRecorder {
         Attachment attachment;
         File file = new File(path);
 
-        attachment = new Attachment.Builder("ScreenRecording.mp4", TYPE_MP4).build(file);
+        attachment = new Attachment.Builder("ScreenRecording.mp4", TYPE_MP4).build(file, true);
 
         Buglife.addAttachment(attachment);
         Buglife.showReporter();
