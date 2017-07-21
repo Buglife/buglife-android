@@ -75,7 +75,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
     private static final String SDK_NAME = "Buglife Android";
     private static final String PLATFORM = "android";
-    private static final String BUGLIFE_URL = "https://127.0.0.1:3000/api/v1/reports.json";
+    private static final String BUGLIFE_URL = "https://www.buglife.com/api/v1/reports.json";
     private static final String PERMISSION_INTERNET = "android.permission.INTERNET";
     private static final String PERMISSION_WRITE_EXTERNAL_STORAGE = "android.permission.WRITE_EXTERNAL_STORAGE";
     private static final String PERMISSION_READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
@@ -83,6 +83,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     private static final String PERMISSION_ACCESS_NETWORK_STATE = "android.permission.ACCESS_NETWORK_STATE";
     private static final String DEFAULT_SCREENSHOT_FILENAME = "Screenshot.jpg";
     private static final String DEFAULT_SCREENSHOT_ATTACHMENT_TYPE = Attachment.TYPE_PNG;
+    private static final long SUBMIT_PENDING_REPORTS_DELAY = 2 * 1000;
 
     @NonNull private final Context mAppContext;
     @Nullable private final String mApiKey;
@@ -111,7 +112,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
         mColorPallete = new ColorPalette.Builder(mAppContext).build();
-        mReportsDir = new File(mAppContext.getFilesDir(), "BugLife Reports");
+        mReportsDir = new File(mAppContext.getFilesDir(), "Buglife Reports");
 
         boolean hasPermissions = checkPermissions();
 
@@ -122,7 +123,15 @@ final class Client implements ForegroundDetector.OnForegroundListener {
 
         setInvocationMethod(DEFAULT_INVOCATION_METHOD);
 
-        submitPendingReports();
+        // Wait a few seconds before submitting pending reports. This ensures that the host application
+        // can kick off & prioritize more critical tasks immediately upon launch.
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                submitPendingReports();
+            }
+        }, SUBMIT_PENDING_REPORTS_DELAY);
     }
 
     private void submitPendingReports() {
@@ -170,12 +179,12 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         if (!mReportsDir.exists()) {
             if (!mReportsDir.mkdirs())
             {
-                Log.e("Unable to create \"BugLife Reports\" directory");
+                Log.e("Unable to create \"Buglife Reports\" directory");
                 return;
             }
         }
         if (!mReportsDir.isDirectory()) {
-            Log.e("Someone has created a file named \"BugLife Reports\" here already.");
+            Log.e("Someone has created a file named \"Buglife Reports\" here already.");
             return;
         }
         try {
