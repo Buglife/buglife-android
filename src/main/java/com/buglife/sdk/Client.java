@@ -318,7 +318,8 @@ final class Client implements ForegroundDetector.OnForegroundListener {
 
     private void showAlertDialog(@NonNull final Attachment screenshotAttachment) {
         mReportFlowVisible = true;
-        final AlertDialog alertDialog = new AlertDialog.Builder(mAppContext, R.style.buglife_alert_dialog).create();
+        Activity activity = mForegroundDetector.getCurrentActivity();
+        final AlertDialog alertDialog = new AlertDialog.Builder(activity, R.style.buglife_alert_dialog).create();
         alertDialog.setTitle(R.string.help_us_make_this_app_better);
         alertDialog.setCancelable(true);
         alertDialog.setCanceledOnTouchOutside(false);
