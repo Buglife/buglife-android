@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         introTextView.setText(getIntroText());
     }
 
-    void reportBugButtonTapped(View view) {
+    public void reportBugButtonTapped(View view) {
         Bitmap screenshot = Buglife.getScreenshotBitmap();
         Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
         Buglife.addAttachment(attachment);
