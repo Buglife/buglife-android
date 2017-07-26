@@ -341,12 +341,6 @@ final class Client implements ForegroundDetector.OnForegroundListener {
             }
         });
 
-        Window alertWindow = alertDialog.getWindow();
-
-        if (alertWindow != null) {
-            alertWindow.setType(WindowManager.LayoutParams.TYPE_TOAST);
-        }
-
         alertDialog.show();
     }
 
