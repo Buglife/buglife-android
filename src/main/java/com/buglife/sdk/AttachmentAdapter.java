@@ -64,16 +64,18 @@ class AttachmentAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View rowView = mInflater.inflate(R.layout.attachment_list_item, parent, false);
+        if (convertView == null) {
+            convertView = mInflater.inflate(R.layout.attachment_list_item, parent, false);
+        }
 
-        ImageView thumbnailView = (ImageView) rowView.findViewById(com.buglife.sdk.R.id.attachment_list_thumbnail);
-        TextView titleView = (TextView) rowView.findViewById(com.buglife.sdk.R.id.attachment_list_title);
+        ImageView thumbnailView = (ImageView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_thumbnail);
+        TextView titleView = (TextView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_title);
 
         Attachment attachment = getItem(position);
 
         thumbnailView.setImageBitmap(attachment.getBitmap());
         titleView.setText(attachment.getFilename());
 
-        return rowView;
+        return convertView;
     }
 }
