@@ -62,7 +62,6 @@ public class ReportActivity extends AppCompatActivity {
     private AttachmentAdapter mAttachmentAdapter;
     private ListView mAttachmentListView;
     private @NonNull List<InputField> mInputFields;
-    private @NonNull List<InputFieldView> mInputFieldViews;
 
     public ReportActivity() {
     }
@@ -109,8 +108,6 @@ public class ReportActivity extends AppCompatActivity {
             inputFieldViews.add(inputFieldView);
             inputFieldView.setValue(currentValue);
         }
-
-        mInputFieldViews = inputFieldViews;
 
         int colorPrimary = Buglife.getColorPalette().getColorPrimary();
         int titleTextColor = Buglife.getColorPalette().getTextColorPrimary();
