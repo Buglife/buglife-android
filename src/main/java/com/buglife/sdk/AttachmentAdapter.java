@@ -34,14 +34,10 @@ import java.util.List;
  * Adapter for showing a list of attachment objects in the bug reporter UI
  */
 class AttachmentAdapter extends BaseAdapter {
-    private Context mContext;
-    private LayoutInflater mInflater;
     private ArrayList<Attachment> mDataSource;
 
-    AttachmentAdapter(Context context, List<Attachment> attachments) {
-        mContext = context;
+    AttachmentAdapter(List<Attachment> attachments) {
         mDataSource = new ArrayList<Attachment>(attachments);
-        mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     void setAttachments(List<Attachment> attachments) {
@@ -67,7 +63,8 @@ class AttachmentAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.attachment_list_item, parent, false);
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+            convertView = inflater.inflate(R.layout.attachment_list_item, parent, false);
         }
 
         ImageView thumbnailView = (ImageView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_thumbnail);

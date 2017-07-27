@@ -79,7 +79,7 @@ public class ReportActivity extends AppCompatActivity {
 
         final List<Attachment> attachments = mBugContext.getAttachments();
 
-        mAttachmentAdapter = new AttachmentAdapter(this, attachments);
+        mAttachmentAdapter = new AttachmentAdapter(attachments);
         mAttachmentListView.setAdapter(mAttachmentAdapter);
         mAttachmentListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
