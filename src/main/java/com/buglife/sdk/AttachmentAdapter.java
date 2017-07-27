@@ -18,6 +18,8 @@
 package com.buglife.sdk;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,12 +72,24 @@ class AttachmentAdapter extends BaseAdapter {
 
         ImageView thumbnailView = (ImageView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_thumbnail);
         TextView titleView = (TextView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_title);
-
         Attachment attachment = getItem(position);
 
-        thumbnailView.setImageBitmap(attachment.getBitmap());
+        Bitmap scaledBitmap = scaleBitmapForThumbnail(convertView.getContext(), attachment.getBitmap());
+        thumbnailView.setImageBitmap(scaledBitmap);
         titleView.setText(attachment.getFilename());
 
         return convertView;
+    }
+
+    private Bitmap scaleBitmapForThumbnail(Context context, Bitmap bitmap) {
+        int originalWidth = bitmap.getWidth();
+        int originalHeight = bitmap.getHeight();
+        float aspectRatio = (float) originalWidth / (float) originalHeight;
+
+        // 40dp width is the standard size for a row icon according to material design guidelines.
+        int scaledWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, context.getResources().getDisplayMetrics());
+        int scaledHeight = (int) (scaledWidth / aspectRatio);
+
+        return Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, false);
     }
 }
