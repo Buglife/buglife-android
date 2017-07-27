@@ -22,6 +22,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -114,6 +115,7 @@ public class ReportActivity extends AppCompatActivity {
         String titleTextColorHex = ColorPalette.getHexColor(titleTextColor);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitleTextColor(Color.parseColor(titleTextColorHex));
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
 
@@ -123,7 +125,7 @@ public class ReportActivity extends AppCompatActivity {
             actionBar.setHomeAsUpIndicator(drawable);
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setBackgroundDrawable(new ColorDrawable(colorPrimary));
-            actionBar.setTitle(Html.fromHtml("<font color='" + titleTextColorHex + "'>" + getString(R.string.report_a_bug) + "</font>"));
+            actionBar.setTitle(getString(R.string.report_a_bug));
         }
 
         ActivityUtils.setStatusBarColor(this);
