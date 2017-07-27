@@ -34,12 +34,6 @@ public class MainActivity extends AppCompatActivity {
         Bitmap screenshot = Buglife.getScreenshotBitmap();
         Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
         Buglife.addAttachment(attachment);
-
-
-        Bitmap walter = BitmapFactory.decodeResource(getResources(), R.drawable.walter);
-        Attachment attachment1 = new Attachment.Builder("walter.jpg", Attachment.TYPE_JPEG).build(walter);
-        Buglife.addAttachment(attachment1);
-
         Buglife.showReporter();
     }
 

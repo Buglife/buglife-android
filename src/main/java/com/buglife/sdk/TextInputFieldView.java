@@ -105,7 +105,7 @@ final class TextInputFieldView extends InputFieldView {
             method.setAccessible(true);
             method.invoke(mTextInputLayout, true);
         } catch (Exception e) {
-            e.printStackTrace();
+            // Ignore this exception, since failing to set the hint color isn't a big deal
         }
     }
 }
