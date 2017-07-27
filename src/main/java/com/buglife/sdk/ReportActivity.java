@@ -90,21 +90,13 @@ public class ReportActivity extends AppCompatActivity {
         });
 
         mInputFields = Buglife.getInputFields();
-        ArrayList<InputFieldView> inputFieldViews = new ArrayList();
+        ArrayList<InputFieldView> inputFieldViews = new ArrayList<>();
 
         LinearLayout inputFieldLayout = (LinearLayout) findViewById(R.id.input_field_layout);
 
         for (final InputField inputField : mInputFields) {
-            final InputFieldView inputFieldView;
+            final InputFieldView inputFieldView = InputFieldView.newInstance(this, inputField);
             final String currentValue = getValueForInputField(inputField);
-
-            if (inputField instanceof TextInputField) {
-                inputFieldView = new TextInputFieldView(this);
-            } else if (inputField instanceof PickerInputField) {
-                inputFieldView = new PickerInputFieldView(this);
-            } else {
-                throw new Buglife.BuglifeException("Unexpected input field type: " + inputField);
-            }
 
             inputFieldView.configureWithInputField(inputField, new InputFieldView.ValueCoordinator() {
                 @Override
