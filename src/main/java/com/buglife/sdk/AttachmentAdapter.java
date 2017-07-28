@@ -18,6 +18,8 @@
 package com.buglife.sdk;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,14 +34,10 @@ import java.util.List;
  * Adapter for showing a list of attachment objects in the bug reporter UI
  */
 class AttachmentAdapter extends BaseAdapter {
-    private Context mContext;
-    private LayoutInflater mInflater;
     private ArrayList<Attachment> mDataSource;
 
-    AttachmentAdapter(Context context, List<Attachment> attachments) {
-        mContext = context;
+    AttachmentAdapter(List<Attachment> attachments) {
         mDataSource = new ArrayList<Attachment>(attachments);
-        mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     void setAttachments(List<Attachment> attachments) {
@@ -64,16 +62,31 @@ class AttachmentAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View rowView = mInflater.inflate(R.layout.attachment_list_item, parent, false);
+        if (convertView == null) {
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+            convertView = inflater.inflate(R.layout.attachment_list_item, parent, false);
+        }
 
-        ImageView thumbnailView = (ImageView) rowView.findViewById(com.buglife.sdk.R.id.attachment_list_thumbnail);
-        TextView titleView = (TextView) rowView.findViewById(com.buglife.sdk.R.id.attachment_list_title);
-
+        ImageView thumbnailView = (ImageView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_thumbnail);
+        TextView titleView = (TextView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_title);
         Attachment attachment = getItem(position);
 
-        thumbnailView.setImageBitmap(attachment.getBitmap());
+        Bitmap scaledBitmap = scaleBitmapForThumbnail(convertView.getContext(), attachment.getBitmap());
+        thumbnailView.setImageBitmap(scaledBitmap);
         titleView.setText(attachment.getFilename());
 
-        return rowView;
+        return convertView;
+    }
+
+    private Bitmap scaleBitmapForThumbnail(Context context, Bitmap bitmap) {
+        int originalWidth = bitmap.getWidth();
+        int originalHeight = bitmap.getHeight();
+        float aspectRatio = (float) originalWidth / (float) originalHeight;
+
+        // 40dp width is the standard size for a row icon according to material design guidelines.
+        int scaledWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, context.getResources().getDisplayMetrics());
+        int scaledHeight = (int) (scaledWidth / aspectRatio);
+
+        return Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, false);
     }
 }

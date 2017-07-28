@@ -22,6 +22,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -62,7 +63,6 @@ public class ReportActivity extends AppCompatActivity {
     private AttachmentAdapter mAttachmentAdapter;
     private ListView mAttachmentListView;
     private @NonNull List<InputField> mInputFields;
-    private @NonNull List<InputFieldView> mInputFieldViews;
 
     public ReportActivity() {
     }
@@ -79,7 +79,7 @@ public class ReportActivity extends AppCompatActivity {
 
         final List<Attachment> attachments = mBugContext.getAttachments();
 
-        mAttachmentAdapter = new AttachmentAdapter(this, attachments);
+        mAttachmentAdapter = new AttachmentAdapter(attachments);
         mAttachmentListView.setAdapter(mAttachmentAdapter);
         mAttachmentListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -90,21 +90,13 @@ public class ReportActivity extends AppCompatActivity {
         });
 
         mInputFields = Buglife.getInputFields();
-        ArrayList<InputFieldView> inputFieldViews = new ArrayList();
+        ArrayList<InputFieldView> inputFieldViews = new ArrayList<>();
 
         LinearLayout inputFieldLayout = (LinearLayout) findViewById(R.id.input_field_layout);
 
         for (final InputField inputField : mInputFields) {
-            final InputFieldView inputFieldView;
+            final InputFieldView inputFieldView = InputFieldView.newInstance(this, inputField);
             final String currentValue = getValueForInputField(inputField);
-
-            if (inputField instanceof TextInputField) {
-                inputFieldView = new TextInputFieldView(this);
-            } else if (inputField instanceof PickerInputField) {
-                inputFieldView = new PickerInputFieldView(this);
-            } else {
-                throw new Buglife.BuglifeException("Unexpected input field type: " + inputField);
-            }
 
             inputFieldView.configureWithInputField(inputField, new InputFieldView.ValueCoordinator() {
                 @Override
@@ -118,13 +110,12 @@ public class ReportActivity extends AppCompatActivity {
             inputFieldView.setValue(currentValue);
         }
 
-        mInputFieldViews = inputFieldViews;
-
         int colorPrimary = Buglife.getColorPalette().getColorPrimary();
         int titleTextColor = Buglife.getColorPalette().getTextColorPrimary();
         String titleTextColorHex = ColorPalette.getHexColor(titleTextColor);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitleTextColor(Color.parseColor(titleTextColorHex));
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
 
@@ -134,7 +125,7 @@ public class ReportActivity extends AppCompatActivity {
             actionBar.setHomeAsUpIndicator(drawable);
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setBackgroundDrawable(new ColorDrawable(colorPrimary));
-            actionBar.setTitle(Html.fromHtml("<font color='" + titleTextColorHex + "'>" + getString(R.string.report_a_bug) + "</font>"));
+            actionBar.setTitle(getString(R.string.report_a_bug));
         }
 
         ActivityUtils.setStatusBarColor(this);
