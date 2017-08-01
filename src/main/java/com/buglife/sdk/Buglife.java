@@ -168,7 +168,7 @@ public final class Buglife {
      * the red status bar indicator to stop recording early. Once screen recording has been
      * stopped, the bug reporter UI will be shown with the screen recording attached.
      */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @TargetApi(Build.VERSION_CODES.M)
     public static void startScreenRecording() {
         getClient().startScreenRecording();
     }
