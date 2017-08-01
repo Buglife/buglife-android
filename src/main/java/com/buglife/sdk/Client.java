@@ -486,6 +486,11 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     }
 
     private void startScreenRecordingFlow() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            Toast.makeText(getApplicationContext(), R.string.screen_recording_minimum_os_error, Toast.LENGTH_LONG).show();
+            return;
+        }
+
         Activity currentActivity = mForegroundDetector.getCurrentActivity();
         FragmentManager fragmentManager = currentActivity.getFragmentManager();
         ScreenRecordingPermissionHelper permissionHelper = (ScreenRecordingPermissionHelper) fragmentManager.findFragmentByTag(ScreenRecordingPermissionHelper.TAG);

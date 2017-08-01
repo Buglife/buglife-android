@@ -43,6 +43,15 @@
             android:textColor="@android:color/black"
             android:onClick="reportBugButtonTapped" />
 
+        <Button
+            android:id="@+id/record_screen_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Record screen"
+            android:textColor="@android:color/black"
+            android:onClick="recordScreenButtonTapped" />
+
     </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>
