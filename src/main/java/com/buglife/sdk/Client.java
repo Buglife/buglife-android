@@ -19,6 +19,7 @@ package com.buglife.sdk;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -37,11 +38,14 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.buglife.sdk.screenrecorder.ScreenRecorder;
+import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -475,6 +479,50 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         }
 
         startBuglifeActivity(ReportActivity.class, null);
+    }
+
+    public void startScreenRecording() {
+        startScreenRecordingFlow();
+    }
+
+    private void startScreenRecordingFlow() {
+        Activity currentActivity = mForegroundDetector.getCurrentActivity();
+        FragmentManager fragmentManager = currentActivity.getFragmentManager();
+        ScreenRecordingPermissionHelper permissionHelper = (ScreenRecordingPermissionHelper) fragmentManager.findFragmentByTag(ScreenRecordingPermissionHelper.TAG);
+
+        if (permissionHelper == null) {
+            permissionHelper = ScreenRecordingPermissionHelper.newInstance();
+            permissionHelper.setPermissionCallback(new ScreenRecordingPermissionHelper.PermissionCallback() {
+                @Override
+                public void onPermissionGranted(int resultCode, Intent data) {
+                    startScreenRecordingFlow(resultCode, data);
+                }
+
+                @Override
+                public void onPermissionDenied(ScreenRecordingPermissionHelper.PermissionType permissionType) {
+                    int toastStringResId = 0;
+
+                    switch (permissionType) {
+                        case OVERLAY:
+                            toastStringResId = R.string.screen_recording_permission_denied_overlay;
+                            break;
+                        case RECORDING:
+                            toastStringResId = R.string.screen_recording_permission_denied_recording;
+                            break;
+                    }
+
+                    if (toastStringResId != 0) {
+                        Toast.makeText(getApplicationContext(), toastStringResId, Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+            fragmentManager.beginTransaction().add(permissionHelper, PermissionHelper.TAG).commit();
+        }
+    }
+
+    private void startScreenRecordingFlow(int resultCode, Intent data) {
+        ScreenRecorder screenRecorder = new ScreenRecorder(getApplicationContext(), resultCode, data);
+        screenRecorder.start();
     }
 
     private void startBuglifeActivity(Class cls, @Nullable Attachment screenshotAttachment) {
