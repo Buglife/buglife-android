@@ -32,6 +32,18 @@ class Annotation {
     private PercentPoint mStartPercentPoint = new PercentPoint(0, 0);
     private PercentPoint mEndPercentPoint = new PercentPoint(0, 0);
 
+    public static Annotation newArrowInstance() {
+        return new Annotation(Type.ARROW);
+    }
+
+    public static Annotation newLoupeInstance() {
+        return new Annotation(Type.LOUPE);
+    }
+
+    public static Annotation newBlueInstance() {
+        return new Annotation(Type.BLUR);
+    }
+
     Annotation(@NonNull Type annotationType) {
         mAnnotationType = annotationType;
     }
