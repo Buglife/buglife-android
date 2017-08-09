@@ -17,10 +17,15 @@
 
 package com.buglife.sdk;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
+import android.util.TypedValue;
 
 class Annotation {
 
@@ -31,17 +36,27 @@ class Annotation {
     private final @NonNull Type mAnnotationType;
     private PercentPoint mStartPercentPoint = new PercentPoint(0, 0);
     private PercentPoint mEndPercentPoint = new PercentPoint(0, 0);
+    private AnnotationRenderer renderer;
 
     public static Annotation newArrowInstance() {
-        return new Annotation(Type.ARROW);
+        Annotation annotation = new Annotation(Type.ARROW);
+        int fillColor = Color.parseColor("#f00060");
+        int strokeColor = Color.WHITE;
+        annotation.renderer = new ArrowRenderer(fillColor, strokeColor);
+        return annotation;
     }
 
-    public static Annotation newLoupeInstance() {
-        return new Annotation(Type.LOUPE);
+    public static Annotation newLoupeInstance(Context context) {
+        Annotation annotation = new Annotation(Type.LOUPE);
+        float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics());
+        annotation.renderer = new LoupeRenderer(strokeWidth);
+        return annotation;
     }
 
-    public static Annotation newBlueInstance() {
-        return new Annotation(Type.BLUR);
+    public static Annotation newBlurInstance() {
+        Annotation annotation = new Annotation(Type.BLUR);
+        annotation.renderer = new BlurRenderer();
+        return annotation;
     }
 
     Annotation(@NonNull Type annotationType) {
@@ -111,5 +126,19 @@ class Annotation {
         PointF a = getStartPercentPoint().getAsPointF(width, height);
         PointF b = getEndPercentPoint().getAsPointF(width, height);
         return (float) Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+    }
+
+    public void render(Canvas canvas, Bitmap originalImage) {
+        if (renderer == null) {
+            return;
+        }
+
+        if (renderer instanceof LoupeRenderer) {
+            ((LoupeRenderer) renderer).setSourceBitmap(originalImage);
+        } else if (renderer instanceof BlurRenderer) {
+            ((BlurRenderer) renderer).setSourceBitmap(originalImage);
+        }
+
+        renderer.drawAnnotation(this, canvas);
     }
 }
