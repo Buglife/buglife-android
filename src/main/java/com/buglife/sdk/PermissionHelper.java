@@ -28,7 +28,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.app.Fragment;
 
-final class PermissionHelper extends Fragment {
+public final class PermissionHelper extends Fragment {
     private static final int REQUEST_PERMISSIONS = 10;
     public static final String TAG = "com.buglife.PermissionHelper";
 
