@@ -133,12 +133,6 @@ class Annotation {
             return;
         }
 
-        if (renderer instanceof LoupeRenderer) {
-            ((LoupeRenderer) renderer).setSourceBitmap(originalImage);
-        } else if (renderer instanceof BlurRenderer) {
-            ((BlurRenderer) renderer).setSourceBitmap(originalImage);
-        }
-
-        renderer.drawAnnotation(this, canvas);
+        renderer.drawAnnotation(this, canvas, originalImage);
     }
 }

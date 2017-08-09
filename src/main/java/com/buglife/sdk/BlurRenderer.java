@@ -30,19 +30,13 @@ import android.util.Log;
 final class BlurRenderer implements AnnotationRenderer {
     private static final float BLUR_RADIUS = 40;
 
-    final private Bitmap mSourceBitmap;
-
-    BlurRenderer(@NonNull Bitmap sourceBitmap) {
-        mSourceBitmap = sourceBitmap;
-    }
-
     @Override
-    public void drawAnnotation(Annotation annotation, Canvas canvas) {
-        Rect inBounds = annotation.getRect(mSourceBitmap.getWidth(), mSourceBitmap.getHeight());
+    public void drawAnnotation(Annotation annotation, Canvas canvas, Bitmap image) {
+        Rect inBounds = annotation.getRect(image.getWidth(), image.getHeight());
         Rect outBounds = annotation.getRect(canvas.getWidth(), canvas.getHeight());
 
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);
-        BlurRenderer.draw(mSourceBitmap, inBounds, canvas, outBounds, paint);
+        BlurRenderer.draw(image, inBounds, canvas, outBounds, paint);
 
         Paint borderPaint = new Paint();
         paint.setStyle(Paint.Style.STROKE);

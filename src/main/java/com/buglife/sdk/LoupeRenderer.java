@@ -32,27 +32,17 @@ final class LoupeRenderer implements AnnotationRenderer {
 
     private static final int MAGNIFICATION_FACTOR = 2;
 
-    private Bitmap mSourceBitmap;
     private final Matrix mMatrix = new Matrix();
     private final Paint mBorderPaint = new Paint();
 
     LoupeRenderer(float strokeWidth) {
-        this(null, strokeWidth);
-    }
-
-    LoupeRenderer(Bitmap sourceBitmap, float strokeWidth) {
-        mSourceBitmap = sourceBitmap;
         mBorderPaint.setStrokeWidth(strokeWidth);
         mBorderPaint.setStyle(Paint.Style.STROKE);
         mBorderPaint.setColor(Color.BLACK);
     }
 
-    void setSourceBitmap(@NonNull Bitmap bitmap) {
-        mSourceBitmap = bitmap;
-    }
-
     @Override
-    public void drawAnnotation(Annotation annotation, Canvas canvas) {
+    public void drawAnnotation(Annotation annotation, Canvas canvas, Bitmap image) {
         canvas.save();
 
         final int canvasWidth = canvas.getWidth();
@@ -66,8 +56,8 @@ final class LoupeRenderer implements AnnotationRenderer {
         mMatrix.reset();
 
         // Scale the original bitmap up to the size of the canvas
-        float scaleX = (float) canvasWidth / (float) mSourceBitmap.getWidth();
-        float scaleY = (float) canvasHeight / (float) mSourceBitmap.getHeight();
+        float scaleX = (float) canvasWidth / (float) image.getWidth();
+        float scaleY = (float) canvasHeight / (float) image.getHeight();
         mMatrix.preScale(scaleX, scaleY);
 
         // Loupe magnification scale
@@ -78,26 +68,7 @@ final class LoupeRenderer implements AnnotationRenderer {
         mMatrix.postTranslate(-px * (MAGNIFICATION_FACTOR - 1), -py * (MAGNIFICATION_FACTOR - 1));
 
         // Draw loupe contents
-        canvas.drawBitmap(mSourceBitmap, mMatrix, null);
-        // Draw loupe border
-        canvas.drawCircle(center.x, center.y, radius, mBorderPaint);
-        canvas.restore();
-    }
-
-    void test(Annotation annotation, Canvas canvas) {
-        final int canvasWidth = canvas.getWidth();
-        final int canvasHeight = canvas.getHeight();
-        float radius = annotation.getLength(canvasWidth, canvasHeight);
-        PointF center = annotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
-
-        canvas.save();
-
-        mMatrix.reset();
-        float scaleX = canvasWidth / mSourceBitmap.getWidth();
-        float scaleY = canvasHeight / mSourceBitmap.getHeight();
-        mMatrix.preScale(scaleX, scaleY);
-
-        canvas.drawBitmap(mSourceBitmap, mMatrix, null);
+        canvas.drawBitmap(image, mMatrix, null);
         // Draw loupe border
         canvas.drawCircle(center.x, center.y, radius, mBorderPaint);
         canvas.restore();

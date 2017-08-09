@@ -38,6 +38,7 @@ import com.buglife.sdk.AnnotationView;
 public final class LoupeAnnotationView extends AnnotationView {
 
     final private LoupeRenderer mLoupeRenderer;
+    private Bitmap mBitmap;
 
     public LoupeAnnotationView(Context context) {
         this(context, null);
@@ -54,11 +55,11 @@ public final class LoupeAnnotationView extends AnnotationView {
     }
 
     void setSourceBitmap(Bitmap bitmap) {
-        mLoupeRenderer.setSourceBitmap(bitmap);
+        mBitmap = bitmap;
     }
 
     @Override
     protected void drawAnnotation(Annotation annotation, Canvas canvas) {
-        mLoupeRenderer.drawAnnotation(annotation, canvas);
+        mLoupeRenderer.drawAnnotation(annotation, canvas, mBitmap);
     }
 }

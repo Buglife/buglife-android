@@ -9,38 +9,11 @@
     android:background="@android:color/black"
     tools:ignore="Overdraw">
 
-    <com.buglife.sdk.AspectFitFrameLayout
-        android:id="@+id/canvas_view"
-        android:layout_gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <ImageView
-            android:id="@+id/image_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <com.buglife.sdk.BlurAnnotationView
-            android:id="@+id/blur_annotation_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <com.buglife.sdk.LoupeAnnotationView
-            android:id="@+id/loupe_annotation_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <com.buglife.sdk.ArrowAnnotationView
-            android:id="@+id/arrow_annotation_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <View
-            android:id="@+id/gesture_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </com.buglife.sdk.AspectFitFrameLayout>
+    <com.buglife.sdk.AnnotationView2
+        android:id="@+id/annotation_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"

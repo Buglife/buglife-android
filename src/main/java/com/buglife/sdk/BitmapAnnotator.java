@@ -28,10 +28,10 @@ final class BitmapAnnotator {
     static @NonNull Bitmap createBitmapWithBlurAnnotations(Bitmap sourceBitmap, List<Annotation> blurAnnotations) {
         final Bitmap destinationBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
         final Canvas canvas = new Canvas(destinationBitmap);
-        final BlurRenderer blurRenderer = new BlurRenderer(sourceBitmap);
+        final BlurRenderer blurRenderer = new BlurRenderer();
 
         for (Annotation annotation : blurAnnotations) {
-            blurRenderer.drawAnnotation(annotation, canvas);
+            blurRenderer.drawAnnotation(annotation, canvas, sourceBitmap);
         }
 
         return destinationBitmap;

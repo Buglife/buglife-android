@@ -31,7 +31,8 @@ import android.util.AttributeSet;
  */
 public final class BlurAnnotationView extends AnnotationView {
 
-    private BlurRenderer mBlurRenderer;
+    private BlurRenderer mBlurRenderer = new BlurRenderer();
+    private Bitmap mBitmap;
 
     public BlurAnnotationView(Context context) {
         this(context, null, 0);
@@ -46,11 +47,11 @@ public final class BlurAnnotationView extends AnnotationView {
     }
 
     public void setSourceBitmap(Bitmap bitmap) {
-        mBlurRenderer = new BlurRenderer(bitmap);
+        mBitmap = bitmap;
     }
 
     @Override
     protected void drawAnnotation(Annotation annotation, Canvas canvas) {
-        mBlurRenderer.drawAnnotation(annotation, canvas);
+        mBlurRenderer.drawAnnotation(annotation, canvas, mBitmap);
     }
 }

@@ -17,8 +17,9 @@
 
 package com.buglife.sdk;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
 interface AnnotationRenderer {
-    void drawAnnotation(Annotation annotation, Canvas canvas);
+    void drawAnnotation(Annotation annotation, Canvas canvas, Bitmap image);
 }

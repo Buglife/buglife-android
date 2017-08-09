@@ -60,6 +60,6 @@ public final class ArrowAnnotationView extends AnnotationView {
         int fillColor = getResources().getColor(R.color.arrow_annotation_fill_color);
         int strokeColor = getResources().getColor(R.color.arrow_annotation_stroke_color);
         ArrowRenderer arrowRenderer = new ArrowRenderer(fillColor, strokeColor);
-        arrowRenderer.drawAnnotation(annotation, canvas);
+        arrowRenderer.drawAnnotation(annotation, canvas, null);
     }
 }

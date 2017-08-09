@@ -88,17 +88,14 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     private ImageButton mArrowTool;
     private ImageButton mLoupeTool;
     private ImageButton mBlurTool;
+    private AnnotationView2 mAnnotationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_screenshot_annotator);
 
-        mImageView = (ImageView) findViewById(R.id.image_view);
-        mBlurAnnotationView = (BlurAnnotationView) findViewById(R.id.blur_annotation_view);
-        mLoupeAnnotationView = (LoupeAnnotationView) findViewById(R.id.loupe_annotation_view);
-        mArrowAnnotationView = (ArrowAnnotationView) findViewById(R.id.arrow_annotation_view);
-        mGestureView = findViewById(R.id.gesture_view);
+        mAnnotationView = (AnnotationView2) findViewById(R.id.annotation_view);
 
         Intent intent = getIntent();
         mAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
@@ -107,9 +104,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         Bitmap bitmap = mAttachment.getBitmap();
         final float bitmapWidth = bitmap.getWidth();
         final float bitmapHeight = bitmap.getHeight();
-        mImageView.setImageBitmap(bitmap);
-        mBlurAnnotationView.setSourceBitmap(bitmap);
-        mLoupeAnnotationView.setSourceBitmap(bitmap);
+        mAnnotationView.setImage(bitmap);
 
         // Annotation tools
         mAnnotationToolbar = (View) findViewById(R.id.annotation_toolbar);
@@ -128,18 +123,19 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         mBlurTool.setOnClickListener(mToolClickListener);
 
         setSelectedTool(Annotation.Type.ARROW);
+        mAnnotationView.setCurrentAnnotation(Annotation.newArrowInstance());
 
-        mGestureView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent event) {
-                switch (event.getPointerCount()) {
-                    case 2:
-                        return onMultitouchEvent(view, event);
-                    default:
-                        return onSingleTouchEvent(view, event);
-                }
-            }
-        });
+//        mGestureView.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View view, MotionEvent event) {
+//                switch (event.getPointerCount()) {
+//                    case 2:
+//                        return onMultitouchEvent(view, event);
+//                    default:
+//                        return onSingleTouchEvent(view, event);
+//                }
+//            }
+//        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -171,10 +167,6 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         }
 
         ActivityUtils.setStatusBarColor(this);
-
-        float aspectRatio = bitmapWidth / bitmapHeight;
-        AspectFitFrameLayout canvasView = (AspectFitFrameLayout) findViewById(R.id.canvas_view);
-        canvasView.setAspectRatio(aspectRatio);
     }
 
     @Override
@@ -229,174 +221,83 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         context.startActivity(intent);
     }
 
-    private boolean onMultitouchEvent(View view, MotionEvent event) {
-        final float canvasWidth = view.getWidth();
-        final float canvasHeight = view.getHeight();
-        final PointF touch0 = new PointF(event.getX(0), event.getY(0));
-        final PointF touch1 = new PointF(event.getX(1), event.getY(1));
-
-        switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                break;
-            case MotionEvent.ACTION_POINTER_DOWN:
-                mMutatingAnnotation = getAnnotationAtPoint(touch0);
-
-                if (mMutatingAnnotation == null) {
-                    break;
-                }
-
-                mMovingStartPoint = AnnotationView.getPointFromPercentPoint(mMutatingAnnotation.getStartPercentPoint(), canvasWidth, canvasHeight);
-                mMovingEndPoint = AnnotationView.getPointFromPercentPoint(mMutatingAnnotation.getEndPercentPoint(), canvasWidth, canvasHeight);
-
-                mMultiTouch0 = touch0;
-                mMultiTouch1 = touch1;
-
-                if (getDistance(touch0, mMovingEndPoint) < getDistance(touch1, mMovingEndPoint)) {
-                    mTouchesFlipped = true;
-                } else {
-                    mTouchesFlipped = false;
-                }
-
-                break;
-            case MotionEvent.ACTION_MOVE:
-                if (mMutatingAnnotation == null) {
-                    break;
-                }
-
-                float deltaX0 = touch0.x - mMultiTouch0.x;
-                float deltaY0 = touch0.y - mMultiTouch0.y;
-                float deltaX1 = touch1.x - mMultiTouch1.x;
-                float deltaY1 = touch1.y -  mMultiTouch1.y;
-                final float newStartX;
-                final float newStartY;
-                final float newEndX;
-                final float newEndY;
-
-                if (mTouchesFlipped) {
-                    newStartX = mMovingStartPoint.x + deltaX1;
-                    newStartY = mMovingStartPoint.y + deltaY1;
-                    newEndX = mMovingEndPoint.x + deltaX0;
-                    newEndY = mMovingEndPoint.y + deltaY0;
-                } else {
-                    newStartX = mMovingStartPoint.x + deltaX0;
-                    newStartY = mMovingStartPoint.y + deltaY0;
-                    newEndX = mMovingEndPoint.x + deltaX1;
-                    newEndY = mMovingEndPoint.y + deltaY1;
-                }
-
-                mMutatingAnnotation.setStartPercentPoint(newStartX / canvasWidth, newStartY / canvasHeight);
-                mMutatingAnnotation.setEndPercentPoint(newEndX / canvasWidth, newEndY / canvasHeight);
-
-                Annotation.Type annotationType = mMutatingAnnotation.getAnnotationType();
-                AnnotationView annotationView = getAnnotationView(annotationType);
-                annotationView.invalidate();
-                annotationsWithTypeDidChange(annotationType);
-                break;
-            case MotionEvent.ACTION_POINTER_UP:
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
-                mMutatingAnnotation = null;
-                mMultiTouch0 = null;
-                mMultiTouch1 = null;
-                break;
-        }
-
-        return true;
-    }
-
-    private boolean onSingleTouchEvent(View view, MotionEvent event) {
-        final int action = (event.getAction() & MotionEvent.ACTION_MASK);
-        float canvasWidth = view.getWidth();
-        float canvasHeight = view.getHeight();
-        float pointX = event.getX();
-        float pointY = event.getY();
-        PointF point = new PointF(pointX, pointY);
-        float percentX = pointX / canvasWidth;
-        float percentY = pointY / canvasHeight;
-
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN: {
-                setToolbarsHidden(true);
-                Annotation.Type annotationType;
-                Annotation existingAnnotation = getAnnotationAtPoint(point);
-
-                if (existingAnnotation != null) {
-                    // If we tapped on an existing annotation, start moving that
-                    mMutatingAnnotation = existingAnnotation;
-                    mMovingTouchPoint = point;
-                    mMovingStartPoint = AnnotationView.getPointFromPercentPoint(existingAnnotation.getStartPercentPoint(), canvasWidth, canvasHeight);
-                    mMovingEndPoint = AnnotationView.getPointFromPercentPoint(existingAnnotation.getEndPercentPoint(), canvasWidth, canvasHeight);
-                } else {
-                    // If we're drawing a new annotation, use whatever type is currently selected
-                    annotationType = mSelectedTool;
-                    mMutatingAnnotation = new Annotation(annotationType);
-                    mMutatingAnnotation.setStartPercentPoint(percentX, percentY);
-                }
-
-                break;
-            }
-            case MotionEvent.ACTION_MOVE: {
-                if (mMutatingAnnotation == null) {
-                    break;
-                }
-
-                if (mMultiTouch0 != null && mMultiTouch1 != null) {
-                    // If the user is using two fingers, ignore this gesture
-                    break;
-                }
-
-                Annotation.Type annotationType = mMutatingAnnotation.getAnnotationType();
-                AnnotationView annotationView = getAnnotationView(annotationType);
-
-                // If the annotation is being moved, set both the start & end point
-                if (mMovingStartPoint != null) {
-                    float deltaX = pointX - mMovingTouchPoint.x;
-                    float deltaY = pointY - mMovingTouchPoint.y;
-                    float newStartX = mMovingStartPoint.x + deltaX;
-                    float newStartY = mMovingStartPoint.y + deltaY;
-                    float newEndX = mMovingEndPoint.x + deltaX;
-                    float newEndY = mMovingEndPoint.y + deltaY;
-
-                    mMutatingAnnotation.setStartPercentPoint(newStartX / canvasWidth, newStartY / canvasHeight);
-                    mMutatingAnnotation.setEndPercentPoint(newEndX / canvasWidth, newEndY / canvasHeight);
-                } else {
-                    // If we're creating a new annotation, then just set the end point
-                    mMutatingAnnotation.setEndPercentPoint(percentX, percentY);
-
-                    // Only add the annotation once it passes the minimum size threshold
-                    boolean annotationAlreadyAdded = annotationView.getAnnotations().contains(mMutatingAnnotation);
-
-                    if (!annotationAlreadyAdded && (getDistance(mMutatingAnnotation.getEndPercentPoint(), mMutatingAnnotation.getStartPercentPoint()) > MINIMUM_ANNOTATION_SIZE_PERCENT)) {
-                        annotationView.addAnnotation(mMutatingAnnotation);
-                    }
-                }
-
-                annotationView.invalidate();
-                annotationsWithTypeDidChange(annotationType);
-
-                break;
-            }
-            case MotionEvent.ACTION_UP:
-                setToolbarsHidden(false);
-                mMutatingAnnotation = null;
-                mMovingTouchPoint = null;
-                mMovingStartPoint = null;
-                mMovingEndPoint = null;
-                break;
-            default:
-                return false;
-        }
-
-        return true;
-    }
+//    private boolean onMultitouchEvent(View view, MotionEvent event) {
+//        final float canvasWidth = view.getWidth();
+//        final float canvasHeight = view.getHeight();
+//        final PointF touch0 = new PointF(event.getX(0), event.getY(0));
+//        final PointF touch1 = new PointF(event.getX(1), event.getY(1));
+//
+//        switch (event.getActionMasked()) {
+//            case MotionEvent.ACTION_DOWN:
+//                break;
+//            case MotionEvent.ACTION_POINTER_DOWN:
+//                mMutatingAnnotation = getAnnotationAtPoint(touch0);
+//
+//                if (mMutatingAnnotation == null) {
+//                    break;
+//                }
+//
+//                mMovingStartPoint = AnnotationView.getPointFromPercentPoint(mMutatingAnnotation.getStartPercentPoint(), canvasWidth, canvasHeight);
+//                mMovingEndPoint = AnnotationView.getPointFromPercentPoint(mMutatingAnnotation.getEndPercentPoint(), canvasWidth, canvasHeight);
+//
+//                mMultiTouch0 = touch0;
+//                mMultiTouch1 = touch1;
+//
+//                if (getDistance(touch0, mMovingEndPoint) < getDistance(touch1, mMovingEndPoint)) {
+//                    mTouchesFlipped = true;
+//                } else {
+//                    mTouchesFlipped = false;
+//                }
+//
+//                break;
+//            case MotionEvent.ACTION_MOVE:
+//                if (mMutatingAnnotation == null) {
+//                    break;
+//                }
+//
+//                float deltaX0 = touch0.x - mMultiTouch0.x;
+//                float deltaY0 = touch0.y - mMultiTouch0.y;
+//                float deltaX1 = touch1.x - mMultiTouch1.x;
+//                float deltaY1 = touch1.y -  mMultiTouch1.y;
+//                final float newStartX;
+//                final float newStartY;
+//                final float newEndX;
+//                final float newEndY;
+//
+//                if (mTouchesFlipped) {
+//                    newStartX = mMovingStartPoint.x + deltaX1;
+//                    newStartY = mMovingStartPoint.y + deltaY1;
+//                    newEndX = mMovingEndPoint.x + deltaX0;
+//                    newEndY = mMovingEndPoint.y + deltaY0;
+//                } else {
+//                    newStartX = mMovingStartPoint.x + deltaX0;
+//                    newStartY = mMovingStartPoint.y + deltaY0;
+//                    newEndX = mMovingEndPoint.x + deltaX1;
+//                    newEndY = mMovingEndPoint.y + deltaY1;
+//                }
+//
+//                mMutatingAnnotation.setStartPercentPoint(newStartX / canvasWidth, newStartY / canvasHeight);
+//                mMutatingAnnotation.setEndPercentPoint(newEndX / canvasWidth, newEndY / canvasHeight);
+//
+//                Annotation.Type annotationType = mMutatingAnnotation.getAnnotationType();
+//                AnnotationView annotationView = getAnnotationView(annotationType);
+//                annotationView.invalidate();
+//                annotationsWithTypeDidChange(annotationType);
+//                break;
+//            case MotionEvent.ACTION_POINTER_UP:
+//            case MotionEvent.ACTION_UP:
+//            case MotionEvent.ACTION_CANCEL:
+//                mMutatingAnnotation = null;
+//                mMultiTouch0 = null;
+//                mMultiTouch1 = null;
+//                break;
+//        }
+//
+//        return true;
+//    }
 
     private void annotationsWithTypeDidChange(Annotation.Type annotationType) {
-        // When blur annotations are drawn or moved, update the loupes which are on top of them
-        if (annotationType == Annotation.Type.BLUR) {
-            Bitmap screenshotWithBlurs = createBitmapWithBlurAnnotations();
-            mLoupeAnnotationView.setSourceBitmap(screenshotWithBlurs);
-            mLoupeAnnotationView.invalidate();;
-        }
+        // TODO: When blur annotations are drawn or moved, update the loupes which are on top of them
     }
 
     @Override
@@ -419,42 +320,45 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         }
     }
 
-    private @Nullable Annotation getAnnotationAtPoint(PointF point) {
-        // Arrow annotations have the highest z-index, then loupe annotations, then blur annotations
-        AnnotationView[] annotationViews = {mArrowAnnotationView, mLoupeAnnotationView, mBlurAnnotationView};
-
-        for (AnnotationView annotationView : annotationViews) {
-            for (Annotation annotation : annotationView.getAnnotations()) {
-                RectF rect = annotation.getRectF(annotationView.getWidth(), mArrowAnnotationView.getHeight());
-
-                if (annotation.getAnnotationType() == Annotation.Type.LOUPE) {
-                    float radius = annotationView.getLength(annotation);
-                    PointF center = annotationView.getPointFromPercentPoint(annotation.getStartPercentPoint());
-                    float left = center.x - radius;
-                    float top = center.y - radius;
-                    float right = center.x + radius;
-                    float bottom = center.y + radius;
-                    rect = new RectF(left, top, right, bottom);
-                }
-
-                if (rect.contains(point.x, point.y)) {
-                    return annotation;
-                }
-            }
-        }
-
-        return null;
-    }
+//    private @Nullable Annotation getAnnotationAtPoint(PointF point) {
+//        // Arrow annotations have the highest z-index, then loupe annotations, then blur annotations
+//        AnnotationView[] annotationViews = {mArrowAnnotationView, mLoupeAnnotationView, mBlurAnnotationView};
+//
+//        for (AnnotationView annotationView : annotationViews) {
+//            for (Annotation annotation : annotationView.getAnnotations()) {
+//                RectF rect = annotation.getRectF(annotationView.getWidth(), mArrowAnnotationView.getHeight());
+//
+//                if (annotation.getAnnotationType() == Annotation.Type.LOUPE) {
+//                    float radius = annotationView.getLength(annotation);
+//                    PointF center = annotationView.getPointFromPercentPoint(annotation.getStartPercentPoint());
+//                    float left = center.x - radius;
+//                    float top = center.y - radius;
+//                    float right = center.x + radius;
+//                    float bottom = center.y + radius;
+//                    rect = new RectF(left, top, right, bottom);
+//                }
+//
+//                if (rect.contains(point.x, point.y)) {
+//                    return annotation;
+//                }
+//            }
+//        }
+//
+//        return null;
+//    }
 
     private View.OnClickListener mToolClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             if (view == mArrowTool) {
                 setSelectedTool(Annotation.Type.ARROW);
+                mAnnotationView.setCurrentAnnotation(Annotation.newArrowInstance());
             } else if (view == mLoupeTool) {
                 setSelectedTool(Annotation.Type.LOUPE);
+                mAnnotationView.setCurrentAnnotation(Annotation.newLoupeInstance(ScreenshotAnnotatorActivity.this));
             } else if (view == mBlurTool) {
                 setSelectedTool(Annotation.Type.BLUR);
+                mAnnotationView.setCurrentAnnotation(Annotation.newBlurInstance());
             }
         }
     };
@@ -472,44 +376,22 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         mBlurTool.setColorFilter(tintColor);
     }
 
-    private AnnotationView getAnnotationView(Annotation.Type annotationType) {
-        switch (annotationType) {
-            case ARROW:
-                return mArrowAnnotationView;
-            case LOUPE:
-                return mLoupeAnnotationView;
-            case BLUR:
-                return mBlurAnnotationView;
-        }
-
-        return null;
-    }
+//    private AnnotationView getAnnotationView(Annotation.Type annotationType) {
+//        switch (annotationType) {
+//            case ARROW:
+//                return mArrowAnnotationView;
+//            case LOUPE:
+//                return mLoupeAnnotationView;
+//            case BLUR:
+//                return mBlurAnnotationView;
+//        }
+//
+//        return null;
+//    }
 
     private @NonNull Attachment getAttachmentCopyWithAnnotations() {
-        final Context context = this;
-        final Bitmap destinationBitmap = createBitmapWithBlurAnnotations();
-        final Canvas canvas = new Canvas(destinationBitmap);
-        float strokeWidth = LoupeRenderer.getStrokeWidth(context);
-        final LoupeRenderer loupeRenderer = new LoupeRenderer(destinationBitmap, strokeWidth);
-
-        for (Annotation annotation : mLoupeAnnotationView.getAnnotations()) {
-            loupeRenderer.drawAnnotation(annotation, canvas);
-        }
-
-        int fillColor = getResources().getColor(R.color.arrow_annotation_fill_color);
-        int strokeColor = getResources().getColor(R.color.arrow_annotation_stroke_color);
-        ArrowRenderer arrowRenderer = new ArrowRenderer(fillColor, strokeColor);
-
-        for (Annotation annotation : mArrowAnnotationView.getAnnotations()) {
-            arrowRenderer.drawAnnotation(annotation, canvas);
-        }
-
-        return mAttachment.getCopy(destinationBitmap);
-    }
-
-    private @NonNull Bitmap createBitmapWithBlurAnnotations() {
-        final Bitmap sourceBitmap = mAttachment.getBitmap();
-        return BitmapAnnotator.createBitmapWithBlurAnnotations(sourceBitmap, mBlurAnnotationView.getAnnotations());
+        Bitmap output = mAnnotationView.captureDecoratedImage();
+        return mAttachment.getCopy(output);
     }
 
     private void setAttachmentResult() {

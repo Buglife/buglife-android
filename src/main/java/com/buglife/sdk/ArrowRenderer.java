@@ -18,6 +18,7 @@
 package com.buglife.sdk;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -41,7 +42,7 @@ final class ArrowRenderer implements AnnotationRenderer {
     }
 
     @Override
-    public void drawAnnotation(Annotation annotation, Canvas canvas) {
+    public void drawAnnotation(Annotation annotation, Canvas canvas, Bitmap image) {
         final float canvasWidth = canvas.getWidth();
         final float canvasHeight = canvas.getHeight();
         PointF startPoint = getPointFromPercentPoint(annotation.getStartPercentPoint(), canvasWidth, canvasHeight);
