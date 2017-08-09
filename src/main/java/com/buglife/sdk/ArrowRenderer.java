@@ -29,7 +29,7 @@ import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 
-final class ArrowRenderer {
+final class ArrowRenderer implements AnnotationRenderer {
     final private @ColorInt int mFillColor;
     final private @ColorInt int mStrokeColor;
     private Paint mFillPaint;
@@ -40,7 +40,8 @@ final class ArrowRenderer {
         mStrokeColor = strokeColor;
     }
 
-    void drawAnnotation(Annotation annotation, Canvas canvas) {
+    @Override
+    public void drawAnnotation(Annotation annotation, Canvas canvas) {
         final float canvasWidth = canvas.getWidth();
         final float canvasHeight = canvas.getHeight();
         PointF startPoint = getPointFromPercentPoint(annotation.getStartPercentPoint(), canvasWidth, canvasHeight);

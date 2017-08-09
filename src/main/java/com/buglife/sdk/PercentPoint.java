@@ -27,4 +27,8 @@ class PercentPoint extends PointF {
     PercentPoint(float x, float y) {
         super(x, y);
     }
+
+    public PointF getAsPointF(float width, float height) {
+        return new PointF(x * width, y * height);
+    }
 }

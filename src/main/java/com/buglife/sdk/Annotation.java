@@ -17,6 +17,7 @@
 
 package com.buglife.sdk;
 
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
@@ -92,5 +93,11 @@ class Annotation {
         float right = getRightPercent() * width;
         float bottom = getBottomPercent() * height;
         return new RectF(left, top, right, bottom);
+    }
+
+    float getLength(int width, int height) {
+        PointF a = getStartPercentPoint().getAsPointF(width, height);
+        PointF b = getEndPercentPoint().getAsPointF(width, height);
+        return (float) Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
     }
 }

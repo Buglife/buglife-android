@@ -27,7 +27,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-final class BlurRenderer {
+final class BlurRenderer implements AnnotationRenderer {
     private static final float BLUR_RADIUS = 40;
 
     final private Bitmap mSourceBitmap;
@@ -36,7 +36,8 @@ final class BlurRenderer {
         mSourceBitmap = sourceBitmap;
     }
 
-    void drawAnnotation(Annotation annotation, Canvas canvas) {
+    @Override
+    public void drawAnnotation(Annotation annotation, Canvas canvas) {
         Rect inBounds = annotation.getRect(mSourceBitmap.getWidth(), mSourceBitmap.getHeight());
         Rect outBounds = annotation.getRect(canvas.getWidth(), canvas.getHeight());
 

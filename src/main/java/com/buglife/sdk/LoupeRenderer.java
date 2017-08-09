@@ -28,7 +28,7 @@ import android.graphics.PointF;
 import android.support.annotation.NonNull;
 import android.util.TypedValue;
 
-final class LoupeRenderer extends AnnotationRenderer {
+final class LoupeRenderer implements AnnotationRenderer {
 
     private static final int MAGNIFICATION_FACTOR = 2;
 
@@ -51,13 +51,14 @@ final class LoupeRenderer extends AnnotationRenderer {
         mSourceBitmap = bitmap;
     }
 
-    void drawAnnotation(Annotation annotation, Canvas canvas) {
+    @Override
+    public void drawAnnotation(Annotation annotation, Canvas canvas) {
         canvas.save();
 
-        final float canvasWidth = canvas.getWidth();
-        final float canvasHeight = canvas.getHeight();
-        float radius = getLength(annotation, canvasWidth, canvasHeight);
-        PointF center = getPointFromPercentPoint(annotation.getStartPercentPoint(), canvasWidth, canvasHeight);
+        final int canvasWidth = canvas.getWidth();
+        final int canvasHeight = canvas.getHeight();
+        float radius = annotation.getLength(canvasWidth, canvasHeight);
+        PointF center = annotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
         Path loupePath = new Path();
         loupePath.addCircle(center.x, center.y, radius, Path.Direction.CW);
         canvas.clipPath(loupePath);
@@ -84,10 +85,10 @@ final class LoupeRenderer extends AnnotationRenderer {
     }
 
     void test(Annotation annotation, Canvas canvas) {
-        final float canvasWidth = canvas.getWidth();
-        final float canvasHeight = canvas.getHeight();
-        float radius = getLength(annotation, canvasWidth, canvasHeight);
-        PointF center = getPointFromPercentPoint(annotation.getStartPercentPoint(), canvasWidth, canvasHeight);
+        final int canvasWidth = canvas.getWidth();
+        final int canvasHeight = canvas.getHeight();
+        float radius = annotation.getLength(canvasWidth, canvasHeight);
+        PointF center = annotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
 
         canvas.save();
 
