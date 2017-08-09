@@ -36,9 +36,8 @@ final class BlurRenderer implements AnnotationRenderer {
         Rect outBounds = annotation.getRect(canvas.getWidth(), canvas.getHeight());
 
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);
-        BlurRenderer.draw(image, inBounds, canvas, outBounds, paint);
+        draw(image, inBounds, canvas, outBounds, paint);
 
-        Paint borderPaint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.RED);
         canvas.drawRect(outBounds, paint);
@@ -47,7 +46,7 @@ final class BlurRenderer implements AnnotationRenderer {
     /**
      * Draws a blur effect on the provided canvas,
      */
-    static void draw(@NonNull Bitmap in, @Nullable Rect inBounds, @NonNull Canvas canvas, @NonNull Rect outBounds, @NonNull Paint paint) {
+    private void draw(@NonNull Bitmap in, @Nullable Rect inBounds, @NonNull Canvas canvas, @NonNull Rect outBounds, @NonNull Paint paint) {
         int inWidth = inBounds == null ? in.getWidth() : inBounds.width();
         int inHeight = inBounds == null ? in.getHeight() : inBounds.height();
         int inX = inBounds == null ? 0 : inBounds.left;
@@ -65,8 +64,6 @@ final class BlurRenderer implements AnnotationRenderer {
         float halfSize = BLUR_RADIUS / 2f;
         final int bitmapWidth = in.getWidth();
         final int bitmapHeight = in.getHeight();
-        final int canvasWidth = canvas.getWidth();
-        final int canvasHeight = canvas.getHeight();
 
         for (int row = 0; row <= rows; row++ ) {
             float y = (row - 0.5f) * BLUR_RADIUS;
