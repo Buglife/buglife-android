@@ -26,7 +26,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.support.annotation.NonNull;
-import android.util.TypedValue;
+import android.util.*;
 
 final class LoupeRenderer implements AnnotationRenderer {
 
@@ -66,8 +66,8 @@ final class LoupeRenderer implements AnnotationRenderer {
         mMatrix.reset();
 
         // Scale the original bitmap up to the size of the canvas
-        float scaleX = canvasWidth / mSourceBitmap.getWidth();
-        float scaleY = canvasHeight / mSourceBitmap.getHeight();
+        float scaleX = (float) canvasWidth / (float) mSourceBitmap.getWidth();
+        float scaleY = (float) canvasHeight / (float) mSourceBitmap.getHeight();
         mMatrix.preScale(scaleX, scaleY);
 
         // Loupe magnification scale
