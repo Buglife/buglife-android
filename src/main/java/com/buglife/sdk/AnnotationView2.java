@@ -8,17 +8,27 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.util.ArrayMap;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class AnnotationView2 extends View {
+    // Arrow annotations have the highest z-index, then loupe, then blur
+    private static final Annotation.Type[] TYPE_Z_INDEX = new Annotation.Type[] {
+            Annotation.Type.ARROW,
+            Annotation.Type.LOUPE,
+            Annotation.Type.BLUR
+    };
+
     private Bitmap mImage;
     private Matrix mSharedMatrix = new Matrix();
-    private List<Annotation> mAnnotations = new ArrayList<>();
+    private Map<Annotation.Type, List<Annotation>> mAnnotations = new ArrayMap<>();
+
     private Annotation mCurrentAnnotation;
     private Annotation mMutatingAnnotation;
     private PointF mMovingTouchPoint = null;
@@ -47,13 +57,22 @@ public class AnnotationView2 extends View {
         Bitmap output = mImage.copy(mImage.getConfig(), true);
         Canvas canvas = new Canvas(output);
 
-        // Draw annotations
-        for (Annotation annotation : mAnnotations) {
-            // Render annotation
-            annotation.render(canvas, mImage);
-        }
+        drawAnnotations(canvas);
 
         return output;
+    }
+
+    private void drawAnnotations(Canvas canvas) {
+        // Iterate backwards because drawing happens bottom up.
+        for (int i = TYPE_Z_INDEX.length - 1; i >= 0; i--) {
+            Annotation.Type type = TYPE_Z_INDEX[i];
+            List<Annotation> annotations = mAnnotations.get(type);
+            if (annotations != null) {
+                for (Annotation annotation : annotations) {
+                    annotation.render(canvas, mImage);
+                }
+            }
+        }
     }
 
     @Override public boolean onTouchEvent(MotionEvent event) {
@@ -97,11 +116,7 @@ public class AnnotationView2 extends View {
         mSharedMatrix.setScale(scaleX, scaleY);
         canvas.drawBitmap(mImage, mSharedMatrix, null);
 
-        // Draw annotations
-        for (Annotation annotation : mAnnotations) {
-            // Render annotation
-            annotation.render(canvas, mImage);
-        }
+        drawAnnotations(canvas);
     }
 
     private boolean onSingleTouchEvent(MotionEvent event) {
@@ -156,7 +171,15 @@ public class AnnotationView2 extends View {
                 } else {
                     // If we're creating a new annotation, then just set the end point
                     mMutatingAnnotation.setEndPercentPoint(percentX, percentY);
-                    mAnnotations.add(mMutatingAnnotation);
+                    if (mAnnotations.containsKey(mMutatingAnnotation.getAnnotationType())) {
+                        List<Annotation> annotations = mAnnotations.get(mMutatingAnnotation.getAnnotationType());
+                        annotations.add(mMutatingAnnotation);
+                        mAnnotations.put(mMutatingAnnotation.getAnnotationType(), annotations);
+                    } else {
+                        List<Annotation> annotations = new ArrayList<>();
+                        annotations.add(mMutatingAnnotation);
+                        mAnnotations.put(mMutatingAnnotation.getAnnotationType(), annotations);
+                    }
                 }
                 break;
             }
@@ -183,20 +206,25 @@ public class AnnotationView2 extends View {
         int viewWidth = getMeasuredWidth();
         int viewHeight = getMeasuredHeight();
 
-        for (Annotation annotation : mAnnotations) {
-            RectF rect = annotation.getRectF(viewWidth, viewHeight);
-            if (annotation.getAnnotationType() == Annotation.Type.LOUPE) {
-                float radius = annotation.getLength(viewWidth, viewHeight);
-                PointF center = annotation.getStartPercentPoint().getAsPointF(viewWidth, viewHeight);
-                float left = center.x - radius;
-                float top = center.y - radius;
-                float right = center.x + radius;
-                float bottom = center.y + radius;
-                rect = new RectF(left, top, right, bottom);
-            }
+        for (Annotation.Type type : TYPE_Z_INDEX) {
+            List<Annotation> annotations = mAnnotations.get(type);
+            if (annotations != null) {
+                for (Annotation annotation : annotations) {
+                    RectF rect = annotation.getRectF(viewWidth, viewHeight);
+                    if (annotation.getAnnotationType() == Annotation.Type.LOUPE) {
+                        float radius = annotation.getLength(viewWidth, viewHeight);
+                        PointF center = annotation.getStartPercentPoint().getAsPointF(viewWidth, viewHeight);
+                        float left = center.x - radius;
+                        float top = center.y - radius;
+                        float right = center.x + radius;
+                        float bottom = center.y + radius;
+                        rect = new RectF(left, top, right, bottom);
+                    }
 
-            if (rect.contains(point.x, point.y)) {
-                return annotation;
+                    if (rect.contains(point.x, point.y)) {
+                        return annotation;
+                    }
+                }
             }
         }
 
