@@ -9,7 +9,7 @@ import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
-import android.util.AttributeSet;
+import android.util.*;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -39,7 +39,15 @@ public class AnnotationView2 extends View {
     private boolean mTouchesFlipped = false;
 
     public AnnotationView2(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
+        this(context, attrs, 0);
+    }
+
+    public AnnotationView2(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    private void init() {
         setLayerType(LAYER_TYPE_SOFTWARE, null);
     }
 
@@ -146,8 +154,8 @@ public class AnnotationView2 extends View {
                     // If we tapped on an existing annotation, start moving that
                     mMutatingAnnotation = existingAnnotation;
                     mMovingTouchPoint = point;
-                    mMovingStartPoint = AnnotationView.getPointFromPercentPoint(existingAnnotation.getStartPercentPoint(), canvasWidth, canvasHeight);
-                    mMovingEndPoint = AnnotationView.getPointFromPercentPoint(existingAnnotation.getEndPercentPoint(), canvasWidth, canvasHeight);
+                    mMovingStartPoint = existingAnnotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
+                    mMovingEndPoint = existingAnnotation.getEndPercentPoint().getAsPointF(canvasWidth, canvasHeight);
                 } else {
                     // If we're drawing a new annotation, use whatever type is currently selected
                     mMutatingAnnotation = mCurrentAnnotation;
@@ -223,8 +231,8 @@ public class AnnotationView2 extends View {
                     break;
                 }
 
-                mMovingStartPoint = AnnotationView.getPointFromPercentPoint(mMutatingAnnotation.getStartPercentPoint(), canvasWidth, canvasHeight);
-                mMovingEndPoint = AnnotationView.getPointFromPercentPoint(mMutatingAnnotation.getEndPercentPoint(), canvasWidth, canvasHeight);
+                mMovingStartPoint = mMutatingAnnotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
+                mMovingEndPoint = mMutatingAnnotation.getEndPercentPoint().getAsPointF(canvasWidth, canvasHeight);
 
                 mMultiTouch0 = touch0;
                 mMultiTouch1 = touch1;
