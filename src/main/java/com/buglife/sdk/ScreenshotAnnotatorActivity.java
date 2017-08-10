@@ -108,17 +108,19 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         setSelectedTool(Annotation.Type.ARROW);
         mAnnotationView.setCurrentAnnotation(Annotation.newArrowInstance());
 
-//        mGestureView.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View view, MotionEvent event) {
-//                switch (event.getPointerCount()) {
-//                    case 2:
-//                        return onMultitouchEvent(view, event);
-//                    default:
-//                        return onSingleTouchEvent(view, event);
-//                }
-//            }
-//        });
+        mAnnotationView.setOnTouchListener(new View.OnTouchListener() {
+            @Override public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getActionMasked()) {
+                    case MotionEvent.ACTION_DOWN:
+                        setToolbarsHidden(true);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        setToolbarsHidden(false);
+                        break;
+                }
+                return false; // Must return false in order for event to propagate down
+            }
+        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
