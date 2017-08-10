@@ -36,6 +36,7 @@ public class AnnotationView2 extends View {
     private PointF mMovingEndPoint = null;
     private PointF mMultiTouch0 = null;
     private PointF mMultiTouch1 = null;
+    private boolean mTouchesFlipped = false;
 
     public AnnotationView2(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -128,7 +129,6 @@ public class AnnotationView2 extends View {
     }
 
     private boolean onSingleTouchEvent(MotionEvent event) {
-        final int action = event.getActionMasked();
         float canvasWidth = getMeasuredWidth();
         float canvasHeight = getMeasuredHeight();
         float pointX = event.getX();
@@ -137,7 +137,7 @@ public class AnnotationView2 extends View {
         float percentX = pointX / canvasWidth;
         float percentY = pointY / canvasHeight;
 
-        switch (action) {
+        switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN: {
                 Annotation existingAnnotation = getAnnotationAtPoint(point);
 
@@ -207,7 +207,75 @@ public class AnnotationView2 extends View {
     }
 
     private boolean onMultitouchEvent(MotionEvent event) {
-        throw new RuntimeException("Not implemented yet");
+        final float canvasWidth = getMeasuredWidth();
+        final float canvasHeight = getMeasuredHeight();
+        final PointF touch0 = new PointF(event.getX(0), event.getY(0));
+        final PointF touch1 = new PointF(event.getX(1), event.getY(1));
+
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN:
+                mMutatingAnnotation = getAnnotationAtPoint(touch0);
+
+                if (mMutatingAnnotation == null) {
+                    break;
+                }
+
+                mMovingStartPoint = AnnotationView.getPointFromPercentPoint(mMutatingAnnotation.getStartPercentPoint(), canvasWidth, canvasHeight);
+                mMovingEndPoint = AnnotationView.getPointFromPercentPoint(mMutatingAnnotation.getEndPercentPoint(), canvasWidth, canvasHeight);
+
+                mMultiTouch0 = touch0;
+                mMultiTouch1 = touch1;
+
+                if (getDistance(touch0, mMovingEndPoint) < getDistance(touch1, mMovingEndPoint)) {
+                    mTouchesFlipped = true;
+                } else {
+                    mTouchesFlipped = false;
+                }
+
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (mMutatingAnnotation == null) {
+                    break;
+                }
+
+                float deltaX0 = touch0.x - mMultiTouch0.x;
+                float deltaY0 = touch0.y - mMultiTouch0.y;
+                float deltaX1 = touch1.x - mMultiTouch1.x;
+                float deltaY1 = touch1.y -  mMultiTouch1.y;
+                final float newStartX;
+                final float newStartY;
+                final float newEndX;
+                final float newEndY;
+
+                if (mTouchesFlipped) {
+                    newStartX = mMovingStartPoint.x + deltaX1;
+                    newStartY = mMovingStartPoint.y + deltaY1;
+                    newEndX = mMovingEndPoint.x + deltaX0;
+                    newEndY = mMovingEndPoint.y + deltaY0;
+                } else {
+                    newStartX = mMovingStartPoint.x + deltaX0;
+                    newStartY = mMovingStartPoint.y + deltaY0;
+                    newEndX = mMovingEndPoint.x + deltaX1;
+                    newEndY = mMovingEndPoint.y + deltaY1;
+                }
+
+                mMutatingAnnotation.setStartPercentPoint(newStartX / canvasWidth, newStartY / canvasHeight);
+                mMutatingAnnotation.setEndPercentPoint(newEndX / canvasWidth, newEndY / canvasHeight);
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                mMutatingAnnotation = null;
+                mMultiTouch0 = null;
+                mMultiTouch1 = null;
+                break;
+        }
+
+        invalidate();
+
+        return true;
     }
 
     private @Nullable Annotation getAnnotationAtPoint(PointF point) {
@@ -237,5 +305,9 @@ public class AnnotationView2 extends View {
         }
 
         return null;
+    }
+
+    private float getDistance(PointF p0, PointF p1) {
+        return (float) Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2));
     }
 }
