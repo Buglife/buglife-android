@@ -52,7 +52,7 @@ public class AnnotationView2 extends View {
 
     public Bitmap captureDecoratedImage() {
         if (mImage == null) {
-            throw new RuntimeException("");
+            throw new RuntimeException("Image is null, nothing to capture!");
         }
 
         Bitmap output = mImage.copy(mImage.getConfig(), true);
