@@ -40,6 +40,7 @@ public class AnnotationView2 extends View {
 
     public AnnotationView2(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        setLayerType(LAYER_TYPE_SOFTWARE, null);
     }
 
     public void setImage(@NonNull Bitmap image) {
