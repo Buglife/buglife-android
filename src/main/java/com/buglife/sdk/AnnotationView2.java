@@ -66,10 +66,18 @@ public class AnnotationView2 extends View {
         // Iterate backwards because drawing happens bottom up.
         for (int i = TYPE_Z_INDEX.length - 1; i >= 0; i--) {
             Annotation.Type type = TYPE_Z_INDEX[i];
+            Bitmap image = mImage;
             List<Annotation> annotations = mAnnotations.get(type);
             if (annotations != null) {
+                if (type == Annotation.Type.LOUPE && !mAnnotations.get(Annotation.Type.BLUR).isEmpty()) {
+                    image = mImage.copy(mImage.getConfig(), true);
+                    Canvas offScreenCanvas = new Canvas(image);
+                    for (Annotation annotation : mAnnotations.get(Annotation.Type.BLUR)) {
+                        annotation.render(offScreenCanvas, mImage);
+                    }
+                }
                 for (Annotation annotation : annotations) {
-                    annotation.render(canvas, mImage);
+                    annotation.render(canvas, image);
                 }
             }
         }
