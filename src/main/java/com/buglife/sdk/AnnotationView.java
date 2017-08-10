@@ -13,13 +13,11 @@ import android.util.*;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class AnnotationView2 extends View {
+public class AnnotationView extends View {
     // Arrow annotations have the highest z-index, then loupe, then blur
     private static final Annotation.Type[] TYPE_Z_INDEX = new Annotation.Type[] {
             Annotation.Type.ARROW,
@@ -40,11 +38,11 @@ public class AnnotationView2 extends View {
     private PointF mMultiTouch1 = null;
     private boolean mTouchesFlipped = false;
 
-    public AnnotationView2(Context context, @Nullable AttributeSet attrs) {
+    public AnnotationView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public AnnotationView2(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public AnnotationView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }

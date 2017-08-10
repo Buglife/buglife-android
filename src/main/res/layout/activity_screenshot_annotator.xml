@@ -9,7 +9,7 @@
     android:background="@android:color/black"
     tools:ignore="Overdraw">
 
-    <com.buglife.sdk.AnnotationView2
+    <com.buglife.sdk.AnnotationView
         android:id="@+id/annotation_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
