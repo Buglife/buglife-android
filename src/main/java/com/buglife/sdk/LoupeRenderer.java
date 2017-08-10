@@ -17,7 +17,6 @@
 
 package com.buglife.sdk;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -25,15 +24,13 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.support.annotation.NonNull;
-import android.util.*;
 
 final class LoupeRenderer implements AnnotationRenderer {
 
     private static final int MAGNIFICATION_FACTOR = 2;
 
     private final Matrix mMatrix = new Matrix();
-    private final Paint mBorderPaint = new Paint();
+    private final Paint mBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     LoupeRenderer(float strokeWidth) {
         mBorderPaint.setStrokeWidth(strokeWidth);
@@ -72,10 +69,5 @@ final class LoupeRenderer implements AnnotationRenderer {
         // Draw loupe border
         canvas.drawCircle(center.x, center.y, radius, mBorderPaint);
         canvas.restore();
-    }
-
-    static float getStrokeWidth(Context context) {
-        float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics());
-        return strokeWidth;
     }
 }
