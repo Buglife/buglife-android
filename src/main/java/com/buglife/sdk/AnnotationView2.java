@@ -14,8 +14,10 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class AnnotationView2 extends View {
     // Arrow annotations have the highest z-index, then loupe, then blur
@@ -27,7 +29,7 @@ public class AnnotationView2 extends View {
 
     private Bitmap mImage;
     private Matrix mSharedMatrix = new Matrix();
-    private Map<Annotation.Type, List<Annotation>> mAnnotations = new ArrayMap<>();
+    private Map<Annotation.Type, Set<Annotation>> mAnnotations = new ArrayMap<>();
 
     private Annotation mCurrentAnnotation;
     private Annotation mMutatingAnnotation;
@@ -77,7 +79,7 @@ public class AnnotationView2 extends View {
         for (int i = TYPE_Z_INDEX.length - 1; i >= 0; i--) {
             Annotation.Type type = TYPE_Z_INDEX[i];
             Bitmap image = mImage;
-            List<Annotation> annotations = mAnnotations.get(type);
+            Set<Annotation> annotations = mAnnotations.get(type);
             if (annotations != null) {
                 if (type == Annotation.Type.LOUPE && !CollectionUtils.isEmpty(mAnnotations.get(Annotation.Type.BLUR))) {
                     image = mImage.copy(mImage.getConfig(), true);
@@ -189,11 +191,11 @@ public class AnnotationView2 extends View {
                     // If we're creating a new annotation, then just set the end point
                     mMutatingAnnotation.setEndPercentPoint(percentX, percentY);
                     if (mAnnotations.containsKey(mMutatingAnnotation.getAnnotationType())) {
-                        List<Annotation> annotations = mAnnotations.get(mMutatingAnnotation.getAnnotationType());
+                        Set<Annotation> annotations = mAnnotations.get(mMutatingAnnotation.getAnnotationType());
                         annotations.add(mMutatingAnnotation);
                         mAnnotations.put(mMutatingAnnotation.getAnnotationType(), annotations);
                     } else {
-                        List<Annotation> annotations = new ArrayList<>();
+                        Set<Annotation> annotations = new HashSet<>();
                         annotations.add(mMutatingAnnotation);
                         mAnnotations.put(mMutatingAnnotation.getAnnotationType(), annotations);
                     }
@@ -292,7 +294,7 @@ public class AnnotationView2 extends View {
         int viewHeight = getMeasuredHeight();
 
         for (Annotation.Type type : TYPE_Z_INDEX) {
-            List<Annotation> annotations = mAnnotations.get(type);
+            Set<Annotation> annotations = mAnnotations.get(type);
             if (annotations != null) {
                 for (Annotation annotation : annotations) {
                     RectF rect = annotation.getRectF(viewWidth, viewHeight);
