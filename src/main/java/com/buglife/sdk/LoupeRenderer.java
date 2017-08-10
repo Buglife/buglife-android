@@ -67,7 +67,7 @@ final class LoupeRenderer implements AnnotationRenderer {
         // Draw loupe contents
         canvas.drawBitmap(image, mMatrix, null);
         // Draw loupe border
-        canvas.drawCircle(center.x, center.y, radius, mBorderPaint);
+        canvas.drawCircle(center.x, center.y, radius - mBorderPaint.getStrokeWidth(), mBorderPaint);
         canvas.restore();
     }
 }
