@@ -70,7 +70,7 @@ public class AnnotationView2 extends View {
             Bitmap image = mImage;
             List<Annotation> annotations = mAnnotations.get(type);
             if (annotations != null) {
-                if (type == Annotation.Type.LOUPE && !mAnnotations.get(Annotation.Type.BLUR).isEmpty()) {
+                if (type == Annotation.Type.LOUPE && !CollectionUtils.isEmpty(mAnnotations.get(Annotation.Type.BLUR))) {
                     image = mImage.copy(mImage.getConfig(), true);
                     Canvas offScreenCanvas = new Canvas(image);
                     for (Annotation annotation : mAnnotations.get(Annotation.Type.BLUR)) {
