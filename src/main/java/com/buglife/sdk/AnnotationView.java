@@ -21,6 +21,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
@@ -43,6 +44,7 @@ public class AnnotationView extends View {
     };
 
     private Bitmap mImage;
+    private final Paint mImagePaint = new Paint(Paint.FILTER_BITMAP_FLAG);
     private Matrix mSharedMatrix = new Matrix();
     private Map<Annotation.Type, Set<Annotation>> mAnnotations = new ArrayMap<>();
 
@@ -149,7 +151,7 @@ public class AnnotationView extends View {
         float scaleX = (float) canvas.getWidth() / (float) mImage.getWidth();
         float scaleY = (float) canvas.getHeight() / (float) mImage.getHeight();
         mSharedMatrix.setScale(scaleX, scaleY);
-        canvas.drawBitmap(mImage, mSharedMatrix, null);
+        canvas.drawBitmap(mImage, mSharedMatrix, mImagePaint);
 
         drawAnnotations(canvas);
     }
