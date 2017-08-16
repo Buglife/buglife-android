@@ -256,11 +256,7 @@ public class AnnotationView extends View {
                 mMultiTouch0 = touch0;
                 mMultiTouch1 = touch1;
 
-                if (getDistance(touch0, mMovingEndPoint) < getDistance(touch1, mMovingEndPoint)) {
-                    mTouchesFlipped = true;
-                } else {
-                    mTouchesFlipped = false;
-                }
+                mTouchesFlipped = getDistance(touch0, mMovingEndPoint) < getDistance(touch1, mMovingEndPoint);
 
                 break;
             case MotionEvent.ACTION_MOVE:
