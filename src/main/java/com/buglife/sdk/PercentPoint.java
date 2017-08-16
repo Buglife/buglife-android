@@ -28,6 +28,11 @@ class PercentPoint extends PointF {
         super(x, y);
     }
 
+    PercentPoint(PercentPoint percentPoint) {
+        this.x = percentPoint.x;
+        this.y = percentPoint.y;
+    }
+
     public PointF getAsPointF(float width, float height) {
         return new PointF(x * width, y * height);
     }

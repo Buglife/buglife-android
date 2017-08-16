@@ -59,8 +59,15 @@ class Annotation {
         return annotation;
     }
 
-    Annotation(@NonNull Type annotationType) {
+    private Annotation(@NonNull Type annotationType) {
         mAnnotationType = annotationType;
+    }
+
+    private Annotation(Annotation annotation) {
+        mAnnotationType = annotation.getAnnotationType();
+        renderer = annotation.renderer;
+        mStartPercentPoint = new PercentPoint(annotation.mStartPercentPoint);
+        mEndPercentPoint = new PercentPoint(annotation.mEndPercentPoint);
     }
 
     PercentPoint getStartPercentPoint() {
@@ -134,5 +141,9 @@ class Annotation {
         }
 
         renderer.drawAnnotation(this, canvas, originalImage);
+    }
+
+    public Annotation copy() {
+        return new Annotation(this);
     }
 }

@@ -177,7 +177,7 @@ public class AnnotationView extends View {
                     mMovingEndPoint = existingAnnotation.getEndPercentPoint().getAsPointF(canvasWidth, canvasHeight);
                 } else {
                     // If we're drawing a new annotation, use whatever type is currently selected
-                    mCurrentAnnotation = mSelectedAnnotation;
+                    mCurrentAnnotation = mSelectedAnnotation.copy();
                     mCurrentAnnotation.setStartPercentPoint(percentX, percentY);
                 }
 
