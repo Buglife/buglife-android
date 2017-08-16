@@ -99,7 +99,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         mBlurTool.setOnClickListener(mToolClickListener);
 
         setSelectedTool(Annotation.Type.ARROW);
-        mAnnotationView.setCurrentAnnotation(Annotation.newArrowInstance());
+        mAnnotationView.setAnnotation(Annotation.newArrowInstance());
 
         mAnnotationView.setOnTouchListener(new View.OnTouchListener() {
             @Override public boolean onTouch(View v, MotionEvent event) {
@@ -232,7 +232,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
             }
 
             if (annotation != null) {
-                mAnnotationView.setCurrentAnnotation(annotation);
+                mAnnotationView.setAnnotation(annotation);
                 setSelectedTool(annotation.getAnnotationType());
             }
         }

@@ -48,8 +48,8 @@ public class AnnotationView extends View {
     private Matrix mSharedMatrix = new Matrix();
     private Map<Annotation.Type, Set<Annotation>> mAnnotations = new ArrayMap<>();
 
-    private Annotation mCurrentAnnotation;
-    private Annotation mMutatingAnnotation;
+    private Annotation mSelectedAnnotation; // Annotation user selected from toolbar
+    private Annotation mCurrentAnnotation; // Annotation that is currently being used
     private PointF mMovingTouchPoint = null;
     private PointF mMovingStartPoint = null;
     private PointF mMovingEndPoint = null;
@@ -74,8 +74,8 @@ public class AnnotationView extends View {
         mImage = image;
     }
 
-    public void setCurrentAnnotation(Annotation annotation) {
-        mCurrentAnnotation = annotation;
+    public void setAnnotation(Annotation annotation) {
+        mSelectedAnnotation = annotation;
     }
 
     public Bitmap captureDecoratedImage() {
@@ -171,20 +171,20 @@ public class AnnotationView extends View {
 
                 if (existingAnnotation != null) {
                     // If we tapped on an existing annotation, start moving that
-                    mMutatingAnnotation = existingAnnotation;
+                    mCurrentAnnotation = existingAnnotation;
                     mMovingTouchPoint = point;
                     mMovingStartPoint = existingAnnotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
                     mMovingEndPoint = existingAnnotation.getEndPercentPoint().getAsPointF(canvasWidth, canvasHeight);
                 } else {
                     // If we're drawing a new annotation, use whatever type is currently selected
-                    mMutatingAnnotation = mCurrentAnnotation;
-                    mMutatingAnnotation.setStartPercentPoint(percentX, percentY);
+                    mCurrentAnnotation = mSelectedAnnotation;
+                    mCurrentAnnotation.setStartPercentPoint(percentX, percentY);
                 }
 
                 break;
             }
             case MotionEvent.ACTION_MOVE: {
-                if (mMutatingAnnotation == null) {
+                if (mCurrentAnnotation == null) {
                     break;
                 }
 
@@ -202,25 +202,25 @@ public class AnnotationView extends View {
                     float newEndX = mMovingEndPoint.x + deltaX;
                     float newEndY = mMovingEndPoint.y + deltaY;
 
-                    mMutatingAnnotation.setStartPercentPoint(newStartX / canvasWidth, newStartY / canvasHeight);
-                    mMutatingAnnotation.setEndPercentPoint(newEndX / canvasWidth, newEndY / canvasHeight);
+                    mCurrentAnnotation.setStartPercentPoint(newStartX / canvasWidth, newStartY / canvasHeight);
+                    mCurrentAnnotation.setEndPercentPoint(newEndX / canvasWidth, newEndY / canvasHeight);
                 } else {
                     // If we're creating a new annotation, then just set the end point
-                    mMutatingAnnotation.setEndPercentPoint(percentX, percentY);
-                    if (mAnnotations.containsKey(mMutatingAnnotation.getAnnotationType())) {
-                        Set<Annotation> annotations = mAnnotations.get(mMutatingAnnotation.getAnnotationType());
-                        annotations.add(mMutatingAnnotation);
-                        mAnnotations.put(mMutatingAnnotation.getAnnotationType(), annotations);
+                    mCurrentAnnotation.setEndPercentPoint(percentX, percentY);
+                    if (mAnnotations.containsKey(mCurrentAnnotation.getAnnotationType())) {
+                        Set<Annotation> annotations = mAnnotations.get(mCurrentAnnotation.getAnnotationType());
+                        annotations.add(mCurrentAnnotation);
+                        mAnnotations.put(mCurrentAnnotation.getAnnotationType(), annotations);
                     } else {
                         Set<Annotation> annotations = new HashSet<>();
-                        annotations.add(mMutatingAnnotation);
-                        mAnnotations.put(mMutatingAnnotation.getAnnotationType(), annotations);
+                        annotations.add(mCurrentAnnotation);
+                        mAnnotations.put(mCurrentAnnotation.getAnnotationType(), annotations);
                     }
                 }
                 break;
             }
             case MotionEvent.ACTION_UP:
-                mMutatingAnnotation = null;
+                mCurrentAnnotation = null;
                 mMovingTouchPoint = null;
                 mMovingStartPoint = null;
                 mMovingEndPoint = null;
@@ -244,14 +244,14 @@ public class AnnotationView extends View {
             case MotionEvent.ACTION_DOWN:
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
-                mMutatingAnnotation = getAnnotationAtPoint(touch0);
+                mCurrentAnnotation = getAnnotationAtPoint(touch0);
 
-                if (mMutatingAnnotation == null) {
+                if (mCurrentAnnotation == null) {
                     break;
                 }
 
-                mMovingStartPoint = mMutatingAnnotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
-                mMovingEndPoint = mMutatingAnnotation.getEndPercentPoint().getAsPointF(canvasWidth, canvasHeight);
+                mMovingStartPoint = mCurrentAnnotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
+                mMovingEndPoint = mCurrentAnnotation.getEndPercentPoint().getAsPointF(canvasWidth, canvasHeight);
 
                 mMultiTouch0 = touch0;
                 mMultiTouch1 = touch1;
@@ -264,7 +264,7 @@ public class AnnotationView extends View {
 
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (mMutatingAnnotation == null) {
+                if (mCurrentAnnotation == null) {
                     break;
                 }
 
@@ -289,13 +289,13 @@ public class AnnotationView extends View {
                     newEndY = mMovingEndPoint.y + deltaY1;
                 }
 
-                mMutatingAnnotation.setStartPercentPoint(newStartX / canvasWidth, newStartY / canvasHeight);
-                mMutatingAnnotation.setEndPercentPoint(newEndX / canvasWidth, newEndY / canvasHeight);
+                mCurrentAnnotation.setStartPercentPoint(newStartX / canvasWidth, newStartY / canvasHeight);
+                mCurrentAnnotation.setEndPercentPoint(newEndX / canvasWidth, newEndY / canvasHeight);
                 break;
             case MotionEvent.ACTION_POINTER_UP:
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                mMutatingAnnotation = null;
+                mCurrentAnnotation = null;
                 mMultiTouch0 = null;
                 mMultiTouch1 = null;
                 break;
