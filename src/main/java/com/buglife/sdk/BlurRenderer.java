@@ -27,23 +27,17 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-final class BlurRenderer {
+final class BlurRenderer implements AnnotationRenderer {
     private static final float BLUR_RADIUS = 40;
 
-    final private Bitmap mSourceBitmap;
-
-    BlurRenderer(@NonNull Bitmap sourceBitmap) {
-        mSourceBitmap = sourceBitmap;
-    }
-
-    void drawAnnotation(Annotation annotation, Canvas canvas) {
-        Rect inBounds = annotation.getRect(mSourceBitmap.getWidth(), mSourceBitmap.getHeight());
+    @Override
+    public void drawAnnotation(Annotation annotation, Canvas canvas, Bitmap image) {
+        Rect inBounds = annotation.getRect(image.getWidth(), image.getHeight());
         Rect outBounds = annotation.getRect(canvas.getWidth(), canvas.getHeight());
 
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.FILTER_BITMAP_FLAG);
-        BlurRenderer.draw(mSourceBitmap, inBounds, canvas, outBounds, paint);
+        draw(image, inBounds, canvas, outBounds, paint);
 
-        Paint borderPaint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
         paint.setColor(Color.RED);
         canvas.drawRect(outBounds, paint);
@@ -52,7 +46,7 @@ final class BlurRenderer {
     /**
      * Draws a blur effect on the provided canvas,
      */
-    static void draw(@NonNull Bitmap in, @Nullable Rect inBounds, @NonNull Canvas canvas, @NonNull Rect outBounds, @NonNull Paint paint) {
+    private void draw(@NonNull Bitmap in, @Nullable Rect inBounds, @NonNull Canvas canvas, @NonNull Rect outBounds, @NonNull Paint paint) {
         int inWidth = inBounds == null ? in.getWidth() : inBounds.width();
         int inHeight = inBounds == null ? in.getHeight() : inBounds.height();
         int inX = inBounds == null ? 0 : inBounds.left;
@@ -70,8 +64,6 @@ final class BlurRenderer {
         float halfSize = BLUR_RADIUS / 2f;
         final int bitmapWidth = in.getWidth();
         final int bitmapHeight = in.getHeight();
-        final int canvasWidth = canvas.getWidth();
-        final int canvasHeight = canvas.getHeight();
 
         for (int row = 0; row <= rows; row++ ) {
             float y = (row - 0.5f) * BLUR_RADIUS;

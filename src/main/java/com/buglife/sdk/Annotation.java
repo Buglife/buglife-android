@@ -17,9 +17,15 @@
 
 package com.buglife.sdk;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
+import android.util.TypedValue;
 
 class Annotation {
 
@@ -30,9 +36,38 @@ class Annotation {
     private final @NonNull Type mAnnotationType;
     private PercentPoint mStartPercentPoint = new PercentPoint(0, 0);
     private PercentPoint mEndPercentPoint = new PercentPoint(0, 0);
+    private AnnotationRenderer renderer;
 
-    Annotation(@NonNull Type annotationType) {
+    public static Annotation newArrowInstance() {
+        Annotation annotation = new Annotation(Type.ARROW);
+        int fillColor = Color.parseColor("#f00060");
+        int strokeColor = Color.WHITE;
+        annotation.renderer = new ArrowRenderer(fillColor, strokeColor);
+        return annotation;
+    }
+
+    public static Annotation newLoupeInstance(Context context) {
+        Annotation annotation = new Annotation(Type.LOUPE);
+        float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics());
+        annotation.renderer = new LoupeRenderer(strokeWidth);
+        return annotation;
+    }
+
+    public static Annotation newBlurInstance() {
+        Annotation annotation = new Annotation(Type.BLUR);
+        annotation.renderer = new BlurRenderer();
+        return annotation;
+    }
+
+    private Annotation(@NonNull Type annotationType) {
         mAnnotationType = annotationType;
+    }
+
+    private Annotation(Annotation annotation) {
+        mAnnotationType = annotation.getAnnotationType();
+        renderer = annotation.renderer;
+        mStartPercentPoint = new PercentPoint(annotation.mStartPercentPoint);
+        mEndPercentPoint = new PercentPoint(annotation.mEndPercentPoint);
     }
 
     PercentPoint getStartPercentPoint() {
@@ -92,5 +127,23 @@ class Annotation {
         float right = getRightPercent() * width;
         float bottom = getBottomPercent() * height;
         return new RectF(left, top, right, bottom);
+    }
+
+    float getLength(int width, int height) {
+        PointF a = getStartPercentPoint().getAsPointF(width, height);
+        PointF b = getEndPercentPoint().getAsPointF(width, height);
+        return (float) Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+    }
+
+    public void render(Canvas canvas, Bitmap originalImage) {
+        if (renderer == null) {
+            return;
+        }
+
+        renderer.drawAnnotation(this, canvas, originalImage);
+    }
+
+    public Annotation copy() {
+        return new Annotation(this);
     }
 }

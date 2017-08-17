@@ -17,7 +17,7 @@
 
 package com.buglife.sdk;
 
-import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -29,7 +29,7 @@ import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 
-final class ArrowRenderer {
+final class ArrowRenderer implements AnnotationRenderer {
     final private @ColorInt int mFillColor;
     final private @ColorInt int mStrokeColor;
     private Paint mFillPaint;
@@ -40,13 +40,14 @@ final class ArrowRenderer {
         mStrokeColor = strokeColor;
     }
 
-    void drawAnnotation(Annotation annotation, Canvas canvas) {
+    @Override
+    public void drawAnnotation(Annotation annotation, Canvas canvas, Bitmap image) {
         final float canvasWidth = canvas.getWidth();
         final float canvasHeight = canvas.getHeight();
-        PointF startPoint = getPointFromPercentPoint(annotation.getStartPercentPoint(), canvasWidth, canvasHeight);
-        PointF endPoint = getPointFromPercentPoint(annotation.getEndPercentPoint(), canvasWidth, canvasHeight);
+        PointF startPoint = annotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
+        PointF endPoint = annotation.getEndPercentPoint().getAsPointF(canvasWidth, canvasHeight);
 
-        float arrowLength = getLength(annotation, canvasWidth, canvasHeight);
+        float arrowLength = annotation.getLength((int) canvasWidth, (int) canvasHeight);
         float tailWidth = getTailWidthForArrowLength(arrowLength);
         float headLength = getHeadLengthForArrowLength(arrowLength);
         float headWidth = getHeadWidthForArrowWithHeadLength(headLength);
@@ -132,15 +133,5 @@ final class ArrowRenderer {
         path.transform(matrix);
 
         return path;
-    }
-
-    static PointF getPointFromPercentPoint(PercentPoint percentPoint, float width, float height) {
-        return new PointF(percentPoint.x * width, percentPoint.y * height);
-    }
-
-    static float getLength(Annotation annotation, float width, float height) {
-        PointF a = getPointFromPercentPoint(annotation.getStartPercentPoint(), width, height);
-        PointF b = getPointFromPercentPoint(annotation.getEndPercentPoint(), width, height);
-        return (float) Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
     }
 }

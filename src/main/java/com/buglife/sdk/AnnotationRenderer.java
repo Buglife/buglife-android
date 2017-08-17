@@ -17,17 +17,9 @@
 
 package com.buglife.sdk;
 
-import android.graphics.PointF;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 
-abstract class AnnotationRenderer {
-
-    final static PointF getPointFromPercentPoint(PercentPoint percentPoint, float width, float height) {
-        return new PointF(percentPoint.x * width, percentPoint.y * height);
-    }
-
-    final static float getLength(Annotation annotation, float width, float height) {
-        PointF a = getPointFromPercentPoint(annotation.getStartPercentPoint(), width, height);
-        PointF b = getPointFromPercentPoint(annotation.getEndPercentPoint(), width, height);
-        return (float) Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
-    }
+interface AnnotationRenderer {
+    void drawAnnotation(Annotation annotation, Canvas canvas, Bitmap image);
 }

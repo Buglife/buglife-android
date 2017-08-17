@@ -17,7 +17,6 @@
 
 package com.buglife.sdk;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -25,39 +24,28 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.support.annotation.NonNull;
-import android.util.TypedValue;
 
-final class LoupeRenderer extends AnnotationRenderer {
+final class LoupeRenderer implements AnnotationRenderer {
 
     private static final int MAGNIFICATION_FACTOR = 2;
 
-    private Bitmap mSourceBitmap;
     private final Matrix mMatrix = new Matrix();
-    private final Paint mBorderPaint = new Paint();
+    private final Paint mBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     LoupeRenderer(float strokeWidth) {
-        this(null, strokeWidth);
-    }
-
-    LoupeRenderer(Bitmap sourceBitmap, float strokeWidth) {
-        mSourceBitmap = sourceBitmap;
         mBorderPaint.setStrokeWidth(strokeWidth);
         mBorderPaint.setStyle(Paint.Style.STROKE);
         mBorderPaint.setColor(Color.BLACK);
     }
 
-    void setSourceBitmap(@NonNull Bitmap bitmap) {
-        mSourceBitmap = bitmap;
-    }
-
-    void drawAnnotation(Annotation annotation, Canvas canvas) {
+    @Override
+    public void drawAnnotation(Annotation annotation, Canvas canvas, Bitmap image) {
         canvas.save();
 
-        final float canvasWidth = canvas.getWidth();
-        final float canvasHeight = canvas.getHeight();
-        float radius = getLength(annotation, canvasWidth, canvasHeight);
-        PointF center = getPointFromPercentPoint(annotation.getStartPercentPoint(), canvasWidth, canvasHeight);
+        final int canvasWidth = canvas.getWidth();
+        final int canvasHeight = canvas.getHeight();
+        float radius = annotation.getLength(canvasWidth, canvasHeight);
+        PointF center = annotation.getStartPercentPoint().getAsPointF(canvasWidth, canvasHeight);
         Path loupePath = new Path();
         loupePath.addCircle(center.x, center.y, radius, Path.Direction.CW);
         canvas.clipPath(loupePath);
@@ -65,8 +53,8 @@ final class LoupeRenderer extends AnnotationRenderer {
         mMatrix.reset();
 
         // Scale the original bitmap up to the size of the canvas
-        float scaleX = canvasWidth / mSourceBitmap.getWidth();
-        float scaleY = canvasHeight / mSourceBitmap.getHeight();
+        float scaleX = (float) canvasWidth / (float) image.getWidth();
+        float scaleY = (float) canvasHeight / (float) image.getHeight();
         mMatrix.preScale(scaleX, scaleY);
 
         // Loupe magnification scale
@@ -77,33 +65,9 @@ final class LoupeRenderer extends AnnotationRenderer {
         mMatrix.postTranslate(-px * (MAGNIFICATION_FACTOR - 1), -py * (MAGNIFICATION_FACTOR - 1));
 
         // Draw loupe contents
-        canvas.drawBitmap(mSourceBitmap, mMatrix, null);
+        canvas.drawBitmap(image, mMatrix, null);
         // Draw loupe border
-        canvas.drawCircle(center.x, center.y, radius, mBorderPaint);
+        canvas.drawCircle(center.x, center.y, radius - mBorderPaint.getStrokeWidth(), mBorderPaint);
         canvas.restore();
-    }
-
-    void test(Annotation annotation, Canvas canvas) {
-        final float canvasWidth = canvas.getWidth();
-        final float canvasHeight = canvas.getHeight();
-        float radius = getLength(annotation, canvasWidth, canvasHeight);
-        PointF center = getPointFromPercentPoint(annotation.getStartPercentPoint(), canvasWidth, canvasHeight);
-
-        canvas.save();
-
-        mMatrix.reset();
-        float scaleX = canvasWidth / mSourceBitmap.getWidth();
-        float scaleY = canvasHeight / mSourceBitmap.getHeight();
-        mMatrix.preScale(scaleX, scaleY);
-
-        canvas.drawBitmap(mSourceBitmap, mMatrix, null);
-        // Draw loupe border
-        canvas.drawCircle(center.x, center.y, radius, mBorderPaint);
-        canvas.restore();
-    }
-
-    static float getStrokeWidth(Context context) {
-        float strokeWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics());
-        return strokeWidth;
     }
 }
