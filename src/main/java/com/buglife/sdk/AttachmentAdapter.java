@@ -71,7 +71,8 @@ class AttachmentAdapter extends BaseAdapter {
         TextView titleView = (TextView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_title);
         Attachment attachment = getItem(position);
 
-        Bitmap scaledBitmap = scaleBitmapForThumbnail(convertView.getContext(), attachment.getBitmap());
+        Context context = convertView.getContext();
+        Bitmap scaledBitmap = scaleBitmapForThumbnail(context, attachment.getBitmap(context));
         thumbnailView.setImageBitmap(scaledBitmap);
         titleView.setText(attachment.getFilename());
 

@@ -79,7 +79,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         mAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
         mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
-        Bitmap bitmap = mAttachment.getBitmap();
+        Bitmap bitmap = mAttachment.getBitmap(this);
         mAnnotationView.setImage(bitmap);
 
         // Annotation tools
