@@ -22,6 +22,11 @@
             android:theme="@style/NoActionBarTheme"
             android:noHistory="true"
             />
+        <activity
+            android:name=".VideoActivity"
+            android:theme="@style/NoActionBarTheme"
+            android:noHistory="true"
+            />
     </application>
 
 </manifest>

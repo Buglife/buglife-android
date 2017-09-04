@@ -6,9 +6,8 @@ import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.buglife.sdk.Attachment;
@@ -28,6 +27,12 @@ public class MainActivity extends AppCompatActivity {
 
         TextView introTextView = (TextView) findViewById(R.id.intro_text_view);
         introTextView.setText(getIntroText());
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            // Screen recording is only available in Android M & higher
+            Button button = (Button) findViewById(R.id.record_screen_button);
+            button.setVisibility(View.GONE);
+        }
     }
 
     public void reportBugButtonTapped(View view) {
@@ -35,6 +40,10 @@ public class MainActivity extends AppCompatActivity {
         Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
         Buglife.addAttachment(attachment);
         Buglife.showReporter();
+    }
+
+    public void recordScreenButtonTapped(View view) {
+        Buglife.startScreenRecording();
     }
 
     private String getIntroText() {

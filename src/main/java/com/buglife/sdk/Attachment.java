@@ -17,20 +17,19 @@
 
 package com.buglife.sdk;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.util.Base64;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -44,6 +43,7 @@ public class Attachment implements Parcelable {
     public static final String TYPE_SQLITE = "application/x-sqlite3";
     public static final String TYPE_PNG = "image/png";
     public static final String TYPE_JPEG = "image/jpeg";
+    public static final String TYPE_MP4 = "video/mp4";
 
     private static final Bitmap.CompressFormat DEFAULT_SCREENSHOT_FORMAT = Bitmap.CompressFormat.PNG;
     private static final int DEFAULT_SCREENSHOT_COMPRESSION_QUALITY = 100;
@@ -127,21 +127,41 @@ public class Attachment implements Parcelable {
         return getData().getBase64EncodedData();
     }
 
-    Bitmap getBitmap() {
-        if (!isImageAttachmentType(mType)) {
-            throw new Buglife.BuglifeException("No bitmap available for attachment of type " + mType);
+    Bitmap getBitmap(Context context) {
+        if (isImageAttachmentType(mType)) {
+            BitmapData bitmapData = (BitmapData) getData();
+            return bitmapData.getBitmap();
+        } else if (isVideoAttachmentType(mType)) {
+            FileData fileData = (FileData) getData();
+            File file = fileData.getFile();
+            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
+            mediaMetadataRetriever.setDataSource(context, Uri.fromFile(file));
+            Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime(0);
+            mediaMetadataRetriever.release();
+            return bitmap;
         }
 
-        BitmapData bitmapData = (BitmapData)getData();
-        return bitmapData.getBitmap();
+        throw new Buglife.BuglifeException("No bitmap available for attachment of type " + mType);
     }
 
     Attachment getCopy(Bitmap newBitmap) {
         return new Builder(mFilename, mType).setIdentifier(mIdentifier).build(newBitmap);
     }
 
+    boolean isImageAttachment() {
+        return isImageAttachmentType(mType);
+    }
+
+    boolean isVideoAttachment() {
+        return isVideoAttachmentType(mType);
+    }
+
     static boolean isImageAttachmentType(@NonNull String attachmentType) {
         return attachmentType.equals(TYPE_PNG) || attachmentType.equals(TYPE_JPEG);
+    }
+
+    static boolean isVideoAttachmentType(@NonNull String attachmentType) {
+        return attachmentType.equals(TYPE_MP4);
     }
 
     /**
@@ -170,39 +190,32 @@ public class Attachment implements Parcelable {
         }
 
         /**
-         * Builds an attachment using a resource URI.
-         *
-         * @param uri The resource URI
-         * @return The attachment
-         * @throws IOException
-         */
-        public @NonNull Attachment build(@NonNull Uri uri) throws IOException {
-            File file = new File(uri.getPath());
-            return build(file);
-        }
-
-        /**
          * Builds an attachment using a File reference.
          * @param file The file
          * @return The attachment
-         * @throws IOException
          */
-        public @NonNull Attachment build(@NonNull File file) throws IOException {
+        public @NonNull Attachment build(@NonNull File file) {
             if (isImageAttachmentType(mType)) {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
                 return build(bitmap);
-            } else {
-                int size = (int) file.length();
-                byte[] bytes = new byte[size];
-                FileInputStream fileInputStream = new FileInputStream(file);
-                BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-                bufferedInputStream.read(bytes, 0, bytes.length);
-                bufferedInputStream.close();
-                FileData fileData = new FileData(bytes);
-                AttachmentDataCache.getInstance().putData(mIdentifier, fileData);
-                return new Attachment(mIdentifier, mFilename, mType);
             }
+            FileData fileData = new FileData(file);
+            //could combine these two lines but this makes it more debuggable.
+            return makeCachedAttachment(fileData);
+        }
+        /**
+         * Builds an attachment using a File reference.
+         * @param file The file
+         * @param temporaryFile The file will be deleted when no references to it remain. Calls build(file) if false.
+         * @return The attachment
+         */
+        public @NonNull Attachment build(@NonNull File file, boolean temporaryFile) {
+            if (!temporaryFile) {
+                return build(file);
+            }
+            TempFileData fileData = new TempFileData(file);
+            return makeCachedAttachment(fileData);
         }
 
         /**
@@ -212,7 +225,12 @@ public class Attachment implements Parcelable {
          */
         public @NonNull Attachment build(@NonNull Bitmap bitmap) {
             BitmapData bitmapData = new BitmapData(bitmap);
-            AttachmentDataCache.getInstance().putData(mIdentifier, bitmapData);
+            return makeCachedAttachment(bitmapData);
+        }
+
+        // helper method for build()s
+        private @NonNull Attachment makeCachedAttachment(AttachmentData data) {
+            AttachmentDataCache.getInstance().putData(mIdentifier, data);
             return new Attachment(mIdentifier, mFilename, mType);
         }
 

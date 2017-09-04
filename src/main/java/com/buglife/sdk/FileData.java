@@ -17,21 +17,43 @@
 
 package com.buglife.sdk;
 
+import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 
-final class FileData extends AttachmentData {
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
-    private @NonNull byte[] mData;
+class FileData extends AttachmentData {
 
-    FileData(@NonNull byte[] data) {
-        mData = data;
+    final protected File mFile;
+
+    FileData(File file) {
+        mFile = file;
     }
 
-    @Override @NonNull String getBase64EncodedData() {
-        return Base64.encodeToString(mData, Base64.DEFAULT);
+    File getFile() {
+        return mFile;
     }
 
-
+    @NonNull
+    @Override
+    String getBase64EncodedData() {
+        int size = (int) mFile.length();
+        byte buffer[] = new byte[size];
+        try {
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(mFile));
+            bufferedInputStream.read(buffer, 0, size);
+            bufferedInputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return Base64.encodeToString(buffer, Base64.DEFAULT);
+    }
 }

@@ -13,4 +13,8 @@
     <string name="send">Send</string>
     <string name="error_dialog_title">Oops!</string>
     <string name="error_dialog_message">Something went wrong submitting your bug report. Please try again.</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="screen_recording_minimum_os_error">Oops! Screen recording requires Android 6.0 (Marshmallow) or above.</string>
+    <string name="screen_recording_permission_denied_overlay">Oops! We need permission to draw screen overlays before we can record your screen.</string>
+    <string name="screen_recording_permission_denied_recording">Oops! We need permission if you\'d like to record your screen.</string>
 </resources>
