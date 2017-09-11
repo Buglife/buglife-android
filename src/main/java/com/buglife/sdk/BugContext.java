@@ -58,6 +58,18 @@ final class BugContext implements Parcelable {
         return mAttachments;
     }
 
+    List<Attachment> getMediaAttachments() {
+        ArrayList<Attachment> mediaAttachments = new ArrayList<>();
+
+        for (Attachment attachment : getAttachments()) {
+            if (attachment.isImageAttachment() || attachment.isVideoAttachment()) {
+                mediaAttachments.add(attachment);
+            }
+        }
+
+        return mediaAttachments;
+    }
+
     EnvironmentSnapshot getEnvironmentSnapshot() {
         return mEnvironmentSnapshot;
     }

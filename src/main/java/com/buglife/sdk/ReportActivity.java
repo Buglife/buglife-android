@@ -77,9 +77,9 @@ public class ReportActivity extends AppCompatActivity {
         Intent intent = getIntent();
         mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
-        final List<Attachment> attachments = mBugContext.getAttachments();
+        final List<Attachment> mediaAttachments = mBugContext.getMediaAttachments();
 
-        mAttachmentAdapter = new AttachmentAdapter(attachments);
+        mAttachmentAdapter = new AttachmentAdapter(mediaAttachments);
         mAttachmentListView.setAdapter(mAttachmentAdapter);
         mAttachmentListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -193,7 +193,7 @@ public class ReportActivity extends AppCompatActivity {
             if (resultCode == Activity.RESULT_OK) {
                 Attachment attachment = data.getParcelableExtra(INTENT_KEY_ATTACHMENT);
                 mBugContext.updateAttachment(attachment);
-                mAttachmentAdapter.setAttachments(mBugContext.getAttachments());
+                mAttachmentAdapter.setAttachments(mBugContext.getMediaAttachments());
             }
         }
     }
