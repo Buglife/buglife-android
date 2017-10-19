@@ -69,7 +69,7 @@ final class ScreenshotContentObserver implements ScreenshotObserver {
     }
 
     @Override
-    public void start(final Activity currentActivity) {
+    public void start(final Activity currentActivity, final ScreenshotObserverPermissionListener permissionListener) {
         if (sRequestedAndGrantedPermission) {
             start();
             return;
@@ -90,6 +90,7 @@ final class ScreenshotContentObserver implements ScreenshotObserver {
                 @Override
                 public void onPermissionDenied() {
                     Toast.makeText(currentActivity, "Buglife needs read store permission to capture screenshots!", Toast.LENGTH_LONG).show();
+                    permissionListener.onPermissionDenied();
                 }
             });
             fragmentManager.beginTransaction().add(permissionHelper, PermissionHelper.TAG).commit();

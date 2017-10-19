@@ -20,6 +20,10 @@ package com.buglife.sdk;
 import android.app.Activity;
 
 interface ScreenshotObserver {
-    void start(Activity currentActivity);
+    void start(Activity currentActivity, ScreenshotObserverPermissionListener permissionListener);
     void stop();
+
+    interface ScreenshotObserverPermissionListener {
+        void onPermissionDenied();
+    }
 }

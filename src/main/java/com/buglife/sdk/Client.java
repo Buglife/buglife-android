@@ -326,7 +326,17 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         }
 
         if (mScreenshotObserver != null) {
-            mScreenshotObserver.start(foregroundActivity);
+            // Try to start the screenshot observer. However, if permission is denied by the user,
+            // then disable screenshot invocations. This way, the user doesn't repeatedly get prompted to
+            // grant permissions, but screenshot invocations can still be re-enabled programattically in the same session.
+            mScreenshotObserver.start(foregroundActivity, new ScreenshotObserver.ScreenshotObserverPermissionListener() {
+                @Override
+                public void onPermissionDenied() {
+                    if (getInvocationMethod() == InvocationMethod.SCREENSHOT) {
+                        setInvocationMethod(InvocationMethod.NONE);
+                    }
+                }
+            });
         }
     }
 

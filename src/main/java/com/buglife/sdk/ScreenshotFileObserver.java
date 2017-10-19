@@ -55,7 +55,7 @@ final class ScreenshotFileObserver extends FileObserver implements ScreenshotObs
     }
 
     @Override
-    public void start(Activity currentActivity) {
+    public void start(Activity currentActivity, ScreenshotObserverPermissionListener permissionListener) {
         startWatching();
     }
 
