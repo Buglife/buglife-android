@@ -3,26 +3,19 @@ package com.buglife.sdk.screenrecorder;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.display.VirtualDisplay;
-import android.media.CamcorderProfile;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
-import android.media.MediaRecorder;
 import android.media.MediaScannerConnection;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.CountDownTimer;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
-import android.view.Surface;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
@@ -39,14 +32,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Timer;
 
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
-import static android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION;
-import static android.media.MediaRecorder.OutputFormat.MPEG_4;
-import static android.media.MediaRecorder.VideoEncoder.H264;
-import static android.media.MediaRecorder.VideoSource.SURFACE;
-import static android.os.Environment.DIRECTORY_MOVIES;
 import static com.buglife.sdk.Attachment.TYPE_MP4;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -56,34 +43,29 @@ public final class ScreenRecorder {
     private static final int DEFAULT_MEDIA_CODEC_FRAME_RATE = 30;
     private static final int VIDEO_SCALE = 25;
     private static final int VIDEO_ENCODING_BITRATE =  1 * 1000 * 1000;
-    private static final String VIRTUAL_DISPLAY_NAME = "buglife";
     private static final int MAX_RECORD_TIME_MS = 30 * 1000;
 
     private final @NonNull Handler mMainThread = new Handler(Looper.getMainLooper());
     private final @NonNull Context mContext;
     private final File mOutputDirectory;
     private String mOutputFilePath;
-    private final int mResultCode;
-    private final @NonNull Intent mData;
     private @Nullable OverlayView mOverlayView;
     private final @NonNull WindowManager mWindowManager;
     private MediaMuxer mMediaMuxer;
-    private Surface mInputSurface;
     private MediaCodec mVideoEncoder;
-    private MediaProjection mMediaProjection;
-    private final MediaProjectionManager mMediaProjectionManager;
-    private VirtualDisplay mVirtualDisplay;
     private boolean mIsRecording;
     private CountDownTimer mCountdownTimer;
+    private ScreenProjector mScreenProjector;
 
     public ScreenRecorder(Context context, int resultCode, Intent data) {
         mContext = context;
-        mResultCode = resultCode;
-        mData = data;
         File externalCacheDir = context.getExternalCacheDir();
         mOutputDirectory = new File(externalCacheDir, "Buglife");
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        mMediaProjectionManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        mScreenProjector = new ScreenProjector.Builder(context)
+                .setResultCode(resultCode)
+                .setResultData(data)
+                .build();
     }
 
     public void start() {
@@ -130,16 +112,13 @@ public final class ScreenRecorder {
         final int scaledDisplayWidth = (displayMetrics.widthPixels * VIDEO_SCALE) / 100;
         final int scaledDisplayHeight = (displayMetrics.heightPixels * VIDEO_SCALE) / 100;
         final int density = displayMetrics.densityDpi;
-        final int width, height;
-        width = scaledDisplayWidth;
-        height = scaledDisplayHeight;
 
         final DateFormat fileFormat = new SimpleDateFormat("'Buglife_'yyyy-MM-dd-HH-mm-ss'.mp4'", Locale.US);
         String outputFilename = fileFormat.format(new Date());
         mOutputFilePath = new File(mOutputDirectory, outputFilename).getAbsolutePath();
         Log.d("output file path = " + mOutputFilePath);
 
-        prepareVideoEncoder(width, height);
+        prepareVideoEncoder(scaledDisplayWidth, scaledDisplayHeight);
 
         try {
             mMediaMuxer = new MediaMuxer(mOutputFilePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
@@ -147,10 +126,10 @@ public final class ScreenRecorder {
             throw new RuntimeException("MediaMuxer creation failed", ioe);
         }
 
-        mMediaProjection = mMediaProjectionManager.getMediaProjection(mResultCode, mData);
-        Surface surface = mInputSurface;
-
-        mVirtualDisplay = mMediaProjection.createVirtualDisplay(VIRTUAL_DISPLAY_NAME, width, height, density, VIRTUAL_DISPLAY_FLAG_PRESENTATION, surface, null, null);
+        // Start projecting
+        mScreenProjector.setOutputSize(scaledDisplayWidth, scaledDisplayHeight, density);
+        mScreenProjector.setOutputSurface(mVideoEncoder.createInputSurface());
+        mScreenProjector.start();
 
         // Starts encoding
         mVideoEncoder.start();
@@ -237,7 +216,6 @@ public final class ScreenRecorder {
                     }
                 }
             });
-            mInputSurface = mVideoEncoder.createInputSurface();
         } catch (IOException e) {
             releaseEncoders();
         }
@@ -260,16 +238,6 @@ public final class ScreenRecorder {
             mVideoEncoder = null;
         }
 
-        if (mInputSurface != null) {
-            mInputSurface.release();
-            mInputSurface = null;
-        }
-
-        if (mMediaProjection != null) {
-            mMediaProjection.stop();
-            mMediaProjection = null;
-        }
-
         mTrackIndex = -1;
     }
 
@@ -288,14 +256,9 @@ public final class ScreenRecorder {
 
         hideOverlay();
 
-        try {
-            mMediaProjection.stop();
-        } catch (RuntimeException e) {
-            Log.e("Error stopping the media recorder", e);
-        }
+        mScreenProjector.stop();
 
         releaseEncoders();
-        mVirtualDisplay.release();
 
         MediaScannerConnection.scanFile(mContext, new String[]{mOutputFilePath}, null, new MediaScannerConnection.OnScanCompletedListener() {
             @Override
