@@ -7,9 +7,7 @@ import android.hardware.display.VirtualDisplay;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.view.Surface;
 
 import static android.hardware.display.DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION;
 
@@ -24,7 +22,7 @@ public class ScreenProjector {
     private int mWidth = -1;
     private int mHeight = - 1;
     private int mDensity = -1;
-    private @Nullable Surface mOutputSurface;
+    private @Nullable ScreenFileEncoder mScreenEncoder;
     private @Nullable MediaProjection mMediaProjection;
     private @Nullable VirtualDisplay mVirtualDisplay;
 
@@ -36,24 +34,27 @@ public class ScreenProjector {
         mMediaProjectionManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
     }
 
-    public void setOutputSurface(@NonNull Surface surface) {
-        mOutputSurface = surface;
+    void setScreenEncoder(ScreenFileEncoder encoder) {
+        mScreenEncoder = encoder;
     }
 
-    public void setOutputSize(int width, int height, int density) {
+    void setOutputSize(int width, int height, int density) {
         mWidth = width;
         mHeight = height;
         mDensity = density;
     }
 
-    public void start() {
-        if (mOutputSurface == null) {
-            throw new RuntimeException("Output Surface must be set before calling start!");
+    void start() {
+        if (mScreenEncoder == null) {
+            throw new RuntimeException("Screen encoder must be set before calling start!");
         }
 
         if (mWidth == -1 || mHeight == -1 || mDensity == -1) {
             throw new RuntimeException("Output size must be set before calling start!");
         }
+
+        mScreenEncoder.setOutputSize(mWidth, mHeight);
+        mScreenEncoder.start();
 
         mMediaProjection = mMediaProjectionManager.getMediaProjection(mResultCode, mResultData);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
@@ -62,13 +63,18 @@ public class ScreenProjector {
                 mHeight,
                 mDensity,
                 VIRTUAL_DISPLAY_FLAG_PRESENTATION,
-                mOutputSurface,
+                mScreenEncoder.getSurface(),
                 null,
                 null
         );
     }
 
-    public void stop() {
+    void stop() {
+        if (mScreenEncoder != null) {
+            mScreenEncoder.stop();
+            mScreenEncoder = null;
+        }
+
         if (mMediaProjection != null) {
             mMediaProjection.stop();
             mMediaProjection = null;
@@ -77,11 +83,6 @@ public class ScreenProjector {
         if (mVirtualDisplay != null) {
             mVirtualDisplay.release();
             mVirtualDisplay = null;
-        }
-
-        if (mOutputSurface != null) {
-            mOutputSurface.release();
-            mOutputSurface = null;
         }
     }
 
