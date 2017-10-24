@@ -19,8 +19,6 @@ public class ScreenProjector {
     private final int mResultCode;
     private final Intent mResultData;
 
-    private int mWidth = -1;
-    private int mHeight = - 1;
     private int mDensity = -1;
     private @Nullable ScreenFileEncoder mScreenEncoder;
     private @Nullable MediaProjection mMediaProjection;
@@ -32,16 +30,11 @@ public class ScreenProjector {
         mResultData = builder.mResultData;
 
         mMediaProjectionManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        mDensity = context.getResources().getDisplayMetrics().densityDpi;
     }
 
     void setScreenEncoder(ScreenFileEncoder encoder) {
         mScreenEncoder = encoder;
-    }
-
-    void setOutputSize(int width, int height, int density) {
-        mWidth = width;
-        mHeight = height;
-        mDensity = density;
     }
 
     void start() {
@@ -49,18 +42,13 @@ public class ScreenProjector {
             throw new RuntimeException("Screen encoder must be set before calling start!");
         }
 
-        if (mWidth == -1 || mHeight == -1 || mDensity == -1) {
-            throw new RuntimeException("Output size must be set before calling start!");
-        }
-
-        mScreenEncoder.setOutputSize(mWidth, mHeight);
         mScreenEncoder.start();
 
         mMediaProjection = mMediaProjectionManager.getMediaProjection(mResultCode, mResultData);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
                 VIRTUAL_DISPLAY_NAME,
-                mWidth,
-                mHeight,
+                mScreenEncoder.getWidth(),
+                mScreenEncoder.getHeight(),
                 mDensity,
                 VIRTUAL_DISPLAY_FLAG_PRESENTATION,
                 mScreenEncoder.getSurface(),

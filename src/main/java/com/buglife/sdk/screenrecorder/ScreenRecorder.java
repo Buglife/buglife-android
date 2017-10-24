@@ -97,7 +97,6 @@ public final class ScreenRecorder {
         windowManager.getDefaultDisplay().getRealMetrics(displayMetrics);
         final int scaledDisplayWidth = (displayMetrics.widthPixels * VIDEO_SCALE) / 100;
         final int scaledDisplayHeight = (displayMetrics.heightPixels * VIDEO_SCALE) / 100;
-        final int density = displayMetrics.densityDpi;
 
         final DateFormat fileFormat = new SimpleDateFormat("'Buglife_'yyyy-MM-dd-HH-mm-ss'.mp4'", Locale.US);
         String outputFilename = fileFormat.format(new Date());
@@ -105,8 +104,11 @@ public final class ScreenRecorder {
         Log.d("output file path = " + mOutputFilePath);
 
         // Start projecting
-        mScreenProjector.setOutputSize(scaledDisplayWidth, scaledDisplayHeight, density);
-        mScreenProjector.setScreenEncoder(new ScreenFileEncoder(mOutputFilePath));
+        mScreenProjector.setScreenEncoder(new ScreenFileEncoder.Builder()
+                .setWidth(scaledDisplayWidth)
+                .setHeight(scaledDisplayHeight)
+                .setOutputFile(mOutputFilePath)
+                .build());
         mScreenProjector.start();
 
         mIsRecording = true;

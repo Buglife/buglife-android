@@ -30,13 +30,10 @@ public class ScreenFileEncoder {
     private boolean mMuxerStarted = false;
     private int mTrackIndex = -1;
 
-    public ScreenFileEncoder(File outputFile) {
-        this.mOutputFile = outputFile;
-    }
-
-    void setOutputSize(int width, int height) {
-        mWidth = width;
-        mHeight = height;
+    public ScreenFileEncoder(Builder builder) {
+        mOutputFile = builder.mOutputFile;
+        mWidth = builder.mWidth;
+        mHeight = builder.mHeight;
     }
 
     public void start() {
@@ -51,6 +48,21 @@ public class ScreenFileEncoder {
     public void stop() {
         stopEncoder();
         tearDownEncoder();
+    }
+
+    public @NonNull Surface getSurface() {
+        if (mSurface == null) {
+            throw new RuntimeException("Oops! Looks like you're trying to obtain the Surface without starting the writer!\nStart the writer first before requesting the Surface.");
+        }
+        return mSurface;
+    }
+
+    public int getWidth() {
+        return mWidth;
+    }
+
+    public int getHeight() {
+        return mHeight;
     }
 
     private void startEncoder() {
@@ -129,13 +141,6 @@ public class ScreenFileEncoder {
         }
     }
 
-    public @NonNull Surface getSurface() {
-        if (mSurface == null) {
-            throw new RuntimeException("Oops! Looks like you're trying to obtain the Surface without starting the writer!\nStart the writer first before requesting the Surface.");
-        }
-        return mSurface;
-    }
-
     private void tearDownEncoder() {
         if (mEncoder != null) {
             mEncoder.release();
@@ -172,6 +177,31 @@ public class ScreenFileEncoder {
         if (mMuxerStarted) {
             mMuxer.stop();
             mMuxerStarted = false;
+        }
+    }
+
+    public static class Builder {
+        private int mWidth = -1;
+        private int mHeight = -1;
+        private File mOutputFile;
+
+        public Builder setWidth(int width) {
+            mWidth = width;
+            return this;
+        }
+
+        public Builder setHeight(int height) {
+            mHeight = height;
+            return this;
+        }
+
+        public Builder setOutputFile(File outputFile) {
+            mOutputFile = outputFile;
+            return this;
+        }
+
+        public ScreenFileEncoder build() {
+            return new ScreenFileEncoder(this);
         }
     }
 }
