@@ -12,8 +12,10 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.buglife.sdk.Attachment;
@@ -27,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import static android.graphics.PixelFormat.TRANSLUCENT;
 import static com.buglife.sdk.Attachment.TYPE_MP4;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -73,7 +76,14 @@ public final class ScreenRecorder {
             }
         });
 
-        mWindowManager.addView(mOverlayView, OverlayView.getLayoutParams(mContext));
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                TRANSLUCENT);
+
+        mWindowManager.addView(mOverlayView, layoutParams);
     }
 
     private void hideOverlay() {
@@ -114,9 +124,9 @@ public final class ScreenRecorder {
         mIsRecording = true;
         mCountdownTimer = new CountDownTimer(MAX_RECORD_TIME_MS, 1000) { //create a timer that ticks every second
             public void onTick(long millisecondsUntilFinished) {
-                Button stopButton = mOverlayView.getStopButton();
+                ImageButton stopButton = mOverlayView.getStopButton();
                 String base = mContext.getString(R.string.stop_recording);
-                stopButton.setText(base + " " + String.valueOf(millisecondsUntilFinished/1000));
+                // stopButton.setText(base + " " + String.valueOf(millisecondsUntilFinished/1000));
             }
 
             public void onFinish() {

@@ -2,30 +2,23 @@ package com.buglife.sdk.screenrecorder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
 import android.view.WindowManager;
-import android.view.animation.DecelerateInterpolator;
-import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 
 import com.buglife.sdk.R;
 
 import static android.graphics.PixelFormat.TRANSLUCENT;
-import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR;
-import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
-import static android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
-import static android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
 @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
 final class OverlayView extends FrameLayout {
-
-    private static final int OVERLAY_WIDTH = 500;
     private static final int ANIMATION_DURATION = 300;
 
     private final @NonNull OverlayViewClickListener mListener;
@@ -35,7 +28,7 @@ final class OverlayView extends FrameLayout {
         mListener = listener;
         inflate(context, R.layout.overlay_view, this);
 
-        Button stopButton = (Button) findViewById(R.id.stop_button);
+        ImageButton stopButton = (ImageButton) findViewById(R.id.stop_button);
 
         stopButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -45,37 +38,12 @@ final class OverlayView extends FrameLayout {
         });
     }
 
-    public Button getStopButton() {
-        return (Button) findViewById(R.id.stop_button);
-    }
-
-    @Override
-    public WindowInsets onApplyWindowInsets(WindowInsets insets) {
-        ViewGroup.LayoutParams layoutParams = getLayoutParams();
-        layoutParams.height = insets.getSystemWindowInsetTop();
-
-        mListener.onResize();
-
-        return insets.consumeSystemWindowInsets();
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-
-        setTranslationX(OVERLAY_WIDTH);
-        animate().translationX(0).setDuration(ANIMATION_DURATION).setInterpolator(new DecelerateInterpolator());
+    public ImageButton getStopButton() {
+        return (ImageButton) findViewById(R.id.stop_button);
     }
 
     interface OverlayViewClickListener {
         void onResize();
         void onStopButtonClicked();
-    }
-
-    static WindowManager.LayoutParams getLayoutParams(Context context) {
-        int flags = FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCH_MODAL | FLAG_LAYOUT_NO_LIMITS | FLAG_LAYOUT_INSET_DECOR | FLAG_LAYOUT_IN_SCREEN;
-        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(OVERLAY_WIDTH, ViewGroup.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_SYSTEM_ERROR, flags, TRANSLUCENT);
-        layoutParams.gravity = Gravity.TOP;
-        return layoutParams;
     }
 }
