@@ -2,11 +2,8 @@ package com.buglife.sdk.screenrecorder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -64,6 +61,10 @@ final class OverlayView extends FrameLayout {
                 WindowManager.LayoutParams params = (WindowManager.LayoutParams) getLayoutParams();
                 params.x = (int) (mInitialX + deltaTouchX);
                 params.y = (int) (mInitialY + deltaTouchY);
+
+                if (params.x <= 0) {
+                    params.x = (int) (-getWidth() / 1.5);
+                }
 
                 mWindowManager.updateViewLayout(this, params);
                 return true;

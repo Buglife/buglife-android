@@ -82,7 +82,7 @@ public final class ScreenRecorder {
                 0,
                 0,
                 WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 TRANSLUCENT);
 
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
