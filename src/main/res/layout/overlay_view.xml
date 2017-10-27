@@ -2,11 +2,12 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ImageButton
+    <android.support.v7.widget.AppCompatImageButton
         android:id="@+id/stop_button"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
+        android:scaleType="centerInside"
         android:background="@drawable/bg_circle"
         app:srcCompat="@drawable/ic_stop_white_24dp"/>
 

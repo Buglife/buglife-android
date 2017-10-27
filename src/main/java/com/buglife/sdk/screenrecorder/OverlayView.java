@@ -2,8 +2,11 @@ package com.buglife.sdk.screenrecorder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -11,6 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 
 import com.buglife.sdk.R;
+import com.buglife.sdk.ViewUtils;
 
 @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
 final class OverlayView extends FrameLayout {
@@ -28,15 +32,7 @@ final class OverlayView extends FrameLayout {
         mListener = listener;
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         inflate(context, R.layout.overlay_view, this);
-
-        ImageButton stopButton = (ImageButton) findViewById(R.id.stop_button);
-
-        stopButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mListener.onStopButtonClicked();
-            }
-        });
+        setUpView();
     }
 
     @Override public boolean onInterceptTouchEvent(MotionEvent event) {
@@ -77,6 +73,19 @@ final class OverlayView extends FrameLayout {
 
     public ImageButton getStopButton() {
         return (ImageButton) findViewById(R.id.stop_button);
+    }
+
+    private void setUpView() {
+        int padding = (int) ViewUtils.dpToPx(8, getResources());
+        setPadding(padding, padding, padding, padding);
+
+        ImageButton stopButton = (ImageButton) findViewById(R.id.stop_button);
+        stopButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mListener.onStopButtonClicked();
+            }
+        });
     }
 
     interface OverlayViewClickListener {
