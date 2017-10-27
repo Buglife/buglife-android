@@ -17,6 +17,7 @@ import com.buglife.sdk.ViewUtils;
 final class OverlayView extends FrameLayout {
     private static final int ANIMATION_DURATION = 300;
 
+    private ImageButton mStopButton;
     private final @NonNull OverlayViewClickListener mListener;
     private final WindowManager mWindowManager;
     private float mInitialTouchX = 0;
@@ -64,6 +65,9 @@ final class OverlayView extends FrameLayout {
 
                 if (params.x <= 0) {
                     params.x = (int) (-getWidth() / 1.5);
+                    mStopButton.setEnabled(false);
+                } else {
+                    mStopButton.setEnabled(true);
                 }
 
                 mWindowManager.updateViewLayout(this, params);
@@ -80,8 +84,8 @@ final class OverlayView extends FrameLayout {
         int padding = (int) ViewUtils.dpToPx(8, getResources());
         setPadding(padding, padding, padding, padding);
 
-        ImageButton stopButton = (ImageButton) findViewById(R.id.stop_button);
-        stopButton.setOnClickListener(new OnClickListener() {
+        mStopButton = (ImageButton) findViewById(R.id.stop_button);
+        mStopButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 mListener.onStopButtonClicked();
