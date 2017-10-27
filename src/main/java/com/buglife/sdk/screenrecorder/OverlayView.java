@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -20,6 +21,7 @@ final class OverlayView extends FrameLayout {
     private ImageButton mStopButton;
     private final @NonNull OverlayViewClickListener mListener;
     private final WindowManager mWindowManager;
+    private final DisplayMetrics mDisplayMetrics;
     private float mInitialTouchX = 0;
     private float mInitialX = 0;
     private float mInitialTouchY = 0;
@@ -29,6 +31,7 @@ final class OverlayView extends FrameLayout {
         super(context);
         mListener = listener;
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        mDisplayMetrics = getResources().getDisplayMetrics();
         inflate(context, R.layout.overlay_view, this);
         setUpView();
     }
@@ -63,8 +66,13 @@ final class OverlayView extends FrameLayout {
                 params.x = (int) (mInitialX + deltaTouchX);
                 params.y = (int) (mInitialY + deltaTouchY);
 
-                if (params.x <= 0) {
-                    params.x = (int) (-getWidth() / 1.5);
+                int screenLowerBound = 0;
+                int screenUpperBound = mDisplayMetrics.widthPixels;
+                if (params.x <= screenLowerBound) {
+                    params.x = screenLowerBound - (getWidth() / 2);
+                    mStopButton.setEnabled(false);
+                } else if (params.x >= screenUpperBound - getWidth()) {
+                    params.x = screenUpperBound - (getWidth() / 2);
                     mStopButton.setEnabled(false);
                 } else {
                     mStopButton.setEnabled(true);
