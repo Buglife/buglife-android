@@ -17,7 +17,7 @@ import com.buglife.sdk.ViewUtils;
 final class OverlayView extends FrameLayout {
     private static final int ANIMATION_DURATION = 300;
 
-    private CountdownCircularImageButton mStopButton;
+    private ScreenRecordButton mStopButton;
     private final @NonNull OverlayViewClickListener mListener;
     private final WindowManager mWindowManager;
     private final DisplayMetrics mDisplayMetrics;
@@ -83,7 +83,7 @@ final class OverlayView extends FrameLayout {
         return super.onTouchEvent(event);
     }
 
-    public CountdownCircularImageButton getStopButton() {
+    public ScreenRecordButton getStopButton() {
         return mStopButton;
     }
 
@@ -93,7 +93,7 @@ final class OverlayView extends FrameLayout {
         setClipToPadding(false);
         setClipChildren(false);
 
-        mStopButton = (CountdownCircularImageButton) findViewById(R.id.stop_button);
+        mStopButton = (ScreenRecordButton) findViewById(R.id.stop_button);
         mStopButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {

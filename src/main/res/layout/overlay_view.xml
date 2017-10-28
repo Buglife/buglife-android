@@ -2,7 +2,7 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.buglife.sdk.screenrecorder.CountdownCircularImageButton
+    <com.buglife.sdk.screenrecorder.ScreenRecordButton
         android:id="@+id/stop_button"
         android:layout_width="52dp"
         android:layout_height="52dp"

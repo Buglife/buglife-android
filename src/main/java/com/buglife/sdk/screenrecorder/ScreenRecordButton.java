@@ -13,13 +13,13 @@ import android.util.AttributeSet;
 
 import com.buglife.sdk.ViewUtils;
 
-public class CountdownCircularImageButton extends AppCompatImageButton {
+public class ScreenRecordButton extends AppCompatImageButton {
     private final Paint mRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF mRingBounds = new RectF();
     private ValueAnimator mRingAnimator;
     float mCurrentRingAngle = 360;
 
-    public CountdownCircularImageButton(Context context, AttributeSet attrs) {
+    public ScreenRecordButton(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
