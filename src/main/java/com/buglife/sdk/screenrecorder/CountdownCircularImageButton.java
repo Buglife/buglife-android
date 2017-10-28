@@ -1,5 +1,6 @@
 package com.buglife.sdk.screenrecorder;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -13,6 +14,8 @@ import com.buglife.sdk.ViewUtils;
 public class CountdownCircularImageButton extends AppCompatImageButton {
     private final Paint mRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF mRingBounds = new RectF();
+    private ValueAnimator mRingAnimator;
+    float mCurrentRingAngle = 360;
 
     public CountdownCircularImageButton(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -23,6 +26,14 @@ public class CountdownCircularImageButton extends AppCompatImageButton {
         mRingPaint.setColor(Color.BLUE);
         mRingPaint.setStyle(Paint.Style.STROKE);
         mRingPaint.setStrokeWidth(ViewUtils.dpToPx(3, getResources()));
+        mRingAnimator = ValueAnimator.ofFloat(360, 0);
+        mRingAnimator.setDuration(30 * 1000);
+        mRingAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override public void onAnimationUpdate(ValueAnimator animation) {
+                mCurrentRingAngle = (float) animation.getAnimatedValue();
+                invalidate();
+            }
+        });
     }
 
     @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
@@ -37,8 +48,18 @@ public class CountdownCircularImageButton extends AppCompatImageButton {
         );
     }
 
+    @Override protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        mRingAnimator.start();
+    }
+
+    @Override protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mRingAnimator.end();
+    }
+
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawArc(mRingBounds, 0, 360, false, mRingPaint);
+        canvas.drawArc(mRingBounds, -90, mCurrentRingAngle, false, mRingPaint);
     }
 }
