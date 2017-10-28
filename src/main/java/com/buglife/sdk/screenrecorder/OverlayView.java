@@ -2,6 +2,7 @@ package com.buglife.sdk.screenrecorder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
@@ -91,6 +92,8 @@ final class OverlayView extends FrameLayout {
     private void setUpView() {
         int padding = (int) ViewUtils.dpToPx(8, getResources());
         setPadding(padding, padding, padding, padding);
+        setClipToPadding(false);
+        setClipChildren(false);
 
         mStopButton = (ImageButton) findViewById(R.id.stop_button);
         mStopButton.setOnClickListener(new OnClickListener() {
