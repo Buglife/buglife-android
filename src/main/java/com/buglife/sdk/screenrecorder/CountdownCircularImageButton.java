@@ -2,10 +2,12 @@ package com.buglife.sdk.screenrecorder;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatImageButton;
 import android.util.AttributeSet;
 
@@ -33,6 +35,8 @@ public class CountdownCircularImageButton extends AppCompatImageButton {
                 invalidate();
             }
         });
+
+        ViewCompat.setBackgroundTintList(this, ColorStateList.valueOf(Color.parseColor("#F44336")));
     }
 
     public void setCountdownDuration(long duration) {
