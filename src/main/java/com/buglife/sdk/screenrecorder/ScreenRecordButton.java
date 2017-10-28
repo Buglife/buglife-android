@@ -25,7 +25,8 @@ public class ScreenRecordButton extends AppCompatImageButton {
     }
 
     private void init() {
-        mRingPaint.setColor(Color.BLUE);
+        int ringColor = Color.parseColor("#66FFFFFF");
+        mRingPaint.setColor(ringColor);
         mRingPaint.setStyle(Paint.Style.STROKE);
         mRingPaint.setStrokeWidth(ViewUtils.dpToPx(3, getResources()));
         mRingAnimator = ValueAnimator.ofFloat(360, 0);
@@ -36,7 +37,8 @@ public class ScreenRecordButton extends AppCompatImageButton {
             }
         });
 
-        ViewCompat.setBackgroundTintList(this, ColorStateList.valueOf(Color.parseColor("#F44336")));
+        int backgroundColor = Color.parseColor("#F44336");
+        ViewCompat.setBackgroundTintList(this, ColorStateList.valueOf(backgroundColor));
         ViewCompat.setElevation(this, ViewUtils.dpToPx(4, getResources()));
     }
 
