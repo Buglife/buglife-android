@@ -91,8 +91,12 @@ public final class ScreenRecorder {
 
     private void hideOverlay() {
         if (mOverlayView != null) {
-            mWindowManager.removeView(mOverlayView);
-            mOverlayView = null;
+            mOverlayView.getStopButton().hide(new ScreenRecordButton.HideCallback() {
+                @Override public void onViewHidden() {
+                    mWindowManager.removeView(mOverlayView);
+                    mOverlayView = null;
+                }
+            });
         }
     }
 
