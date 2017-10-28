@@ -27,13 +27,16 @@ public class CountdownCircularImageButton extends AppCompatImageButton {
         mRingPaint.setStyle(Paint.Style.STROKE);
         mRingPaint.setStrokeWidth(ViewUtils.dpToPx(3, getResources()));
         mRingAnimator = ValueAnimator.ofFloat(360, 0);
-        mRingAnimator.setDuration(30 * 1000);
         mRingAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override public void onAnimationUpdate(ValueAnimator animation) {
                 mCurrentRingAngle = (float) animation.getAnimatedValue();
                 invalidate();
             }
         });
+    }
+
+    public void setCountdownDuration(long duration) {
+        mRingAnimator.setDuration(duration);
     }
 
     @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {

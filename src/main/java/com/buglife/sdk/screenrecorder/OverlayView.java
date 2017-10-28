@@ -2,7 +2,6 @@ package com.buglife.sdk.screenrecorder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
@@ -10,7 +9,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 
 import com.buglife.sdk.R;
 import com.buglife.sdk.ViewUtils;
@@ -19,7 +17,7 @@ import com.buglife.sdk.ViewUtils;
 final class OverlayView extends FrameLayout {
     private static final int ANIMATION_DURATION = 300;
 
-    private ImageButton mStopButton;
+    private CountdownCircularImageButton mStopButton;
     private final @NonNull OverlayViewClickListener mListener;
     private final WindowManager mWindowManager;
     private final DisplayMetrics mDisplayMetrics;
@@ -85,8 +83,8 @@ final class OverlayView extends FrameLayout {
         return super.onTouchEvent(event);
     }
 
-    public ImageButton getStopButton() {
-        return (ImageButton) findViewById(R.id.stop_button);
+    public CountdownCircularImageButton getStopButton() {
+        return mStopButton;
     }
 
     private void setUpView() {
@@ -95,7 +93,7 @@ final class OverlayView extends FrameLayout {
         setClipToPadding(false);
         setClipChildren(false);
 
-        mStopButton = (ImageButton) findViewById(R.id.stop_button);
+        mStopButton = (CountdownCircularImageButton) findViewById(R.id.stop_button);
         mStopButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {

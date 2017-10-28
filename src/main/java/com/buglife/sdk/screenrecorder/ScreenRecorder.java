@@ -15,13 +15,11 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.Log;
-import com.buglife.sdk.R;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -75,6 +73,7 @@ public final class ScreenRecorder {
                 stopRecording();
             }
         });
+        mOverlayView.getStopButton().setCountdownDuration(MAX_RECORD_TIME_MS);
 
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -128,9 +127,7 @@ public final class ScreenRecorder {
         mIsRecording = true;
         mCountdownTimer = new CountDownTimer(MAX_RECORD_TIME_MS, 1000) { //create a timer that ticks every second
             public void onTick(long millisecondsUntilFinished) {
-                ImageButton stopButton = mOverlayView.getStopButton();
-                String base = mContext.getString(R.string.stop_recording);
-                // stopButton.setText(base + " " + String.valueOf(millisecondsUntilFinished/1000));
+                // No op
             }
 
             public void onFinish() {
