@@ -116,6 +116,7 @@ public class ScreenRecordButton extends AppCompatImageButton implements WindowMa
     }
 
     public void hide(@Nullable final HideCallback callback) {
+        setEnabled(false);
         mOutAnimator.addListener(new AnimatorListenerAdapter() {
             @Override public void onAnimationEnd(Animator animation) {
                 mOutAnimator.removeListener(this);
