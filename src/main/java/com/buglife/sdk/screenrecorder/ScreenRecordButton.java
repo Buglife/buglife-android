@@ -37,6 +37,7 @@ public class ScreenRecordButton extends AppCompatImageButton {
         });
 
         ViewCompat.setBackgroundTintList(this, ColorStateList.valueOf(Color.parseColor("#F44336")));
+        ViewCompat.setElevation(this, ViewUtils.dpToPx(4, getResources()));
     }
 
     public void setCountdownDuration(long duration) {
