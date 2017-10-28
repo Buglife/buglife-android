@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -39,7 +40,8 @@ public final class ScreenRecorder {
     private final @NonNull Context mContext;
     private final File mOutputDirectory;
     private File mOutputFilePath;
-    private @Nullable OverlayView mOverlayView;
+    // private @Nullable OverlayView mOverlayView;
+    private @Nullable ScreenRecordButton mScreenRecordButton;
     private final @NonNull WindowManager mWindowManager;
     private boolean mIsRecording;
     private CountDownTimer mCountdownTimer;
@@ -62,18 +64,13 @@ public final class ScreenRecorder {
     }
 
     private void showOverlay() {
-        mOverlayView = new OverlayView(mContext, new OverlayView.OverlayViewClickListener() {
-            @Override
-            public void onResize() {
-                mWindowManager.updateViewLayout(mOverlayView, mOverlayView.getLayoutParams());
-            }
-
-            @Override
-            public void onStopButtonClicked() {
+        mScreenRecordButton = new ScreenRecordButton(mContext);
+        mScreenRecordButton.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
                 stopRecording();
             }
         });
-        mOverlayView.getStopButton().setCountdownDuration(MAX_RECORD_TIME_MS);
+        mScreenRecordButton.setCountdownDuration(MAX_RECORD_TIME_MS);
 
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -86,15 +83,15 @@ public final class ScreenRecorder {
 
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
 
-        mWindowManager.addView(mOverlayView, layoutParams);
+        mWindowManager.addView(mScreenRecordButton, layoutParams);
     }
 
     private void hideOverlay() {
-        if (mOverlayView != null) {
-            mOverlayView.getStopButton().hide(new ScreenRecordButton.HideCallback() {
+        if (mScreenRecordButton != null) {
+            mScreenRecordButton.hide(new ScreenRecordButton.HideCallback() {
                 @Override public void onViewHidden() {
-                    mWindowManager.removeView(mOverlayView);
-                    mOverlayView = null;
+                    mWindowManager.removeView(mScreenRecordButton);
+                    mScreenRecordButton = null;
                 }
             });
         }

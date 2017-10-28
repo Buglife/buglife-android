@@ -15,18 +15,29 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatImageButton;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 
+import com.buglife.sdk.R;
 import com.buglife.sdk.ViewUtils;
 
-public class ScreenRecordButton extends AppCompatImageButton {
+public class ScreenRecordButton extends AppCompatImageButton implements WindowManagerMovementHandler.MovementCallback {
     private final Paint mRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF mRingBounds = new RectF();
     final AnimatorSet mInAnimator = new AnimatorSet();
     final AnimatorSet mOutAnimator = new AnimatorSet();
+    private WindowManagerMovementHandler mMovementHandler;
+    private WindowManager mWindowManager;
+    private DisplayMetrics mDisplayMetrics;
 
     private ValueAnimator mRingAnimator;
     float mCurrentRingAngle = 360;
+
+    public ScreenRecordButton(Context context) {
+        this(context, null);
+    }
 
     public ScreenRecordButton(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -34,6 +45,9 @@ public class ScreenRecordButton extends AppCompatImageButton {
     }
 
     private void init() {
+        mWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        mDisplayMetrics = getResources().getDisplayMetrics();
+
         int ringColor = Color.parseColor("#66FFFFFF");
         mRingPaint.setColor(ringColor);
         mRingPaint.setStyle(Paint.Style.STROKE);
@@ -46,6 +60,9 @@ public class ScreenRecordButton extends AppCompatImageButton {
             }
         });
 
+        setScaleType(ScaleType.CENTER_INSIDE);
+        setImageResource(R.drawable.ic_stop_white_24dp);
+        setBackgroundResource(R.drawable.bg_circle);
         int backgroundColor = Color.parseColor("#F44336");
         ViewCompat.setBackgroundTintList(this, ColorStateList.valueOf(backgroundColor));
         ViewCompat.setElevation(this, ViewUtils.dpToPx(4, getResources()));
@@ -56,10 +73,23 @@ public class ScreenRecordButton extends AppCompatImageButton {
         ObjectAnimator outAnimationY = ObjectAnimator.ofFloat(this, View.SCALE_Y, 1, 0);
         mInAnimator.playTogether(inAnimationX, inAnimationY);
         mOutAnimator.playTogether(outAnimationX, outAnimationY);
+
+        mMovementHandler = new WindowManagerMovementHandler(this, mWindowManager);
+        mMovementHandler.setMovementCallback(this);
     }
 
     public void setCountdownDuration(long duration) {
         mRingAnimator.setDuration(duration);
+    }
+
+    @Override public boolean onTouchEvent(MotionEvent event) {
+        boolean handled = mMovementHandler.onTouchEvent(event);
+        return handled || super.onTouchEvent(event);
+    }
+
+    @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int size = (int) ViewUtils.dpToPx(52, getResources());
+        setMeasuredDimension(size, size);
     }
 
     @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
@@ -97,6 +127,22 @@ public class ScreenRecordButton extends AppCompatImageButton {
         mRingAnimator.cancel();
         mOutAnimator.setStartDelay(400);
         mOutAnimator.start();
+    }
+
+    @Override public void onMove(View view, int x, int y) {
+        int screenLowerBound = 0;
+        int screenUpperBound = mDisplayMetrics.widthPixels;
+        WindowManager.LayoutParams params = (WindowManager.LayoutParams) view.getLayoutParams();
+        if (x <= screenLowerBound) {
+            params.x = screenLowerBound - (getWidth() / 2);
+            view.setEnabled(false);
+        } else if (x >= screenUpperBound - getWidth()) {
+            params.x = screenUpperBound - (getWidth() / 2);
+            view.setEnabled(false);
+        } else {
+            view.setEnabled(true);
+        }
+        mWindowManager.updateViewLayout(view, params);
     }
 
     public interface HideCallback {
