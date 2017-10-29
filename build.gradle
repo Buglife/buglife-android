@@ -27,12 +27,12 @@ ext {
 }
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 27
     buildToolsVersion "26.0.2"
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 19
+        targetSdkVersion 27
         versionCode PUBLISH_VERSION_CODE
         versionName PUBLISH_VERSION_NAME
 
@@ -45,7 +45,7 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:design:23.4.0'
+    compile 'com.android.support:appcompat-v7:27.0.0'
+    compile 'com.android.support:design:27.0.0'
     compile 'com.android.volley:volley:1.0.0'
 }
