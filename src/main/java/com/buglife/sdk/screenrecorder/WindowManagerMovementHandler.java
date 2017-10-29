@@ -2,15 +2,19 @@ package com.buglife.sdk.screenrecorder;
 
 import android.support.annotation.Nullable;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
 
 class WindowManagerMovementHandler {
+    private static final int UNIT_PX_PER_SEC = 1000;
     private final View mView;
     private final WindowManager mWindowManager;
+    private final VelocityTracker mVelocityTracker;
 
     private int mMinTouchSlop;
+    private int mMinFlingVelocity;
     private float mInitialTouchX = 0;
     private float mInitialX = 0;
     private float mInitialTouchY = 0;
@@ -21,14 +25,18 @@ class WindowManagerMovementHandler {
     WindowManagerMovementHandler(View view, WindowManager windowManager) {
         mView = view;
         mWindowManager = windowManager;
+        mVelocityTracker = VelocityTracker.obtain();
         ViewConfiguration mViewConfig = ViewConfiguration.get(view.getContext());
         mMinTouchSlop = mViewConfig.getScaledTouchSlop();
+        mMinFlingVelocity = 1000;
     }
 
     public boolean onTouchEvent(MotionEvent event) {
+        mVelocityTracker.addMovement(event);
         int action = event.getActionMasked();
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
+                mVelocityTracker.clear();
                 mInitialTouchX = event.getRawX();
                 mInitialTouchY = event.getRawY();
 
@@ -57,6 +65,14 @@ class WindowManagerMovementHandler {
                         mCallback.onMove(mView, x, y);
                     }
                 }
+
+                mVelocityTracker.computeCurrentVelocity(UNIT_PX_PER_SEC);
+                float velocityX = mVelocityTracker.getXVelocity();
+                float velocityY = mVelocityTracker.getYVelocity();
+
+                if (Math.abs(velocityX) >= mMinFlingVelocity || Math.abs(velocityY) >= mMinFlingVelocity) {
+                    // Do something with velocity
+                }
                 return true;
             }
             case MotionEvent.ACTION_UP: {
@@ -72,6 +88,11 @@ class WindowManagerMovementHandler {
 
     public void setMovementCallback(@Nullable MovementCallback callback) {
         mCallback = callback;
+    }
+
+    public void recycle() {
+        mVelocityTracker.recycle();
+        mCallback = null;
     }
 
     public interface MovementCallback {

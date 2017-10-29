@@ -110,6 +110,11 @@ public class ScreenRecordButton extends AppCompatImageButton implements WindowMa
         mRingAnimator.start();
     }
 
+    @Override protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mMovementHandler.recycle();
+    }
+
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawArc(mRingBounds, -90, mCurrentRingAngle, false, mRingPaint);
