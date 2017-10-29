@@ -72,12 +72,18 @@ public final class ScreenRecorder {
         });
         mScreenRecordButton.setCountdownDuration(MAX_RECORD_TIME_MS);
 
+        int type;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            type = WindowManager.LayoutParams.TYPE_PHONE;
+        }
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 0,
                 0,
-                WindowManager.LayoutParams.TYPE_PHONE,
+                type,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 TRANSLUCENT);
 
