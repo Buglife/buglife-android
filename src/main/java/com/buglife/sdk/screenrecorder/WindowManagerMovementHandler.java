@@ -3,12 +3,14 @@ package com.buglife.sdk.screenrecorder;
 import android.support.annotation.Nullable;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.WindowManager;
 
 class WindowManagerMovementHandler {
     private final View mView;
     private final WindowManager mWindowManager;
 
+    private int mMinTouchSlop;
     private float mInitialTouchX = 0;
     private float mInitialX = 0;
     private float mInitialTouchY = 0;
@@ -19,6 +21,8 @@ class WindowManagerMovementHandler {
     WindowManagerMovementHandler(View view, WindowManager windowManager) {
         mView = view;
         mWindowManager = windowManager;
+        ViewConfiguration mViewConfig = ViewConfiguration.get(view.getContext());
+        mMinTouchSlop = mViewConfig.getScaledTouchSlop();
     }
 
     public boolean onTouchEvent(MotionEvent event) {
@@ -39,17 +43,19 @@ class WindowManagerMovementHandler {
                 float deltaTouchX = currentTouchX - mInitialTouchX;
                 float deltaTouchY = currentTouchY - mInitialTouchY;
 
-                int x = (int) (mInitialX + deltaTouchX);
-                int y = (int) (mInitialY + deltaTouchY);
+                if (Math.abs(deltaTouchX) >= mMinTouchSlop || Math.abs(deltaTouchY) >= mMinTouchSlop) {
+                    int x = (int) (mInitialX + deltaTouchX);
+                    int y = (int) (mInitialY + deltaTouchY);
 
-                WindowManager.LayoutParams params = (WindowManager.LayoutParams) mView.getLayoutParams();
-                params.x = x;
-                params.y = y;
-                mWindowManager.updateViewLayout(mView, params);
-                mMoved = true;
+                    WindowManager.LayoutParams params = (WindowManager.LayoutParams) mView.getLayoutParams();
+                    params.x = x;
+                    params.y = y;
+                    mWindowManager.updateViewLayout(mView, params);
+                    mMoved = true;
 
-                if (mCallback != null) {
-                    mCallback.onMove(mView, x, y);
+                    if (mCallback != null) {
+                        mCallback.onMove(mView, x, y);
+                    }
                 }
                 return true;
             }
