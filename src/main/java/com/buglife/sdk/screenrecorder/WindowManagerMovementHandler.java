@@ -12,6 +12,7 @@ import android.view.ViewConfiguration;
 import android.view.WindowManager;
 
 import com.buglife.sdk.Log;
+import com.buglife.sdk.ViewUtils;
 
 class WindowManagerMovementHandler {
     private static final int UNIT_PX_PER_SEC = 1000;
@@ -63,15 +64,15 @@ class WindowManagerMovementHandler {
         mFlingAnimationX = new FlingAnimation(mView, LAYOUT_PARAMS_X);
         mFlingAnimationY = new FlingAnimation(mView, LAYOUT_PARAMS_Y);
 
-        ViewConfiguration mViewConfig = ViewConfiguration.get(view.getContext());
-        mMinTouchSlop = mViewConfig.getScaledTouchSlop();
-        mMinFlingVelocity = 1000;
+        ViewConfiguration viewConfig = ViewConfiguration.get(view.getContext());
+        mMinTouchSlop = viewConfig.getScaledTouchSlop();
+        mMinFlingVelocity = viewConfig.getScaledMinimumFlingVelocity();
 
         DisplayMetrics dm = view.getResources().getDisplayMetrics();
         mScreenBounds.set(0, 0, dm.widthPixels, dm.heightPixels);
     }
 
-    public boolean onTouchEvent(MotionEvent event) {
+    boolean onTouchEvent(MotionEvent event) {
         mVelocityTracker.addMovement(event);
         int action = event.getActionMasked();
         switch (action) {
@@ -92,14 +93,6 @@ class WindowManagerMovementHandler {
                 return false;
             }
             case MotionEvent.ACTION_MOVE: {
-                if (mFlingAnimationX.isRunning()) {
-                    mFlingAnimationX.cancel();
-                }
-                if (mFlingAnimationY.isRunning()) {
-                    mFlingAnimationY.cancel();
-                }
-                float currentVelocityX = mVelocityTracker.getXVelocity();
-                float currentVelocityY = mVelocityTracker.getYVelocity();
                 float currentTouchX = event.getRawX();
                 float currentTouchY = event.getRawY();
                 float deltaTouchX = currentTouchX - mInitialTouchX;
@@ -131,16 +124,6 @@ class WindowManagerMovementHandler {
                         mView.setEnabled(true);
                     }
 
-                    mVelocityTracker.computeCurrentVelocity(UNIT_PX_PER_SEC);
-                    if (Math.abs(currentVelocityX) >= mMinFlingVelocity || Math.abs(currentVelocityY) >= mMinFlingVelocity) {
-                        mFlingAnimationX.setMinValue(mScreenBounds.left - (mView.getWidth() / 2));
-                        mFlingAnimationX.setMaxValue(mScreenBounds.right - (mView.getWidth() / 2));
-                        mFlingAnimationX.setStartVelocity(currentVelocityX);
-                        mFlingAnimationY.setStartVelocity(currentVelocityY);
-                        mFlingAnimationX.start();
-                        mFlingAnimationY.start();
-                    }
-
                     mWindowManager.updateViewLayout(mView, params);
                     return true;
                 }
@@ -149,6 +132,17 @@ class WindowManagerMovementHandler {
             }
             case MotionEvent.ACTION_UP: {
                 if (mMoved) {
+                    mVelocityTracker.computeCurrentVelocity(UNIT_PX_PER_SEC);
+                    float currentVelocityX = mVelocityTracker.getXVelocity();
+                    float currentVelocityY = mVelocityTracker.getYVelocity();
+                    if (Math.abs(currentVelocityX) >= mMinFlingVelocity || Math.abs(currentVelocityY) >= mMinFlingVelocity) {
+                        mFlingAnimationX.setMinValue(mScreenBounds.left - (mView.getWidth() / 2));
+                        mFlingAnimationX.setMaxValue(mScreenBounds.right - (mView.getWidth() / 2));
+                        mFlingAnimationX.setStartVelocity(currentVelocityX);
+                        mFlingAnimationY.setStartVelocity(currentVelocityY);
+                        mFlingAnimationX.start();
+                        mFlingAnimationY.start();
+                    }
                     mMoved = false;
                     mView.setPressed(false);
                     return true;
@@ -158,7 +152,7 @@ class WindowManagerMovementHandler {
         }
     }
 
-    public void recycle() {
+    void recycle() {
         mVelocityTracker.recycle();
     }
 }
