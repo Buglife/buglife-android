@@ -1,7 +1,6 @@
 package com.buglife.sdk.screenrecorder;
 
 import android.graphics.Rect;
-import android.support.animation.DynamicAnimation;
 import android.support.animation.FlingAnimation;
 import android.support.animation.FloatPropertyCompat;
 import android.util.DisplayMetrics;
@@ -11,7 +10,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
 
-import com.buglife.sdk.Log;
+import com.buglife.sdk.MathUtils;
 import com.buglife.sdk.ViewUtils;
 
 class WindowManagerMovementHandler {
@@ -69,7 +68,11 @@ class WindowManagerMovementHandler {
         mMinFlingVelocity = viewConfig.getScaledMinimumFlingVelocity();
 
         DisplayMetrics dm = view.getResources().getDisplayMetrics();
-        mScreenBounds.set(0, 0, dm.widthPixels, dm.heightPixels);
+        int top = 0;
+        int left = 0;
+        int right = dm.widthPixels;
+        int bottom = dm.heightPixels - ViewUtils.navigationBarHeight(view.getResources()) - ViewUtils.statusBarHeight(view.getResources());
+        mScreenBounds.set(left, top, right, bottom);
     }
 
     boolean onTouchEvent(MotionEvent event) {
@@ -108,20 +111,19 @@ class WindowManagerMovementHandler {
                     params.y = y;
 
                     // Handle edge bounds
-                    int screenLowerBound = mScreenBounds.left - (mView.getWidth() / 2);
-                    int screenUpperBound = mScreenBounds.right - (mView.getWidth() / 2);
-                    if (x <= screenLowerBound) {
+                    int screenLowerHorizontalBound = mScreenBounds.left - (mView.getWidth() / 2);
+                    int screenUpperHorizontalBound = mScreenBounds.right - (mView.getWidth() / 2);
+                    int screenLowerVerticalBound = mScreenBounds.top;
+                    int screenUpperVerticalBound = mScreenBounds.bottom;
+                    if (x <= screenLowerHorizontalBound || x >= screenUpperHorizontalBound) {
+                        params.x = MathUtils.closest(screenLowerHorizontalBound, screenUpperHorizontalBound, x);
                         mView.setEnabled(false);
-                        params.x = screenLowerBound;
-                        mWindowManager.updateViewLayout(mView, params);
-                        return true;
-                    } else if (x >= screenUpperBound) {
-                        mView.setEnabled(false);
-                        params.x = screenUpperBound;
-                        mWindowManager.updateViewLayout(mView, params);
-                        return true;
                     } else {
                         mView.setEnabled(true);
+                    }
+
+                    if (y <= screenLowerVerticalBound || y >= screenUpperVerticalBound) {
+                        params.y = MathUtils.closest(screenLowerVerticalBound, screenUpperVerticalBound, y);
                     }
 
                     mWindowManager.updateViewLayout(mView, params);
@@ -135,9 +137,14 @@ class WindowManagerMovementHandler {
                     mVelocityTracker.computeCurrentVelocity(UNIT_PX_PER_SEC);
                     float currentVelocityX = mVelocityTracker.getXVelocity();
                     float currentVelocityY = mVelocityTracker.getYVelocity();
+                    WindowManager.LayoutParams params = (WindowManager.LayoutParams) mView.getLayoutParams();
                     if (Math.abs(currentVelocityX) >= mMinFlingVelocity || Math.abs(currentVelocityY) >= mMinFlingVelocity) {
                         mFlingAnimationX.setMinValue(mScreenBounds.left - (mView.getWidth() / 2));
                         mFlingAnimationX.setMaxValue(mScreenBounds.right - (mView.getWidth() / 2));
+                        mFlingAnimationY.setMinValue(mScreenBounds.top);
+                        mFlingAnimationY.setMaxValue(mScreenBounds.bottom);
+                        mFlingAnimationX.setStartValue(params.x);
+                        mFlingAnimationY.setStartValue(params.y);
                         mFlingAnimationX.setStartVelocity(currentVelocityX);
                         mFlingAnimationY.setStartVelocity(currentVelocityY);
                         mFlingAnimationX.start();
