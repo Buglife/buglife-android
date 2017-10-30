@@ -165,7 +165,7 @@ public final class Buglife {
 
     /**
      * Manually starts the screen recording flow; users can record up to 30 seconds, or tap
-     * the red status bar indicator to stop recording early. Once screen recording has been
+     * the record button to stop recording early. Once screen recording has been
      * stopped, the bug reporter UI will be shown with the screen recording attached.
      */
     @TargetApi(Build.VERSION_CODES.M)
