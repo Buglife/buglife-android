@@ -40,7 +40,6 @@ public final class ScreenRecorder {
     private final @NonNull Context mContext;
     private final File mOutputDirectory;
     private File mOutputFilePath;
-    // private @Nullable OverlayView mOverlayView;
     private @Nullable ScreenRecordButton mScreenRecordButton;
     private final @NonNull WindowManager mWindowManager;
     private boolean mIsRecording;
@@ -81,8 +80,6 @@ public final class ScreenRecorder {
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                0,
-                0,
                 type,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 TRANSLUCENT);

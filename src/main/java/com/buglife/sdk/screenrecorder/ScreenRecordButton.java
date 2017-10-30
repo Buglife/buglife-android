@@ -18,6 +18,7 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 
 import com.buglife.sdk.R;
@@ -26,12 +27,13 @@ import com.buglife.sdk.ViewUtils;
 public class ScreenRecordButton extends AppCompatImageButton {
     private final Paint mRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF mRingBounds = new RectF();
-    final AnimatorSet mInAnimator = new AnimatorSet();
-    final AnimatorSet mOutAnimator = new AnimatorSet();
+    private final AnimatorSet mInAnimator = new AnimatorSet();
+    private final AnimatorSet mOutAnimator = new AnimatorSet();
+    private WindowManager mWindowManager;
     private ScreenRecordButtonMovementHandler mMovementHandler;
 
     private ValueAnimator mRingAnimator;
-    float mCurrentRingAngle = 360;
+    private float mCurrentRingAngle = 360;
 
     public ScreenRecordButton(Context context) {
         this(context, null);
@@ -69,8 +71,8 @@ public class ScreenRecordButton extends AppCompatImageButton {
         mInAnimator.playTogether(inAnimationX, inAnimationY);
         mOutAnimator.playTogether(outAnimationX, outAnimationY);
 
-        WindowManager windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
-        mMovementHandler = new ScreenRecordButtonMovementHandler(this, windowManager);
+        mWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        mMovementHandler = new ScreenRecordButtonMovementHandler(this, mWindowManager);
     }
 
     public void setCountdownDuration(long duration) {
@@ -108,8 +110,19 @@ public class ScreenRecordButton extends AppCompatImageButton {
 
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        mInAnimator.start();
-        mRingAnimator.start();
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override public void onGlobalLayout() {
+                getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                DisplayMetrics dm = getResources().getDisplayMetrics();
+                WindowManager.LayoutParams params = (WindowManager.LayoutParams) getLayoutParams();
+                params.x = (dm.widthPixels / 2) - (getMeasuredWidth() / 2);
+                params.y = (dm.heightPixels / 2) - (getMeasuredHeight() / 2);
+                mWindowManager.updateViewLayout(ScreenRecordButton.this, params);
+
+                mInAnimator.start();
+                mRingAnimator.start();
+            }
+        });
     }
 
     @Override protected void onDetachedFromWindow() {
