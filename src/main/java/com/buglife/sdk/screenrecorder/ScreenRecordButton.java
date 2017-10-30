@@ -29,8 +29,6 @@ public class ScreenRecordButton extends AppCompatImageButton {
     final AnimatorSet mInAnimator = new AnimatorSet();
     final AnimatorSet mOutAnimator = new AnimatorSet();
     private WindowManagerMovementHandler mMovementHandler;
-    private WindowManager mWindowManager;
-    private DisplayMetrics mDisplayMetrics;
 
     private ValueAnimator mRingAnimator;
     float mCurrentRingAngle = 360;
@@ -45,9 +43,6 @@ public class ScreenRecordButton extends AppCompatImageButton {
     }
 
     private void init() {
-        mWindowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
-        mDisplayMetrics = getResources().getDisplayMetrics();
-
         int ringColor = Color.parseColor("#66FFFFFF");
         mRingPaint.setColor(ringColor);
         mRingPaint.setStyle(Paint.Style.STROKE);
@@ -74,7 +69,8 @@ public class ScreenRecordButton extends AppCompatImageButton {
         mInAnimator.playTogether(inAnimationX, inAnimationY);
         mOutAnimator.playTogether(outAnimationX, outAnimationY);
 
-        mMovementHandler = new WindowManagerMovementHandler(this, mWindowManager);
+        WindowManager windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        mMovementHandler = new WindowManagerMovementHandler(this, windowManager);
     }
 
     public void setCountdownDuration(long duration) {
