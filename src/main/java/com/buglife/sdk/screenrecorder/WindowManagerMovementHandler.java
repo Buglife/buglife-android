@@ -36,8 +36,7 @@ class WindowManagerMovementHandler {
 
         @Override public void setValue(View object, float value) {
             WindowManager.LayoutParams lp = (WindowManager.LayoutParams) object.getLayoutParams();
-            lp.x = (int) value;
-            mWindowManager.updateViewLayout(object, lp);
+            move(object, (int) value, lp.y);
         }
     };
 
@@ -49,8 +48,7 @@ class WindowManagerMovementHandler {
 
         @Override public void setValue(View object, float value) {
             WindowManager.LayoutParams lp = (WindowManager.LayoutParams) object.getLayoutParams();
-            lp.y = (int) value;
-            mWindowManager.updateViewLayout(object, lp);
+            move(object, lp.x, (int) value);
         }
     };
 
@@ -105,27 +103,20 @@ class WindowManagerMovementHandler {
                     int x = (int) (mInitialX + deltaTouchX);
                     int y = (int) (mInitialY + deltaTouchY);
 
-                    WindowManager.LayoutParams params = (WindowManager.LayoutParams) mView.getLayoutParams();
-                    params.x = x;
-                    params.y = y;
-
                     // Handle edge bounds
                     int movementLowerHorizontalBound = mMovementBounds.left;
                     int movementUpperHorizontalBound = mMovementBounds.right;
                     int movementLowerVerticalBound = mMovementBounds.top;
                     int movementUpperVerticalBound = mMovementBounds.bottom;
                     if (x <= movementLowerHorizontalBound || x >= movementUpperHorizontalBound) {
-                        params.x = MathUtils.closest(movementLowerHorizontalBound, movementUpperHorizontalBound, x);
-                        mView.setEnabled(false);
-                    } else {
-                        mView.setEnabled(true);
+                        x = MathUtils.closest(movementLowerHorizontalBound, movementUpperHorizontalBound, x);
                     }
 
                     if (y <= movementLowerVerticalBound || y >= movementUpperVerticalBound) {
-                        params.y = MathUtils.closest(movementLowerVerticalBound, movementUpperVerticalBound, y);
+                        y = MathUtils.closest(movementLowerVerticalBound, movementUpperVerticalBound, y);
                     }
 
-                    mWindowManager.updateViewLayout(mView, params);
+                    move(mView, x, y);
                     return true;
                 }
 
@@ -156,5 +147,23 @@ class WindowManagerMovementHandler {
 
     void recycle() {
         mVelocityTracker.recycle();
+    }
+
+    private void move(View view, int x, int y) {
+        onMove(x, y);
+        WindowManager.LayoutParams params = (WindowManager.LayoutParams) view.getLayoutParams();
+        params.x = x;
+        params.y = y;
+        mWindowManager.updateViewLayout(view, params);
+    }
+
+    private void onMove(int x, int y) {
+        int movementLowerHorizontalBound = mMovementBounds.left;
+        int movementUpperHorizontalBound = mMovementBounds.right;
+        if (x <= movementLowerHorizontalBound || x >= movementUpperHorizontalBound) {
+            mView.setEnabled(false);
+        } else {
+            mView.setEnabled(true);
+        }
     }
 }
