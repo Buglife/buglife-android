@@ -23,7 +23,7 @@ import android.view.WindowManager;
 import com.buglife.sdk.R;
 import com.buglife.sdk.ViewUtils;
 
-public class ScreenRecordButton extends AppCompatImageButton implements WindowManagerMovementHandler.MovementCallback {
+public class ScreenRecordButton extends AppCompatImageButton {
     private final Paint mRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF mRingBounds = new RectF();
     final AnimatorSet mInAnimator = new AnimatorSet();
@@ -75,7 +75,6 @@ public class ScreenRecordButton extends AppCompatImageButton implements WindowMa
         mOutAnimator.playTogether(outAnimationX, outAnimationY);
 
         mMovementHandler = new WindowManagerMovementHandler(this, mWindowManager);
-        mMovementHandler.setMovementCallback(this);
     }
 
     public void setCountdownDuration(long duration) {
@@ -133,22 +132,6 @@ public class ScreenRecordButton extends AppCompatImageButton implements WindowMa
         mRingAnimator.cancel();
         mOutAnimator.setStartDelay(400);
         mOutAnimator.start();
-    }
-
-    @Override public void onMove(View view, int x, int y) {
-        int screenLowerBound = 0;
-        int screenUpperBound = mDisplayMetrics.widthPixels;
-        WindowManager.LayoutParams params = (WindowManager.LayoutParams) view.getLayoutParams();
-        if (x <= screenLowerBound) {
-            params.x = screenLowerBound - (getWidth() / 2);
-            view.setEnabled(false);
-        } else if (x >= screenUpperBound - getWidth()) {
-            params.x = screenUpperBound - (getWidth() / 2);
-            view.setEnabled(false);
-        } else {
-            view.setEnabled(true);
-        }
-        mWindowManager.updateViewLayout(view, params);
     }
 
     public interface HideCallback {
