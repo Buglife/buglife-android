@@ -101,6 +101,13 @@ public class ScreenRecordButton extends AppCompatImageButton {
                 getMeasuredWidth() - inset,
                 getMeasuredHeight() - inset
         );
+
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+        int leftMovementBound = -(getMeasuredWidth() / 2);
+        int topMovementBound = 0;
+        int rightMovementBound = dm.widthPixels - (getMeasuredWidth() / 2);
+        int bottomMovementBound = dm.heightPixels - ViewUtils.navigationBarHeight(getResources()) - ViewUtils.statusBarHeight(getResources());
+        mMovementHandler.setBounds(leftMovementBound, topMovementBound, rightMovementBound, bottomMovementBound);
     }
 
     @Override protected void onAttachedToWindow() {

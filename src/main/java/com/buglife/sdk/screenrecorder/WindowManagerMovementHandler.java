@@ -3,7 +3,6 @@ package com.buglife.sdk.screenrecorder;
 import android.graphics.Rect;
 import android.support.animation.FlingAnimation;
 import android.support.animation.FloatPropertyCompat;
-import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -11,7 +10,6 @@ import android.view.ViewConfiguration;
 import android.view.WindowManager;
 
 import com.buglife.sdk.MathUtils;
-import com.buglife.sdk.ViewUtils;
 
 class WindowManagerMovementHandler {
     private static final int UNIT_PX_PER_SEC = 1000;
@@ -27,7 +25,7 @@ class WindowManagerMovementHandler {
     private float mInitialX = 0;
     private float mInitialTouchY = 0;
     private float mInitialY = 0;
-    private Rect mScreenBounds = new Rect();
+    private Rect mMovementBounds = new Rect();
     private boolean mMoved = false;
 
     private FloatPropertyCompat LAYOUT_PARAMS_X = new FloatPropertyCompat<View>("layoutParamsX") {
@@ -66,13 +64,14 @@ class WindowManagerMovementHandler {
         ViewConfiguration viewConfig = ViewConfiguration.get(view.getContext());
         mMinTouchSlop = viewConfig.getScaledTouchSlop();
         mMinFlingVelocity = viewConfig.getScaledMinimumFlingVelocity();
+    }
 
-        DisplayMetrics dm = view.getResources().getDisplayMetrics();
-        int top = 0;
-        int left = 0;
-        int right = dm.widthPixels;
-        int bottom = dm.heightPixels - ViewUtils.navigationBarHeight(view.getResources()) - ViewUtils.statusBarHeight(view.getResources());
-        mScreenBounds.set(left, top, right, bottom);
+    void setBounds(int left, int top, int right, int bottom) {
+        mMovementBounds.set(left, top, right, bottom);
+        mFlingAnimationX.setMinValue(mMovementBounds.left);
+        mFlingAnimationX.setMaxValue(mMovementBounds.right);
+        mFlingAnimationY.setMinValue(mMovementBounds.top);
+        mFlingAnimationY.setMaxValue(mMovementBounds.bottom);
     }
 
     boolean onTouchEvent(MotionEvent event) {
@@ -111,19 +110,19 @@ class WindowManagerMovementHandler {
                     params.y = y;
 
                     // Handle edge bounds
-                    int screenLowerHorizontalBound = mScreenBounds.left - (mView.getWidth() / 2);
-                    int screenUpperHorizontalBound = mScreenBounds.right - (mView.getWidth() / 2);
-                    int screenLowerVerticalBound = mScreenBounds.top;
-                    int screenUpperVerticalBound = mScreenBounds.bottom;
-                    if (x <= screenLowerHorizontalBound || x >= screenUpperHorizontalBound) {
-                        params.x = MathUtils.closest(screenLowerHorizontalBound, screenUpperHorizontalBound, x);
+                    int movementLowerHorizontalBound = mMovementBounds.left;
+                    int movementUpperHorizontalBound = mMovementBounds.right;
+                    int movementLowerVerticalBound = mMovementBounds.top;
+                    int movementUpperVerticalBound = mMovementBounds.bottom;
+                    if (x <= movementLowerHorizontalBound || x >= movementUpperHorizontalBound) {
+                        params.x = MathUtils.closest(movementLowerHorizontalBound, movementUpperHorizontalBound, x);
                         mView.setEnabled(false);
                     } else {
                         mView.setEnabled(true);
                     }
 
-                    if (y <= screenLowerVerticalBound || y >= screenUpperVerticalBound) {
-                        params.y = MathUtils.closest(screenLowerVerticalBound, screenUpperVerticalBound, y);
+                    if (y <= movementLowerVerticalBound || y >= movementUpperVerticalBound) {
+                        params.y = MathUtils.closest(movementLowerVerticalBound, movementUpperVerticalBound, y);
                     }
 
                     mWindowManager.updateViewLayout(mView, params);
@@ -139,10 +138,6 @@ class WindowManagerMovementHandler {
                     float currentVelocityY = mVelocityTracker.getYVelocity();
                     WindowManager.LayoutParams params = (WindowManager.LayoutParams) mView.getLayoutParams();
                     if (Math.abs(currentVelocityX) >= mMinFlingVelocity || Math.abs(currentVelocityY) >= mMinFlingVelocity) {
-                        mFlingAnimationX.setMinValue(mScreenBounds.left - (mView.getWidth() / 2));
-                        mFlingAnimationX.setMaxValue(mScreenBounds.right - (mView.getWidth() / 2));
-                        mFlingAnimationY.setMinValue(mScreenBounds.top);
-                        mFlingAnimationY.setMaxValue(mScreenBounds.bottom);
                         mFlingAnimationX.setStartValue(params.x);
                         mFlingAnimationY.setStartValue(params.y);
                         mFlingAnimationX.setStartVelocity(currentVelocityX);
