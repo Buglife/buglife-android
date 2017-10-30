@@ -28,7 +28,7 @@ public class ScreenRecordButton extends AppCompatImageButton {
     private final RectF mRingBounds = new RectF();
     final AnimatorSet mInAnimator = new AnimatorSet();
     final AnimatorSet mOutAnimator = new AnimatorSet();
-    private WindowManagerMovementHandler mMovementHandler;
+    private ScreenRecordButtonMovementHandler mMovementHandler;
 
     private ValueAnimator mRingAnimator;
     float mCurrentRingAngle = 360;
@@ -70,7 +70,7 @@ public class ScreenRecordButton extends AppCompatImageButton {
         mOutAnimator.playTogether(outAnimationX, outAnimationY);
 
         WindowManager windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
-        mMovementHandler = new WindowManagerMovementHandler(this, windowManager);
+        mMovementHandler = new ScreenRecordButtonMovementHandler(this, windowManager);
     }
 
     public void setCountdownDuration(long duration) {

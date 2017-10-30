@@ -11,7 +11,7 @@ import android.view.WindowManager;
 
 import com.buglife.sdk.MathUtils;
 
-class WindowManagerMovementHandler {
+class ScreenRecordButtonMovementHandler {
     private static final int UNIT_PX_PER_SEC = 1000;
     private final View mView;
     final WindowManager mWindowManager;
@@ -52,7 +52,7 @@ class WindowManagerMovementHandler {
         }
     };
 
-    WindowManagerMovementHandler(View view, WindowManager windowManager) {
+    ScreenRecordButtonMovementHandler(View view, WindowManager windowManager) {
         mView = view;
         mWindowManager = windowManager;
         mVelocityTracker = VelocityTracker.obtain();
