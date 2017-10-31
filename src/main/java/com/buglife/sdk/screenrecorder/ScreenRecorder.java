@@ -12,14 +12,15 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.Log;
-import com.buglife.sdk.R;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -27,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import static android.graphics.PixelFormat.TRANSLUCENT;
 import static com.buglife.sdk.Attachment.TYPE_MP4;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -38,7 +40,7 @@ public final class ScreenRecorder {
     private final @NonNull Context mContext;
     private final File mOutputDirectory;
     private File mOutputFilePath;
-    private @Nullable OverlayView mOverlayView;
+    private @Nullable ScreenRecordButton mScreenRecordButton;
     private final @NonNull WindowManager mWindowManager;
     private boolean mIsRecording;
     private CountDownTimer mCountdownTimer;
@@ -61,25 +63,40 @@ public final class ScreenRecorder {
     }
 
     private void showOverlay() {
-        mOverlayView = new OverlayView(mContext, new OverlayView.OverlayViewClickListener() {
-            @Override
-            public void onResize() {
-                mWindowManager.updateViewLayout(mOverlayView, mOverlayView.getLayoutParams());
-            }
-
-            @Override
-            public void onStopButtonClicked() {
+        mScreenRecordButton = new ScreenRecordButton(mContext);
+        mScreenRecordButton.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
                 stopRecording();
             }
         });
+        mScreenRecordButton.setCountdownDuration(MAX_RECORD_TIME_MS);
 
-        mWindowManager.addView(mOverlayView, OverlayView.getLayoutParams(mContext));
+        int type;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            type = WindowManager.LayoutParams.TYPE_PHONE;
+        }
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                type,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                TRANSLUCENT);
+
+        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
+
+        mWindowManager.addView(mScreenRecordButton, layoutParams);
     }
 
     private void hideOverlay() {
-        if (mOverlayView != null) {
-            mWindowManager.removeView(mOverlayView);
-            mOverlayView = null;
+        if (mScreenRecordButton != null) {
+            mScreenRecordButton.hide(new ScreenRecordButton.HideCallback() {
+                @Override public void onViewHidden() {
+                    mWindowManager.removeView(mScreenRecordButton);
+                    mScreenRecordButton = null;
+                }
+            });
         }
     }
 
@@ -114,9 +131,7 @@ public final class ScreenRecorder {
         mIsRecording = true;
         mCountdownTimer = new CountDownTimer(MAX_RECORD_TIME_MS, 1000) { //create a timer that ticks every second
             public void onTick(long millisecondsUntilFinished) {
-                Button stopButton = mOverlayView.getStopButton();
-                String base = mContext.getString(R.string.stop_recording);
-                stopButton.setText(base + " " + String.valueOf(millisecondsUntilFinished/1000));
+                // No op
             }
 
             public void onFinish() {
