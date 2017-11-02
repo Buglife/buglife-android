@@ -11,7 +11,7 @@ Buglife for Android is an awesome library for reporting bugs, getting feedback, 
 
 	```groovy
 	dependencies {
-		compile 'com.buglife.sdk:buglife-android:0.9.15'
+		compile 'com.buglife.sdk:buglife-android:0.9.16'
 	}
 	```
 
