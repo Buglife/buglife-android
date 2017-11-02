@@ -63,6 +63,7 @@ public class ReportActivity extends AppCompatActivity {
     private AttachmentAdapter mAttachmentAdapter;
     private ListView mAttachmentListView;
     private @NonNull List<InputField> mInputFields;
+    private @Nullable ProgressDialog mProgressDialog;
 
     public ReportActivity() {
     }
@@ -212,15 +213,21 @@ public class ReportActivity extends AppCompatActivity {
         Buglife.onFinishReportFlow();
     }
 
+    @Override
+    protected void onDestroy() {
+        dismissProgressDialog();
+        super.onDestroy();
+    }
+
     private void submitReport() {
         final Context context = this;
-        final ProgressDialog progressDialog = ProgressDialog.show(this, getString(R.string.sending_toast), "");
+        showProgressDialog();
 
         Report report = new Report(mBugContext);
         Buglife.submitReport(report, new RequestHandler() {
             @Override
             public void onSuccess() {
-                progressDialog.dismiss();
+                dismissProgressDialog();
                 Toast.makeText(context, R.string.thanks_for_filing_a_bug, Toast.LENGTH_SHORT).show();
                 dismiss();
             }
@@ -228,10 +235,23 @@ public class ReportActivity extends AppCompatActivity {
             @Override
             public void onFailure(Throwable e) {
                 Log.d("Error submitting report", e);
-                progressDialog.dismiss();
+                dismissProgressDialog();
                 showErrorDialog();
             }
         });
+    }
+
+    private void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = ProgressDialog.show(this, getString(R.string.sending_toast), "");
+        }
+    }
+
+    private void dismissProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
+            mProgressDialog = null;
+        }
     }
 
     private void showErrorDialog() {
