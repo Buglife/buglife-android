@@ -7,7 +7,7 @@ Buglife for Android is an awesome library for reporting bugs, getting feedback, 
 
 ## Installation
 
-1. Add `buglife-android` as a dependency to your `build.gradle`.
+1. Add `buglife-android` as a dependency to your app's `build.gradle`.
 
 	```groovy
 	dependencies {
