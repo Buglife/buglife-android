@@ -1,11 +1,7 @@
 package com.buglife.sdk.reporting;
 
-import android.app.job.JobParameters;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Build;
-import android.os.PersistableBundle;
-import android.support.annotation.RequiresApi;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -14,9 +10,7 @@ import com.buglife.sdk.NetworkManager;
 
 import org.json.JSONObject;
 
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class SubmitReportTask extends AsyncTask<JobParameters, Void, SubmitReportTask.Result> {
-    public static final String KEY_DATA_PAYLOAD = "payload";
+public class SubmitReportTask extends AsyncTask<JSONObject, Void, SubmitReportTask.Result> {
     private static final String BUGLIFE_URL = "https://www.buglife.com/api/v1/reports.json";
     private final ResultCallback mCallback;
     private final Context mContext;
@@ -26,53 +20,44 @@ public class SubmitReportTask extends AsyncTask<JobParameters, Void, SubmitRepor
         mCallback = callback;
     }
 
-    @Override protected Result doInBackground(JobParameters... jobParameters) {
-        JobParameters jobParameter = jobParameters[0];
-        PersistableBundle data = jobParameter.getExtras();
+    @Override protected Result doInBackground(JSONObject... reports) {
         try {
-            JSONObject payload = new JSONObject(data.getString(KEY_DATA_PAYLOAD));
+            JSONObject report = reports[0];
             RequestFuture<JSONObject> future = RequestFuture.newFuture();
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_URL, payload, future, future);
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_URL, report, future, future);
             NetworkManager.getInstance(mContext).addToRequestQueue(request);
             JSONObject response = future.get();
-            return new Result(jobParameter, response);
+            return new Result(response);
         } catch (Exception error) {
-            return new Result(jobParameter, error);
+            return new Result(error);
         }
     }
 
     @Override protected void onPostExecute(Result result) {
         if (result.getError() != null) {
-            mCallback.onFailure(result.getJobParameters(), result.getError());
+            mCallback.onFailure(result.getError());
         } else if (result.getResponse() != null) {
-            mCallback.onSuccess(result.getJobParameters(), result.getResponse());
+            mCallback.onSuccess(result.getResponse());
         }
     }
 
     interface ResultCallback {
-        void onSuccess(JobParameters jobParameters, JSONObject response);
-        void onFailure(JobParameters jobParameters, Exception error);
+        void onSuccess(JSONObject response);
+        void onFailure(Exception error);
     }
 
     class Result {
-        private final JobParameters mJobParameters;
         private final JSONObject mResponse;
         private final Exception mError;
 
-        Result(JobParameters jobParameters, JSONObject response) {
-            mJobParameters = jobParameters;
+        Result(JSONObject response) {
             mResponse = response;
             mError = null;
         }
 
-        Result(JobParameters jobParameters, Exception error) {
-            mJobParameters = jobParameters;
+        Result(Exception error) {
             mResponse = null;
             mError = error;
-        }
-
-        JobParameters getJobParameters() {
-            return mJobParameters;
         }
 
         JSONObject getResponse() {
