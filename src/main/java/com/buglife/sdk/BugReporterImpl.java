@@ -9,7 +9,6 @@ import android.support.annotation.RequiresApi;
 
 import com.buglife.sdk.reporting.BugReporter;
 import com.buglife.sdk.reporting.SubmitReportService;
-import com.buglife.sdk.reporting.SubmitReportTask;
 
 import org.json.JSONException;
 
@@ -41,10 +40,10 @@ class BugReporterImpl implements BugReporter {
 
         try {
             int jobId = (int) System.currentTimeMillis();
-            String payload = report.toJSON().toString();
+            String jsonReport = report.toJSON().toString();
 
             PersistableBundle data = new PersistableBundle();
-            data.putString(SubmitReportTask.KEY_DATA_PAYLOAD, payload);
+            data.putString(SubmitReportService.KEY_DATA_PAYLOAD, jsonReport);
 
             JobInfo info = new JobInfo.Builder(jobId, SubmitReportService.getComponentName(mContext))
                     .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)

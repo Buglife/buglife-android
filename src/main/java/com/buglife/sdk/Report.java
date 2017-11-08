@@ -37,7 +37,7 @@ public final class Report {
         mBugContext = bugContext;
     }
 
-    JSONObject toJSON() throws JSONException {
+    public JSONObject toJSON() throws JSONException {
         String whatHappened = mBugContext.getAttribute(TextInputField.SUMMARY_ATTRIBUTE_NAME);
 
         JSONObject params = new JSONObject();
