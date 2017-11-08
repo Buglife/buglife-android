@@ -39,20 +39,11 @@ final class BugContext implements Parcelable {
     private final SessionSnapshot mSessionSnapshot;
 
     private BugContext(@NonNull List<Attachment> attachments, @NonNull AttributeMap attributes, SessionSnapshot sessionSnapshot, DeviceSnapshot deviceSnapshot, @NonNull EnvironmentSnapshot environment) {
-        mAttachments = new ArrayList<Attachment>(attachments);
+        mAttachments = new ArrayList<>(attachments);
         mAttributes = attributes;
         mSessionSnapshot = sessionSnapshot;
         mDeviceSnapshot = deviceSnapshot;
         mEnvironmentSnapshot = environment;
-    }
-
-    public BugContext(Parcel source) {
-        mAttachments = new ArrayList();
-        source.readTypedList(mAttachments, Attachment.CREATOR);
-        mAttributes = source.readParcelable(AttributeMap.class.getClassLoader());
-        mEnvironmentSnapshot = source.readParcelable(EnvironmentSnapshot.class.getClassLoader());
-        mDeviceSnapshot = source.readParcelable(DeviceSnapshot.class.getClassLoader());
-        mSessionSnapshot = source.readParcelable(SessionSnapshot.class.getClassLoader());
     }
 
     void addAttachment(@NonNull Attachment attachment) {
@@ -111,9 +102,14 @@ final class BugContext implements Parcelable {
         return mSessionSnapshot;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
+    /* Parcelable*/
+
+    BugContext(Parcel in) {
+        mAttachments = in.createTypedArrayList(Attachment.CREATOR);
+        mAttributes = in.readParcelable(AttributeMap.class.getClassLoader());
+        mEnvironmentSnapshot = in.readParcelable(EnvironmentSnapshot.class.getClassLoader());
+        mDeviceSnapshot = in.readParcelable(DeviceSnapshot.class.getClassLoader());
+        mSessionSnapshot = in.readParcelable(SessionSnapshot.class.getClassLoader());
     }
 
     @Override
@@ -121,21 +117,26 @@ final class BugContext implements Parcelable {
         dest.writeTypedList(mAttachments);
         dest.writeParcelable(mAttributes, flags);
         dest.writeParcelable(mEnvironmentSnapshot, flags);
+        dest.writeParcelable(mDeviceSnapshot, flags);
+        dest.writeParcelable(mSessionSnapshot, flags);
     }
 
-    public static final Parcelable.Creator CREATOR =
-            new Parcelable.Creator() {
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
-                @Override
-                public BugContext createFromParcel(Parcel source) {
-                    return new BugContext(source);
-                }
+    public static final Creator<BugContext> CREATOR = new Creator<BugContext>() {
+        @Override
+        public BugContext createFromParcel(Parcel in) {
+            return new BugContext(in);
+        }
 
-                @Override
-                public BugContext[] newArray(int size) {
-                    return new BugContext[size];
-                }
-            };
+        @Override
+        public BugContext[] newArray(int size) {
+            return new BugContext[size];
+        }
+    };
 
     static class Builder {
         private final @NonNull Context mContext;
