@@ -36,8 +36,6 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -566,17 +564,21 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     }
 
     void submitReport(Report report, RequestHandler requestHandler) {
-        JSONObject reportParams;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // TODO
+        } else {
+            JSONObject reportParams;
 
-        try {
-            reportParams = getReportParams(report);
-        } catch (JSONException e) {
-            Log.d("Error serializing JSON report", e);
-            requestHandler.onFailure(e);
-            return;
+            try {
+                reportParams = getReportParams(report);
+            } catch (JSONException e) {
+                Log.d("Error serializing JSON report", e);
+                requestHandler.onFailure(e);
+                return;
+            }
+
+            makeJsonObjectRequest(reportParams, requestHandler);
         }
-
-        makeJsonObjectRequest(reportParams, requestHandler);
     }
 
     /**

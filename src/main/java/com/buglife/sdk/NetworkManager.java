@@ -25,7 +25,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.RetryPolicy;
 import com.android.volley.toolbox.Volley;
 
-class NetworkManager {
+public class NetworkManager {
 
     private static final int INITIAL_TIMEOUT_MS = 60 * 1000;
 
@@ -36,7 +36,7 @@ class NetworkManager {
         mRequestQueue = Volley.newRequestQueue(context);
     }
 
-    static synchronized NetworkManager getInstance(Context context) {
+    public static synchronized NetworkManager getInstance(Context context) {
         if (mInstance == null) {
             mInstance = new NetworkManager(context);
         }
@@ -44,7 +44,7 @@ class NetworkManager {
         return mInstance;
     }
 
-    <T> void addToRequestQueue(Request<T> request) {
+    public <T> void addToRequestQueue(Request<T> request) {
         // Volley's default initial timeout is way too short, so let's bump it up.
         RetryPolicy retryPolicy = new DefaultRetryPolicy(INITIAL_TIMEOUT_MS, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
         request.setRetryPolicy(retryPolicy);
