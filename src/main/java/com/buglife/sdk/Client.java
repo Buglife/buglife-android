@@ -20,6 +20,9 @@ package com.buglife.sdk;
 import android.app.Activity;
 import android.app.Application;
 import android.app.FragmentManager;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -42,6 +45,8 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.buglife.sdk.reporting.BugReporter;
+import com.buglife.sdk.reporting.SubmitReportService;
 import com.buglife.sdk.screenrecorder.ScreenRecorder;
 import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
 
@@ -68,8 +73,6 @@ import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
 
 final class Client implements ForegroundDetector.OnForegroundListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
-    private static final String SDK_NAME = "Buglife Android";
-    private static final String PLATFORM = "android";
     private static final String BUGLIFE_URL = "https://www.buglife.com/api/v1/reports.json";
     private static final String PERMISSION_INTERNET = "android.permission.INTERNET";
     private static final String PERMISSION_WRITE_EXTERNAL_STORAGE = "android.permission.WRITE_EXTERNAL_STORAGE";
@@ -98,9 +101,11 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     private boolean mReportFlowVisible = false;
     @NonNull private final ColorPalette mColorPallete;
     private File mReportsDir;
+    private final BugReporter reporter;
 
-    private Client(Application application, @Nullable String apiKey, @Nullable String email) {
+    private Client(Application application, BugReporter reporter, @Nullable String apiKey, @Nullable String email) {
         mAppContext = application.getApplicationContext();
+        this.reporter = reporter;
         mApiKey = apiKey;
         mEmail = email;
         mQueuedAttachments = new ArrayList();
@@ -549,7 +554,11 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     }
 
     private @NonNull BugContext buildBugContext() {
-        BugContext.Builder builder = new BugContext.Builder(mAppContext);
+        BugContext.Builder builder = new BugContext.Builder(mAppContext)
+                .setUserEmail(mUserEmail)
+                .setUserIdentifier(mUserIdentifier)
+                .setApiKey(mApiKey)
+                .setApiEmail(mEmail);
 
         if (mListener != null) {
             mListener.onAttachmentRequest();
@@ -564,21 +573,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     }
 
     void submitReport(Report report, RequestHandler requestHandler) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // TODO
-        } else {
-            JSONObject reportParams;
-
-            try {
-                reportParams = getReportParams(report);
-            } catch (JSONException e) {
-                Log.d("Error serializing JSON report", e);
-                requestHandler.onFailure(e);
-                return;
-            }
-
-            makeJsonObjectRequest(reportParams, requestHandler);
-        }
+        reporter.report(report);
     }
 
     /**
@@ -587,113 +582,6 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     void onFinishReportFlow() {
         mReportFlowVisible = false;
         AttachmentDataCache.getInstance().clear();
-    }
-
-    private JSONObject getReportParams(Report report) throws JSONException {
-        String whatHappened = report.getBugContext().getAttribute(TextInputField.SUMMARY_ATTRIBUTE_NAME);
-        String bundleIdentifier = mAppContext.getPackageName();
-        String bundleName = Client.getApplicationName(mAppContext);
-        String operatingSystemVersion = android.os.Build.VERSION.RELEASE;
-        String deviceManufacturer = Build.MANUFACTURER;
-        String deviceModel = Build.MODEL;
-        String deviceBrand = Build.BRAND;
-        // TOOD: Fix this; the linter warns against using these hardware identifiers :(
-        String deviceIdentifier = null; //Settings.Secure.getString(mAppContext.getContentResolver(), Settings.Secure.ANDROID_ID);
-        String sdkVersion = com.buglife.sdk.BuildConfig.VERSION_NAME;
-        String bundleVersion = null;
-        String bundleShortVersion = null;
-
-        try {
-            PackageInfo appPackageInfo = mAppContext.getPackageManager().getPackageInfo(bundleIdentifier, 0);
-            bundleVersion = Integer.toString(appPackageInfo.versionCode);
-            bundleShortVersion = appPackageInfo.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e("Unable to get version information / package information", e);
-        }
-
-        JSONObject params = new JSONObject();
-        JSONObject reportParams = new JSONObject();
-        JSONObject appParams = new JSONObject();
-
-        reportParams.put("sdk_version", sdkVersion);
-        reportParams.put("sdk_name", SDK_NAME);
-        reportParams.put("what_happened", whatHappened);
-        reportParams.put("operating_system_version", operatingSystemVersion);
-        reportParams.put("device_manufacturer", deviceManufacturer);
-        reportParams.put("device_model", deviceModel);
-        reportParams.put("device_brand", deviceBrand);
-        reportParams.put("device_identifier", deviceIdentifier);
-        reportParams.put("bundle_short_version", bundleShortVersion);
-        reportParams.put("bundle_version", bundleVersion);
-        reportParams.put("user_email", mUserEmail);
-        reportParams.put("user_identifier", mUserIdentifier);
-
-        EnvironmentSnapshot environmentSnapshot = report.getBugContext().getEnvironmentSnapshot();
-        reportParams.put("total_capacity_bytes", environmentSnapshot.getTotalCapacityBytes());
-        reportParams.put("free_capacity_bytes", environmentSnapshot.getFreeCapacityBytes());
-        reportParams.put("free_memory_bytes", environmentSnapshot.getFreeMemoryBytes());
-        reportParams.put("total_memory_bytes", environmentSnapshot.getTotalMemoryBytes());
-        reportParams.put("battery_level", environmentSnapshot.getBatteryLevel());
-        reportParams.put("carrier_name", environmentSnapshot.getCarrierName());
-        reportParams.put("android_mobile_network_subtype", environmentSnapshot.getMobileNetworkSubtype());
-        reportParams.put("wifi_connected", environmentSnapshot.getWifiConnected());
-        reportParams.put("locale", environmentSnapshot.getLocale());
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZ");
-
-        reportParams.put("invoked_at", sdf.format(environmentSnapshot.getInvokedAt()));
-        reportParams.put("submission_attempts", 1);
-
-        // Attachments
-        JSONArray attachmentsParams = new JSONArray();
-
-        for (Attachment attachment : report.getBugContext().getAttachments()) {
-            // TODO: Handle these JSON exceptions separately? So that bug reports can still be submitted
-            attachmentsParams.put(attachment.getJSONObject());
-        }
-
-        if (attachmentsParams.length() > 0) {
-            reportParams.put("attachments", attachmentsParams);
-        }
-
-        // Attributes
-        JSONObject attributesParams = new JSONObject();
-        AttributeMap attributes = report.getBugContext().getAttributes();
-
-        for (Map.Entry<String, String> attribute : attributes.entrySet()) {
-            String attributeName = attribute.getKey();
-
-            if (attributeName.equals(TextInputField.SUMMARY_ATTRIBUTE_NAME)) {
-                // Skip system attributes
-                continue;
-            }
-
-            JSONObject attributeParams = new JSONObject();
-            attributeParams.put("attribute_type", 0);
-            attributeParams.put("attribute_value", attribute.getValue());
-            attributesParams.put(attributeName, attributeParams);
-        }
-
-        if (attributesParams.length() > 0) {
-            reportParams.put("attributes", attributesParams);
-        }
-
-        appParams.put("bundle_short_version", bundleShortVersion);
-        appParams.put("bundle_version", bundleVersion);
-        appParams.put("bundle_identifier", bundleIdentifier);
-        appParams.put("bundle_name", bundleName);
-        appParams.put("platform", PLATFORM);
-
-        params.put("report", reportParams);
-        params.put("app", appParams);
-
-        if (mApiKey != null) {
-            params.put("api_key", mApiKey);
-        } else if (mEmail != null) {
-            params.put("email", mEmail);
-        }
-
-        return params;
     }
 
     private static String getApplicationName(Context context) {
@@ -743,11 +631,11 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         }
 
         Client buildWithApiKey(String apiKey) {
-            return new Client(mApplication, apiKey, null);
+            return new Client(mApplication, new BugReporterImpl(mApplication), apiKey, null);
         }
 
         Client buildWithEmail(String email) {
-            return new Client(mApplication, null, email);
+            return new Client(mApplication, new BugReporterImpl(mApplication), null, email);
         }
     }
 

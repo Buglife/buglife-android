@@ -23,23 +23,26 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.buglife.sdk.reporting.DeviceSnapshot;
+import com.buglife.sdk.reporting.SessionSnapshot;
+
 import junit.framework.Assert;
 
-import org.w3c.dom.Attr;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 final class BugContext implements Parcelable {
     private final ArrayList<Attachment> mAttachments;
     private final AttributeMap mAttributes;
     private final EnvironmentSnapshot mEnvironmentSnapshot;
+    private final DeviceSnapshot mDeviceSnapshot;
+    private final SessionSnapshot mSessionSnapshot;
 
-    private BugContext(@NonNull List<Attachment> attachments, @NonNull AttributeMap attributes, @NonNull EnvironmentSnapshot environment) {
+    private BugContext(@NonNull List<Attachment> attachments, @NonNull AttributeMap attributes, SessionSnapshot sessionSnapshot, DeviceSnapshot deviceSnapshot, @NonNull EnvironmentSnapshot environment) {
         mAttachments = new ArrayList<Attachment>(attachments);
         mAttributes = attributes;
+        mSessionSnapshot = sessionSnapshot;
+        mDeviceSnapshot = deviceSnapshot;
         mEnvironmentSnapshot = environment;
     }
 
@@ -48,6 +51,8 @@ final class BugContext implements Parcelable {
         source.readTypedList(mAttachments, Attachment.CREATOR);
         mAttributes = source.readParcelable(AttributeMap.class.getClassLoader());
         mEnvironmentSnapshot = source.readParcelable(EnvironmentSnapshot.class.getClassLoader());
+        mDeviceSnapshot = source.readParcelable(DeviceSnapshot.class.getClassLoader());
+        mSessionSnapshot = source.readParcelable(SessionSnapshot.class.getClassLoader());
     }
 
     void addAttachment(@NonNull Attachment attachment) {
@@ -98,6 +103,14 @@ final class BugContext implements Parcelable {
         return mAttributes;
     }
 
+    DeviceSnapshot getDeviceSnapshot() {
+        return mDeviceSnapshot;
+    }
+
+    SessionSnapshot getSessionSnapshot() {
+        return mSessionSnapshot;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -125,9 +138,13 @@ final class BugContext implements Parcelable {
             };
 
     static class Builder {
+        private final @NonNull Context mContext;
         private @NonNull ArrayList<Attachment> mAttachments = new ArrayList();
         private @NonNull AttributeMap mAttributeMap = new AttributeMap();
-        private final @NonNull Context mContext;
+        private @NonNull String mUserEmail;
+        private @NonNull String mUserIdentifier;
+        private @Nullable String mApiKey;
+        private @Nullable String mApiEmail;
 
         Builder(@NonNull Context context) {
             mContext = context;
@@ -143,9 +160,31 @@ final class BugContext implements Parcelable {
             return this;
         }
 
+        Builder setUserEmail(String userEmail) {
+            userEmail = userEmail;
+            return this;
+        }
+
+        Builder setUserIdentifier(String userIdentifier) {
+            userIdentifier = userIdentifier;
+            return this;
+        }
+
+        Builder setApiKey(String apiKey) {
+            mApiKey = apiKey;
+            return this;
+        }
+
+        Builder setApiEmail(String apiEmail) {
+            mApiEmail = apiEmail;
+            return this;
+        }
+
         public BugContext build() {
+            SessionSnapshot sessionSnapshot = new SessionSnapshot(mContext, mUserEmail, mUserIdentifier, mApiKey, mApiEmail);
             EnvironmentSnapshot environment = new EnvironmentSnapshot.Builder(mContext).build();
-            return new BugContext(mAttachments, mAttributeMap, environment);
+            DeviceSnapshot deviceSnapshot = new DeviceSnapshot();
+            return new BugContext(mAttachments, mAttributeMap, sessionSnapshot, deviceSnapshot, environment);
         }
     }
 }
