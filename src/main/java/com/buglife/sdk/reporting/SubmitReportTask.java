@@ -4,6 +4,7 @@ import android.app.job.JobParameters;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.PersistableBundle;
 import android.support.annotation.RequiresApi;
 
 import com.android.volley.Request;
@@ -14,27 +15,25 @@ import com.buglife.sdk.NetworkManager;
 import org.json.JSONObject;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class SubmitReportTask extends AsyncTask<JobParameters, Void, SubmitReportTask.Result> {
+public class SubmitReportTask extends AsyncTask<JobParameters, Void, SubmitReportTask.Result> {
+    public static final String KEY_DATA_PAYLOAD = "payload";
     private static final String BUGLIFE_URL = "https://www.buglife.com/api/v1/reports.json";
     private final ResultCallback mCallback;
-    private Context mContext;
+    private final Context mContext;
 
-    SubmitReportTask(ResultCallback callback) {
+    SubmitReportTask(Context context, ResultCallback callback) {
+        mContext = context;
         mCallback = callback;
     }
 
     @Override protected Result doInBackground(JobParameters... jobParameters) {
-        JobRepository jobRepository = new JobRepository();
-
         JobParameters jobParameter = jobParameters[0];
-        int jobId = jobParameter.getJobId();
-        JSONObject data = jobRepository.getJob(jobId);
-
-        RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_URL, data, future, future);
-        NetworkManager.getInstance(mContext).addToRequestQueue(request);
-
+        PersistableBundle data = jobParameter.getExtras();
         try {
+            JSONObject payload = new JSONObject(data.getString(KEY_DATA_PAYLOAD));
+            RequestFuture<JSONObject> future = RequestFuture.newFuture();
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_URL, payload, future, future);
+            NetworkManager.getInstance(mContext).addToRequestQueue(request);
             JSONObject response = future.get();
             return new Result(jobParameter, response);
         } catch (Exception error) {
