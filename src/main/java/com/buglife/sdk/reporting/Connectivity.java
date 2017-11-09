@@ -15,7 +15,7 @@
  *
  */
 
-package com.buglife.sdk;
+package com.buglife.sdk.reporting;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
