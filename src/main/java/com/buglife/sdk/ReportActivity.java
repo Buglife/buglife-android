@@ -220,25 +220,10 @@ public class ReportActivity extends AppCompatActivity {
     }
 
     private void submitReport() {
-        final Context context = this;
-        showProgressDialog();
-
         Report report = new Report(mBugContext);
-        Buglife.submitReport(report, new RequestHandler() {
-            @Override
-            public void onSuccess() {
-                dismissProgressDialog();
-                Toast.makeText(context, R.string.thanks_for_filing_a_bug, Toast.LENGTH_SHORT).show();
-                dismiss();
-            }
-
-            @Override
-            public void onFailure(Throwable e) {
-                Log.d("Error submitting report", e);
-                dismissProgressDialog();
-                showErrorDialog();
-            }
-        });
+        Buglife.submitReport(report, null);
+        Toast.makeText(this, R.string.thanks_for_filing_a_bug, Toast.LENGTH_SHORT).show();
+        dismiss();
     }
 
     private void showProgressDialog() {

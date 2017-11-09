@@ -18,6 +18,7 @@
 package com.buglife.sdk;
 
 import com.buglife.sdk.reporting.DeviceSnapshot;
+import com.buglife.sdk.reporting.EnvironmentSnapshot;
 import com.buglife.sdk.reporting.SessionSnapshot;
 
 import org.json.JSONArray;

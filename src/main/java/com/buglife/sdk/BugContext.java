@@ -24,6 +24,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.buglife.sdk.reporting.DeviceSnapshot;
+import com.buglife.sdk.reporting.EnvironmentSnapshot;
 import com.buglife.sdk.reporting.SessionSnapshot;
 
 import junit.framework.Assert;
@@ -38,7 +39,7 @@ final class BugContext implements Parcelable {
     private final DeviceSnapshot mDeviceSnapshot;
     private final SessionSnapshot mSessionSnapshot;
 
-    private BugContext(@NonNull List<Attachment> attachments, @NonNull AttributeMap attributes, SessionSnapshot sessionSnapshot, DeviceSnapshot deviceSnapshot, @NonNull EnvironmentSnapshot environment) {
+    BugContext(@NonNull List<Attachment> attachments, @NonNull AttributeMap attributes, SessionSnapshot sessionSnapshot, DeviceSnapshot deviceSnapshot, @NonNull EnvironmentSnapshot environment) {
         mAttachments = new ArrayList<>(attachments);
         mAttributes = attributes;
         mSessionSnapshot = sessionSnapshot;
@@ -183,7 +184,7 @@ final class BugContext implements Parcelable {
 
         public BugContext build() {
             SessionSnapshot sessionSnapshot = new SessionSnapshot(mContext, mUserEmail, mUserIdentifier, mApiKey, mApiEmail);
-            EnvironmentSnapshot environment = new EnvironmentSnapshot.Builder(mContext).build();
+            EnvironmentSnapshot environment = new EnvironmentSnapshot(mContext);
             DeviceSnapshot deviceSnapshot = new DeviceSnapshot();
             return new BugContext(mAttachments, mAttributeMap, sessionSnapshot, deviceSnapshot, environment);
         }
