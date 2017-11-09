@@ -173,8 +173,8 @@ public final class Buglife {
         getClient().startScreenRecording();
     }
 
-    static void submitReport(Report report, RequestHandler requestHandler) {
-        getClient().submitReport(report, requestHandler);
+    static void submitReport(Report report) {
+        getClient().submitReport(report);
     }
 
     static void onFinishReportFlow() {

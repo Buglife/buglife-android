@@ -221,7 +221,7 @@ public class ReportActivity extends AppCompatActivity {
 
     private void submitReport() {
         Report report = new Report(mBugContext);
-        Buglife.submitReport(report, null);
+        Buglife.submitReport(report);
         Toast.makeText(this, R.string.thanks_for_filing_a_bug, Toast.LENGTH_SHORT).show();
         dismiss();
     }
