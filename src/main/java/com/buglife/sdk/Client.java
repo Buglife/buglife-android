@@ -53,7 +53,6 @@ import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
 
 final class Client implements ForegroundDetector.OnForegroundListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
-    private static final String BUGLIFE_URL = "https://www.buglife.com/api/v1/reports.json";
     private static final String PERMISSION_INTERNET = "android.permission.INTERNET";
     private static final String PERMISSION_WRITE_EXTERNAL_STORAGE = "android.permission.WRITE_EXTERNAL_STORAGE";
     private static final String PERMISSION_READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
@@ -81,7 +80,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     @NonNull private final ColorPalette mColorPallete;
     private final BugReporter reporter;
 
-    private Client(Application application, BugReporter reporter, @Nullable String apiKey, @Nullable String email) {
+    Client(Application application, BugReporter reporter, @Nullable String apiKey, @Nullable String email) {
         mAppContext = application.getApplicationContext();
         this.reporter = reporter;
         mApiKey = apiKey;

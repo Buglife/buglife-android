@@ -23,21 +23,36 @@ import android.content.Intent;
 import android.support.annotation.Nullable;
 
 import com.android.volley.NoConnectionError;
-import com.buglife.sdk.FileUtils;
 import com.buglife.sdk.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 public class SubmitReportLegacyService extends IntentService {
+    private static final String KEY_EXTRA_JSON_REPORT = "json_report";
     private SubmitReportTask mTask;
 
+    public static void start(Context context, String jsonReport) {
+        Intent intent = new Intent(context, SubmitReportLegacyService.class);
+        intent.putExtra(KEY_EXTRA_JSON_REPORT, jsonReport);
+        context.startService(intent);
+    }
+
     public static void start(Context context) {
-        context.startService(new Intent(context, SubmitReportLegacyService.class));
+        Intent intent = new Intent(context, SubmitReportLegacyService.class);
+        context.startService(intent);
     }
 
     public SubmitReportLegacyService() {
@@ -50,14 +65,20 @@ public class SubmitReportLegacyService extends IntentService {
     }
 
     @Override protected void onHandleIntent(@Nullable Intent intent) {
-        File cacheFile = FileUtils.getReportsCacheFile(getApplicationContext());
+        File cacheFile = getReportsCacheFile(getApplicationContext());
         if (!cacheFile.exists()) {
             Log.i("Reports cache file doesn't exist! No reports to submit.");
             return;
         }
 
-        List<String> jsonReports = FileUtils.readLinesFromFile(cacheFile);
-        Iterator<String> iterator = jsonReports.iterator();
+        List<String> pendingJsonReports = readLinesFromFile(cacheFile);
+
+        if (intent != null && intent.hasExtra(KEY_EXTRA_JSON_REPORT)) {
+            String newJsonReport = intent.getStringExtra(KEY_EXTRA_JSON_REPORT);
+            pendingJsonReports.add(newJsonReport);
+        }
+
+        Iterator<String> iterator = pendingJsonReports.iterator();
         while (iterator.hasNext()) {
             String jsonReport = iterator.next();
             try {
@@ -75,10 +96,10 @@ public class SubmitReportLegacyService extends IntentService {
             }
         }
 
-        if (jsonReports.isEmpty()) {
+        if (pendingJsonReports.isEmpty()) {
             cacheFile.delete();
         } else {
-            FileUtils.writeLinesToFile(jsonReports, cacheFile);
+            writeLinesToFile(pendingJsonReports, cacheFile);
         }
     }
 
@@ -97,5 +118,58 @@ public class SubmitReportLegacyService extends IntentService {
     private boolean shouldRemoveReportFromCache(Exception error) {
         Throwable cause = error.getCause();
         return !(cause instanceof NoConnectionError);
+    }
+
+    /* Utility methods */
+
+    private static File getReportsCacheFile(Context context) {
+        File dir = context.getFilesDir();
+        return new File(dir, "reports");
+    }
+
+    private static void writeLinesToFile(List<String> lines, File file) {
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(file));
+            for (String line : lines) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (FileNotFoundException error) {
+            error.printStackTrace();
+        } catch (IOException error) {
+            error.printStackTrace();
+        } finally {
+            closeQuietly(writer);
+        }
+    }
+
+    private static List<String> readLinesFromFile(File file) {
+        List<String> output = new ArrayList<>();
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.add(line);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            closeQuietly(reader);
+        }
+        return output;
+    }
+
+    private static void closeQuietly(@Nullable Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (IOException error) {
+                // Ignore
+            }
+        }
     }
 }
