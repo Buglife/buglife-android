@@ -24,20 +24,20 @@ public class SubmitReportService extends JobService {
         try {
             String jsonReport = params.getExtras().getString(KEY_DATA_PAYLOAD);
             JSONObject report = new JSONObject(jsonReport);
-            SubmitReportTask task = new SubmitReportTask(getApplicationContext(), new SubmitReportTask.ResultCallback() {
+            SubmitReportAsyncTask task = new SubmitReportAsyncTask(getApplicationContext(), new SubmitReportAsyncTask.ResultCallback() {
                 @Override public void onSuccess(JSONObject response) {
                     jobFinished(params, false);
                 }
 
                 @Override public void onFailure(Exception error) {
-                    Log.e("Failed to submit bug report", error);
+                    Log.e("Error submitting report!", error);
                     jobFinished(params, false);
                 }
             });
             task.execute(report);
             return true;
         } catch (JSONException e) {
-            Log.e("Error deserializing JSON report", e);
+            Log.e("Error deserializing JSON report!", e);
         }
         return false;
     }
