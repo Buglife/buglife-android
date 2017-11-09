@@ -8,15 +8,23 @@ import android.os.PersistableBundle;
 import android.support.annotation.RequiresApi;
 
 import com.buglife.sdk.reporting.BugReporter;
+import com.buglife.sdk.reporting.SubmitReportLegacyService;
 import com.buglife.sdk.reporting.SubmitReportService;
 
 import org.json.JSONException;
+
+import java.io.File;
 
 class BugReporterImpl implements BugReporter {
     private final Context mContext;
 
     BugReporterImpl(Context context) {
         mContext = context;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Kick off submit report service in case there are cached reports still
+            // available.
+            SubmitReportLegacyService.start(mContext);
+        }
     }
 
     @Override public void report(Report report) {
@@ -28,7 +36,14 @@ class BugReporterImpl implements BugReporter {
     }
 
     private void reportWithLegacy(Report report) {
-        // TODO
+        try {
+            String jsonReport = report.toJSON().toString();
+            File file = FileUtils.getReportsCacheFile(mContext);
+            FileUtils.appendLineToFile(jsonReport, file);
+            SubmitReportLegacyService.start(mContext);
+        } catch (JSONException e) {
+            Log.e("Failed to encode report!", e);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
