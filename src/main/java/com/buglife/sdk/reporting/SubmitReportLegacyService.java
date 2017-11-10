@@ -66,16 +66,16 @@ public class SubmitReportLegacyService extends IntentService {
 
     @Override protected void onHandleIntent(@Nullable Intent intent) {
         File cacheFile = getReportsCacheFile(getApplicationContext());
-        if (!cacheFile.exists()) {
-            Log.i("Reports cache file doesn't exist! No reports to submit.");
-            return;
-        }
-
         List<String> pendingJsonReports = readLinesFromFile(cacheFile);
 
         if (intent != null && intent.hasExtra(KEY_EXTRA_JSON_REPORT)) {
             String newJsonReport = intent.getStringExtra(KEY_EXTRA_JSON_REPORT);
             pendingJsonReports.add(newJsonReport);
+        }
+
+        if (pendingJsonReports.isEmpty()) {
+            Log.i("No reports to submit.");
+            return;
         }
 
         Iterator<String> iterator = pendingJsonReports.iterator();
@@ -146,6 +146,11 @@ public class SubmitReportLegacyService extends IntentService {
 
     private static List<String> readLinesFromFile(File file) {
         List<String> output = new ArrayList<>();
+
+        if (!file.exists()) {
+            return output;
+        }
+
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(file));
