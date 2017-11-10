@@ -13,6 +13,8 @@ import android.widget.TextView;
 import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.InvocationMethod;
+import com.buglife.sdk.Log;
+import com.buglife.sdk.LogDumper;
 
 import static com.buglife.sdk.Attachment.TYPE_PNG;
 
@@ -33,13 +35,21 @@ public class MainActivity extends AppCompatActivity {
             Button button = (Button) findViewById(R.id.record_screen_button);
             button.setVisibility(View.GONE);
         }
+
+        Log.d("Omg we're logging things");
+        Log.e("And I guess this would be an error");
+        Log.d("Logging more things from Buglife");
     }
 
     public void reportBugButtonTapped(View view) {
-        Bitmap screenshot = Buglife.getScreenshotBitmap();
-        Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
-        Buglife.addAttachment(attachment);
-        Buglife.showReporter();
+//        Bitmap screenshot = Buglife.getScreenshotBitmap();
+//        Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
+//        Buglife.addAttachment(attachment);
+//        Buglife.showReporter();
+
+        StringBuilder stringBuilder = LogDumper.getLog();
+        String string = stringBuilder.toString();
+        Log.d("Got the logs:\n\n=====\n" + string + "\n=====\n\n\n");
     }
 
     public void recordScreenButtonTapped(View view) {
