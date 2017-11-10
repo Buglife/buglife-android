@@ -55,7 +55,6 @@ final class BugReporterImpl implements BugReporter {
         } catch (JSONException e) {
             Log.e("Failed to serialize bug report!", e);
             Toast.makeText(mContext, R.string.error_serialize_report, Toast.LENGTH_LONG).show();
-            throw new RuntimeException(e);
         }
     }
 
