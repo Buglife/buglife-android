@@ -77,7 +77,6 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     @NonNull private final AttributeMap mAttributes;
     @Nullable private ArrayList<InputField> mInputFields;
     private boolean mReportFlowVisible = false;
-    @NonNull private final ColorPalette mColorPallete;
     private final BugReporter reporter;
 
     Client(Application application, BugReporter reporter, @Nullable String apiKey, @Nullable String email) {
@@ -88,7 +87,6 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         mQueuedAttachments = new ArrayList();
         mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
-        mColorPallete = new ColorPalette.Builder(mAppContext).build();
 
         boolean hasPermissions = checkPermissions();
 
@@ -117,10 +115,6 @@ final class Client implements ForegroundDetector.OnForegroundListener {
 
     Context getApplicationContext() {
         return mAppContext;
-    }
-
-    ColorPalette getColorPalette() {
-        return mColorPallete;
     }
 
     void setListener(@Nullable BuglifeListener listener) {
