@@ -67,6 +67,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     private ImageButton mLoupeTool;
     private ImageButton mBlurTool;
     private AnnotationView mAnnotationView;
+    private ColorPalette mColorPalette;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,9 +83,11 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         Bitmap bitmap = mAttachment.getBitmap(this);
         mAnnotationView.setImage(bitmap);
 
+        mColorPalette = new ColorPalette.Builder(this).build();
+
         // Annotation tools
         mAnnotationToolbar = findViewById(R.id.annotation_toolbar);
-        mAnnotationToolbar.setBackgroundColor(Buglife.getColorPalette().getColorPrimary());
+        mAnnotationToolbar.setBackgroundColor(mColorPalette.getColorPrimary());
 
         mArrowTool = (ImageButton) findViewById(R.id.arrow_tool);
         mLoupeTool = (ImageButton) findViewById(R.id.loupe_tool);
@@ -120,8 +123,8 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
 
         if (actionBar != null) {
-            int colorPrimary = Buglife.getColorPalette().getColorPrimary();
-            int titleTextColor = Buglife.getColorPalette().getTextColorPrimary();
+            int colorPrimary = mColorPalette.getColorPrimary();
+            int titleTextColor = mColorPalette.getTextColorPrimary();
             final @DrawableRes int homeAsUpIndicatorDrawableId;
             final @StringRes int titleStringId;
 
@@ -136,7 +139,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
                 titleStringId = R.string.screenshot_annotator_activity_label;
             }
 
-            Drawable homeAsUpIndicator = ActivityUtils.getTintedDrawable(this, homeAsUpIndicatorDrawableId);
+            Drawable homeAsUpIndicator = ActivityUtils.getTintedDrawable(this, homeAsUpIndicatorDrawableId, mColorPalette.getTextColorPrimary());
             CharSequence title = ActivityUtils.getTextWithColor(this, titleTextColor, titleStringId);
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(homeAsUpIndicator);
@@ -144,7 +147,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
             actionBar.setTitle(title);
         }
 
-        ActivityUtils.setStatusBarColor(this);
+        ActivityUtils.setStatusBarColor(this, mColorPalette.getColorPrimaryDark());
     }
 
     @Override
@@ -152,7 +155,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         if (isInitialScreenshotAnnotationActivity()) {
             MenuItem sendItem = menu.add(0, NEXT_MENU_ITEM, Menu.NONE, R.string.next);
             sendItem.setShowAsAction(SHOW_AS_ACTION_ALWAYS);
-            Drawable drawable = ActivityUtils.getTintedDrawable(this, R.drawable.ic_arrow_right);
+            Drawable drawable = ActivityUtils.getTintedDrawable(this, R.drawable.ic_arrow_right, mColorPalette.getTextColorPrimary());
             sendItem.setIcon(drawable);
             return true;
         } else {
@@ -272,6 +275,6 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     }
 
     private int getToolColorFilter() {
-        return Buglife.getColorPalette().getColorAccent();
+        return mColorPalette.getColorAccent();
     }
 }

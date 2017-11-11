@@ -36,12 +36,11 @@ final class ActivityUtils {
     static final String INTENT_KEY_BUG_CONTEXT = "INTENT_KEY_BUG_CONTEXT";
     static final String INTENT_KEY_ATTACHMENT = "INTENT_KEY_ATTACHMENT";
 
-    static void setStatusBarColor(Activity activity) {
+    static void setStatusBarColor(Activity activity, int color) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return;
         }
 
-        int color = Buglife.getColorPalette().getColorPrimaryDark();
         Window window = activity.getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -58,11 +57,10 @@ final class ActivityUtils {
         return true;
     }
 
-    static @NonNull Drawable getTintedDrawable(@NonNull Context context, @DrawableRes int id) {
-        int titleTextColor = Buglife.getColorPalette().getTextColorPrimary();
+    static @NonNull Drawable getTintedDrawable(@NonNull Context context, @DrawableRes int id, int color) {
         Drawable drawable = context.getResources().getDrawable(id);
         drawable = DrawableCompat.wrap(drawable);
-        DrawableCompat.setTint(drawable, titleTextColor);
+        DrawableCompat.setTint(drawable, color);
         return drawable;
     }
 

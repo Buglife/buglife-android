@@ -181,10 +181,6 @@ public final class Buglife {
         getClient().onFinishReportFlow();
     }
 
-    static ColorPalette getColorPalette() {
-        return getClient().getColorPalette();
-    }
-
     private static void verifyDependencies() {
         try {
             Class<?> clazz = Class.forName("com.android.volley.toolbox.JsonObjectRequest");

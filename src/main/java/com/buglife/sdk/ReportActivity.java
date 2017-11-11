@@ -64,6 +64,7 @@ public class ReportActivity extends AppCompatActivity {
     private ListView mAttachmentListView;
     private @NonNull List<InputField> mInputFields;
     private @Nullable ProgressDialog mProgressDialog;
+    private @NonNull ColorPalette mColorPalette;
 
     public ReportActivity() {
     }
@@ -111,8 +112,9 @@ public class ReportActivity extends AppCompatActivity {
             inputFieldView.setValue(currentValue);
         }
 
-        int colorPrimary = Buglife.getColorPalette().getColorPrimary();
-        int titleTextColor = Buglife.getColorPalette().getTextColorPrimary();
+        mColorPalette = new ColorPalette.Builder(this).build();
+        int colorPrimary = mColorPalette.getColorPrimary();
+        int titleTextColor = mColorPalette.getTextColorPrimary();
         String titleTextColorHex = ColorPalette.getHexColor(titleTextColor);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -121,7 +123,7 @@ public class ReportActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
 
         if (actionBar != null) {
-            Drawable drawable = ActivityUtils.getTintedDrawable(this, android.R.drawable.ic_menu_close_clear_cancel);
+            Drawable drawable = ActivityUtils.getTintedDrawable(this, android.R.drawable.ic_menu_close_clear_cancel, mColorPalette.getTextColorPrimary());
 
             actionBar.setHomeAsUpIndicator(drawable);
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -129,7 +131,7 @@ public class ReportActivity extends AppCompatActivity {
             actionBar.setTitle(getString(R.string.report_a_bug));
         }
 
-        ActivityUtils.setStatusBarColor(this);
+        ActivityUtils.setStatusBarColor(this, mColorPalette.getColorPrimaryDark());
     }
 
     private @Nullable String getValueForInputField(@NonNull InputField inputField) {
@@ -146,7 +148,7 @@ public class ReportActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuItem sendItem = menu.add(0, SEND_MENU_ITEM, Menu.NONE, R.string.send);
         sendItem.setShowAsAction(SHOW_AS_ACTION_ALWAYS);
-        Drawable drawable = ActivityUtils.getTintedDrawable(this, android.R.drawable.ic_menu_send);
+        Drawable drawable = ActivityUtils.getTintedDrawable(this, android.R.drawable.ic_menu_send, mColorPalette.getTextColorPrimary());
         sendItem.setIcon(drawable);
 
         return true;

@@ -36,6 +36,7 @@ import java.lang.reflect.Method;
 final class TextInputFieldView extends InputFieldView {
     private TextInputLayout mTextInputLayout;
     private EditText mEditText;
+    private ColorPalette mColorPalette;
 
     TextInputFieldView(Context context) {
         super(context);
@@ -45,7 +46,9 @@ final class TextInputFieldView extends InputFieldView {
     private void init() {
         inflate(getContext(), R.layout.text_input_field_view, this);
         mTextInputLayout = (TextInputLayout) findViewById(R.id.input_layout);
-        mEditText = (EditText) findViewById(R.id.edit_text);setHintColor();
+        mEditText = (EditText) findViewById(R.id.edit_text);
+        mColorPalette = new ColorPalette.Builder(getContext()).build();
+        setHintColor();
     }
 
     @Override
@@ -87,7 +90,7 @@ final class TextInputFieldView extends InputFieldView {
     }
 
     private void setHintColor() {
-        @ColorInt int colorAccent = Buglife.getColorPalette().getColorAccent();
+        @ColorInt int colorAccent = mColorPalette.getColorAccent();
 
         try {
             Field field = mTextInputLayout.getClass().getDeclaredField("mFocusedTextColor");
