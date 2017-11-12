@@ -43,4 +43,12 @@ public final class Log {
     public static void i(String msg, Throwable throwable) {
         android.util.Log.i(TAG, msg, throwable);
     }
+
+    public static void w(String msg) {
+        android.util.Log.w(TAG, msg);
+    }
+
+    public static void w(String msg, Throwable throwable) {
+        android.util.Log.w(TAG, msg, throwable);
+    }
 }
