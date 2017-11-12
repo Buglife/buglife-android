@@ -17,7 +17,6 @@
 
 package com.buglife.sdk;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.FragmentManager;
@@ -27,8 +26,6 @@ import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
-import android.os.FileObserver;
 import android.provider.MediaStore;
 import android.widget.Toast;
 
