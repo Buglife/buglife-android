@@ -27,8 +27,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
@@ -51,7 +49,7 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
 
-final class Client implements ForegroundDetector.OnForegroundListener {
+final class Client implements ForegroundDetector.OnForegroundListener, InvocationMethodManager.OnInvocationMethodTriggeredListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
     private static final String PERMISSION_INTERNET = "android.permission.INTERNET";
     private static final String PERMISSION_WRITE_EXTERNAL_STORAGE = "android.permission.WRITE_EXTERNAL_STORAGE";
@@ -66,10 +64,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
     @Nullable private final String mEmail;
     @Nullable private BuglifeListener mListener;
     @NonNull private InvocationMethod mInvocationMethod;
-    @Nullable private SensorManager mSensorManager = null;
-    @Nullable private Sensor mAccelerometer = null;
-    @Nullable private ShakeDetector mShakeDetector = null;
-    @Nullable private ScreenshotObserver mScreenshotObserver = null;
+    @Nullable private InvocationMethodManager mInvocationMethodManager;
     private final ForegroundDetector mForegroundDetector;
     @Nullable private String mUserIdentifier = null;
     @Nullable private String mUserEmail = null;
@@ -131,81 +126,19 @@ final class Client implements ForegroundDetector.OnForegroundListener {
 
     void setInvocationMethod(InvocationMethod invocationMethod) {
         mInvocationMethod = invocationMethod;
-
-        setScreenshotInvocationMethodEnabled(invocationMethod == InvocationMethod.SCREENSHOT);
-        setShakeInvocationMethodEnabled(invocationMethod == InvocationMethod.SHAKE);
-
         if (mForegroundDetector.getForegrounded()) {
-            Activity foregroundedActivity = mForegroundDetector.getCurrentActivity();
-            startListeningForEnabledInvocations(foregroundedActivity);
-        }
-    }
-
-    private void setScreenshotInvocationMethodEnabled(boolean enabled) {
-        if (enabled && mScreenshotObserver == null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mScreenshotObserver = new ScreenshotContentObserver(mAppContext, mOnScreenshotTakenListener);
-            } else {
-                mScreenshotObserver = new ScreenshotFileObserver(mOnScreenshotTakenListener);
-            }
-        } else if (!enabled && mScreenshotObserver != null) {
-            mScreenshotObserver.stop();
-            mScreenshotObserver = null;
-        }
-    }
-
-    private void setShakeInvocationMethodEnabled(boolean enabled) {
-        if (enabled && mSensorManager == null) {
-            mSensorManager = (SensorManager) mAppContext.getSystemService(Context.SENSOR_SERVICE);
-            mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-            mShakeDetector = new ShakeDetector(mOnShakeListener);
-        } else if (!enabled && mSensorManager != null) {
-            mSensorManager.unregisterListener(mShakeDetector);
-            mSensorManager = null;
-            mAccelerometer = null;
-            mShakeDetector = null;
-        }
-    }
-
-    private void startListeningForEnabledInvocations(Activity foregroundActivity) {
-        if (mSensorManager != null) {
-            boolean registered = mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
-
-            if (!registered) {
-                Log.e("Unable to register shake listener");
-            }
-        }
-
-        if (mScreenshotObserver != null) {
-            // Try to start the screenshot observer. However, if permission is denied by the user,
-            // then disable screenshot invocations. This way, the user doesn't repeatedly get prompted to
-            // grant permissions, but screenshot invocations can still be re-enabled programattically in the same session.
-            mScreenshotObserver.start(foregroundActivity, new ScreenshotObserver.ScreenshotObserverPermissionListener() {
-                @Override
-                public void onPermissionDenied() {
-                    if (getInvocationMethod() == InvocationMethod.SCREENSHOT) {
-                        setInvocationMethod(InvocationMethod.NONE);
-                    }
-                }
-            });
+            startInvocationMethod();
         }
     }
 
     @Override
     public void onForegroundEvent() {
-        Activity currentActivity = mForegroundDetector.getCurrentActivity();
-        startListeningForEnabledInvocations(currentActivity);
+        startInvocationMethod();
     }
 
     @Override
     public void onBackgroundEvent() {
-        if (mSensorManager != null) {
-            mSensorManager.unregisterListener(mShakeDetector);
-        }
-
-        if (mScreenshotObserver != null) {
-            mScreenshotObserver.stop();
-        }
+        stopInvocationMethod();
     }
 
     InvocationMethod getInvocationMethod() {
@@ -238,31 +171,10 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         return new ArrayList(inputFields);
     }
 
-    private final ShakeDetector.OnShakeListener mOnShakeListener = new ShakeDetector.OnShakeListener() {
-        @Override
-        public void onShake() {
-            if (mReportFlowVisible) {
-                return;
-            }
-
-            if (mInvocationMethod == InvocationMethod.SHAKE) {
-                Bitmap bitmap = getScreenshot();
-                onScreenshotTaken(bitmap);
-            }
-        }
-    };
-
     Bitmap getScreenshot() {
         Screenshotter screenshotter = new Screenshotter(mForegroundDetector.getCurrentActivity());
         return screenshotter.getBitmap();
     }
-
-    private final OnScreenshotTakenListener mOnScreenshotTakenListener = new OnScreenshotTakenListener() {
-        @Override
-        public void onScreenshotTaken(File file) {
-            onScreenshotTakenFromBackgroundThread(file);
-        }
-    };
 
     private void onScreenshotTakenFromBackgroundThread(final File file) {
         Handler mainHandler = new Handler(mAppContext.getMainLooper());
@@ -337,7 +249,7 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         startBuglifeActivity(ReportActivity.class, null);
     }
 
-    public void startScreenRecording() {
+    void startScreenRecording() {
         startScreenRecordingFlow();
     }
 
@@ -444,6 +356,21 @@ final class Client implements ForegroundDetector.OnForegroundListener {
         return mWifi.isConnected();
     }
 
+    @Override public void onShakeInvocationMethodTriggered() {
+        if (mReportFlowVisible) {
+            return;
+        }
+
+        if (mInvocationMethod == InvocationMethod.SHAKE) {
+            Bitmap bitmap = getScreenshot();
+            onScreenshotTaken(bitmap);
+        }
+    }
+
+    @Override public void onScreenshotInvocationMethodTriggered(File file) {
+        onScreenshotTakenFromBackgroundThread(file);
+    }
+
     /***************************
      * BUILDER
      ***************************/
@@ -468,5 +395,20 @@ final class Client implements ForegroundDetector.OnForegroundListener {
 
     private static Attachment.Builder getScreenshotBuilder() {
         return new Attachment.Builder(DEFAULT_SCREENSHOT_FILENAME, DEFAULT_SCREENSHOT_ATTACHMENT_TYPE);
+    }
+
+    private void startInvocationMethod() {
+        if (mInvocationMethodManager == null) {
+            Activity activity = mForegroundDetector.getCurrentActivity();
+            mInvocationMethodManager = new InvocationMethodManager(activity, this);
+        }
+        mInvocationMethodManager.start(mInvocationMethod);
+    }
+
+    private void stopInvocationMethod() {
+        if (mInvocationMethodManager != null) {
+            mInvocationMethodManager.stop();
+            mInvocationMethodManager = null;
+        }
     }
 }
