@@ -41,7 +41,10 @@ class InvocationMethodManager {
     }
 
     public void start(InvocationMethod invocationMethod) {
-        if (mRunning) { return; }
+        if (mRunning) {
+            Log.w("An invocation method is already running!");
+            return;
+        }
         setScreenshotInvocationMethodEnabled(invocationMethod == InvocationMethod.SCREENSHOT);
         setShakeInvocationMethodEnabled(invocationMethod == InvocationMethod.SHAKE);
         mRunning = true;
