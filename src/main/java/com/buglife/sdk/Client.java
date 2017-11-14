@@ -60,8 +60,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private static final String DEFAULT_SCREENSHOT_ATTACHMENT_TYPE = Attachment.TYPE_PNG;
 
     @NonNull private final Context mAppContext;
-    @Nullable private final String mApiKey;
-    @Nullable private final String mEmail;
+    private final ApiIdentity mApiIdentity;
     @Nullable private BuglifeListener mListener;
     @NonNull private InvocationMethod mInvocationMethod;
     @Nullable private InvocationMethodManager mInvocationMethodManager;
@@ -74,11 +73,10 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private boolean mReportFlowVisible = false;
     private final BugReporter reporter;
 
-    Client(Application application, BugReporter reporter, @Nullable String apiKey, @Nullable String email) {
+    Client(Application application, BugReporter reporter,  ApiIdentity apiIdentity) {
         mAppContext = application.getApplicationContext();
         this.reporter = reporter;
-        mApiKey = apiKey;
-        mEmail = email;
+        mApiIdentity = apiIdentity;
         mQueuedAttachments = new ArrayList();
         mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
@@ -317,8 +315,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         BugContext.Builder builder = new BugContext.Builder(mAppContext)
                 .setUserEmail(mUserEmail)
                 .setUserIdentifier(mUserIdentifier)
-                .setApiKey(mApiKey)
-                .setApiEmail(mEmail);
+                .setApiIdentity(mApiIdentity);
 
         if (mListener != null) {
             mListener.onAttachmentRequest();
@@ -377,19 +374,17 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
     static class Builder {
         private Application mApplication;
-        @Nullable private String mApiKey;
-        @Nullable private String mEmail;
 
         Builder(Application application) {
             mApplication = application;
         }
 
         Client buildWithApiKey(String apiKey) {
-            return new Client(mApplication, new BugReporterImpl(mApplication), apiKey, null);
+            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.ApiKey(apiKey));
         }
 
         Client buildWithEmail(String email) {
-            return new Client(mApplication, new BugReporterImpl(mApplication), null, email);
+            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.EmailAddress(email));
         }
     }
 

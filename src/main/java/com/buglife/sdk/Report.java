@@ -121,10 +121,11 @@ public final class Report {
         params.put("report", reportParams);
         params.put("app", appParams);
 
-        if (sessionSnapshot.getApiKey() != null) {
-            params.put("api_key", sessionSnapshot.getApiKey());
-        } else if (sessionSnapshot.getApiEmail() != null) {
-            params.put("email", sessionSnapshot.getApiEmail());
+        ApiIdentity identity = mBugContext.getApiIdentity();
+        if (identity instanceof ApiIdentity.ApiKey) {
+            params.put("api_key", identity.getId());
+        } else if (identity instanceof ApiIdentity.EmailAddress) {
+            params.put("email", identity.getId());
         }
 
         return params;
