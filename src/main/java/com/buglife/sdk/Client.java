@@ -60,7 +60,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private static final String DEFAULT_SCREENSHOT_ATTACHMENT_TYPE = Attachment.TYPE_PNG;
 
     @NonNull private final Context mAppContext;
-    private final ApiIdentity mApiIdentity;
+    @NonNull private final ApiIdentity mApiIdentity;
     @Nullable private BuglifeListener mListener;
     @NonNull private InvocationMethod mInvocationMethod;
     @Nullable private InvocationMethodManager mInvocationMethodManager;
@@ -73,7 +73,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private boolean mReportFlowVisible = false;
     private final BugReporter reporter;
 
-    Client(Application application, BugReporter reporter,  ApiIdentity apiIdentity) {
+    Client(Application application, BugReporter reporter, @NonNull ApiIdentity apiIdentity) {
         mAppContext = application.getApplicationContext();
         this.reporter = reporter;
         mApiIdentity = apiIdentity;
