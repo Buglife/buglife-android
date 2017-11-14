@@ -37,10 +37,8 @@ public class SessionSnapshot implements Parcelable {
     private final String mBundleName;
     @Nullable private final String mBundleShortVersion;
     @Nullable private final String mBundleVersion;
-    @Nullable private final String mApiKey;
-    @Nullable private final String mApiEmail;
 
-    public SessionSnapshot(Context context, String userEmail, String userIdentifier, @Nullable String apiKey, @Nullable String apiEmail) {
+    public SessionSnapshot(Context context, String userEmail, String userIdentifier) {
         mPlatform = "android";
         mSDKVersion = com.buglife.sdk.BuildConfig.VERSION_NAME;
         mSDKName = "Buglife Android";
@@ -66,9 +64,6 @@ public class SessionSnapshot implements Parcelable {
             mBundleVersion = null;
             mBundleShortVersion = null;
         }
-
-        mApiKey = apiKey;
-        mApiEmail = apiEmail;
     }
 
     public String getPlatform() {
@@ -109,14 +104,6 @@ public class SessionSnapshot implements Parcelable {
         return mBundleName;
     }
 
-    @Nullable public String getApiKey() {
-        return mApiKey;
-    }
-
-    @Nullable public String getApiEmail() {
-        return mApiEmail;
-    }
-
     /* Parcelable */
 
     SessionSnapshot(Parcel in) {
@@ -129,8 +116,6 @@ public class SessionSnapshot implements Parcelable {
         mBundleVersion = in.readString();
         mBundleIdentifier = in.readString();
         mBundleName = in.readString();
-        mApiKey = in.readString();
-        mApiEmail = in.readString();
     }
 
     @Override
@@ -144,8 +129,6 @@ public class SessionSnapshot implements Parcelable {
         dest.writeString(mBundleVersion);
         dest.writeString(mBundleIdentifier);
         dest.writeString(mBundleName);
-        dest.writeString(mApiKey);
-        dest.writeString(mApiEmail);
     }
 
     @Override
