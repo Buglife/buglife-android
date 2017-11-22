@@ -292,7 +292,8 @@ public class Attachment implements Parcelable {
                 try {
                     logJson.put("type", logMessage.getFormattedLevel());
                     logJson.put("message", logMessage.getMessage());
-                    logJson.put("context", logMessage.getTag());
+                    logJson.put("tag", logMessage.getTag());
+                    logJson.put("context", logMessage.getContext());
 
                     if (timestamp != null) {
                         logJson.put("timestamp", timestamp.getTime());

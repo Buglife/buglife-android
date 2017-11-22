@@ -3,6 +3,8 @@ package com.buglife.sdk;
 import java.util.Date;
 
 final class LogMessage {
+    private static final int LOG_CONTEXT_SDK_INTERNAL = 100;
+
     final private Date mTimestamp;
     final private String mLevel;
     final private String mTag;
@@ -51,5 +53,13 @@ final class LogMessage {
 
     String getMessage() {
         return mMessage;
+    }
+
+    int getContext() {
+        if (getTag().equals(Log.TAG)) {
+            return LOG_CONTEXT_SDK_INTERNAL;
+        } else {
+            return 0;
+        }
     }
 }

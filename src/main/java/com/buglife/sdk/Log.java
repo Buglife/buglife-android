@@ -17,8 +17,15 @@
 
 package com.buglife.sdk;
 
+/**
+ * Logger used for internal Buglife logging.
+ *
+ * @warning Anything logged using this logger will NOT be collected in bug reports!
+ *          If you'd like your logs to be collected in bug reports, use the Android system logger,
+ *          or any other logging library.
+ */
 public final class Log {
-    private static final String TAG = "Buglife";
+    static final String TAG = "com.Buglife";
 
     public static void d(String msg) {
         android.util.Log.d(TAG, msg);

@@ -15,7 +15,7 @@ final class LogDumper {
 
     // Note that max log messages != the number of lines read from the log buffer, since some log
     // messages (i.e. stack traces) may be multiple lines.
-    private static final int MAX_LOG_MESSAGES = 50;
+    private static final int MAX_LOG_MESSAGES = 200;
     private static final String processId = Integer.toString(android.os.Process
             .myPid());
 
