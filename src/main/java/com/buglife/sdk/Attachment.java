@@ -25,7 +25,9 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,6 +35,9 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Represents a file/resource that can be attached to a bug report.
@@ -47,24 +52,32 @@ public class Attachment implements Parcelable {
 
     private static final Bitmap.CompressFormat DEFAULT_SCREENSHOT_FORMAT = Bitmap.CompressFormat.PNG;
     private static final int DEFAULT_SCREENSHOT_COMPRESSION_QUALITY = 100;
+    private static final String LOG_VERSION = "2.1";
 
     private final int mIdentifier; // Used for replacing attachments
     @NonNull private final String mFilename;
     @NonNull private final String mType;
+    // The log version is stored as a member in the event
+    // that the user has cached reports on device between
+    // app builds with Buglife SDK changes. This is null unless
+    // this attachment is a Buglife log file.
+    @Nullable private final String mLogVersion;
 
     /**
      * For internal use (copying & replacing attachments).
      */
-    private Attachment(int identifier, @NonNull String filename, @NonNull String type) {
+    private Attachment(int identifier, @NonNull String filename, @NonNull String type, @Nullable String logVersion) {
         mIdentifier = identifier;
         mFilename = filename;
         mType = type;
+        mLogVersion = logVersion;
     }
 
     protected Attachment(Parcel source) {
         mIdentifier = source.readInt();
         mFilename = source.readString();
         mType = source.readString();
+        mLogVersion = source.readString();
     }
 
     @Override
@@ -72,6 +85,7 @@ public class Attachment implements Parcelable {
         dest.writeInt(mIdentifier);
         dest.writeString(mFilename);
         dest.writeString(mType);
+        dest.writeString(mLogVersion);
     }
 
     @Override
@@ -119,6 +133,7 @@ public class Attachment implements Parcelable {
         jsonObject.put("base64_attachment_data", base64EncodedData);
         jsonObject.put("filename", mFilename);
         jsonObject.put("mime_type", mType);
+        jsonObject.put("log_version", mLogVersion);
 
         return jsonObject;
     }
@@ -164,6 +179,10 @@ public class Attachment implements Parcelable {
         return attachmentType.equals(TYPE_MP4);
     }
 
+    @Nullable String getLogVersion() {
+        return mLogVersion;
+    }
+
     /**
      * Builder for Attachment objects.
      */
@@ -171,6 +190,7 @@ public class Attachment implements Parcelable {
         private int mIdentifier;
         @NonNull final private String mFilename;
         @NonNull final private String mType;
+        @Nullable private String mLogVersion = null;
 
         /**
          * Default constructor.
@@ -228,10 +248,16 @@ public class Attachment implements Parcelable {
             return makeCachedAttachment(bitmapData);
         }
 
+        @Nullable Attachment build(List<LogMessage> logMessages) {
+            ByteData byteData = byteDataFromLogMessages(logMessages);
+            mLogVersion = LOG_VERSION;
+            return makeCachedAttachment(byteData);
+        }
+
         // helper method for build()s
         private @NonNull Attachment makeCachedAttachment(AttachmentData data) {
             AttachmentDataCache.getInstance().putData(mIdentifier, data);
-            return new Attachment(mIdentifier, mFilename, mType);
+            return new Attachment(mIdentifier, mFilename, mType, mLogVersion);
         }
 
         private static int gIdentifierCounter = 0;
@@ -239,6 +265,46 @@ public class Attachment implements Parcelable {
         private static int getNewIdentifier() {
             gIdentifierCounter += 1;
             return gIdentifierCounter;
+        }
+
+        private static @Nullable ByteData byteDataFromLogMessages(List<LogMessage> logMessages) {
+            JSONArray jsonArray = jsonFromLogMessages(logMessages);
+            byte[] jsonData;
+
+            try {
+                String jsonString = jsonArray.toString();
+                jsonData = jsonString.getBytes("utf-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+                return null;
+            }
+
+            return new ByteData(jsonData);
+        }
+
+        private static JSONArray jsonFromLogMessages(List<LogMessage> logMessages) {
+            JSONArray result = new JSONArray();
+
+            for (LogMessage logMessage : logMessages) {
+                JSONObject logJson = new JSONObject();
+                Date timestamp = logMessage.getTimestamp();
+
+                try {
+                    logJson.put("type", logMessage.getFormattedLevel());
+                    logJson.put("message", logMessage.getMessage());
+                    logJson.put("context", logMessage.getTag());
+
+                    if (timestamp != null) {
+                        logJson.put("timestamp", timestamp.getTime());
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                result.put(logJson);
+            }
+
+            return result;
         }
     }
 }
