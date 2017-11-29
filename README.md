@@ -1,9 +1,34 @@
-![Buglife: Awesome Bug Reporting](https://ds9bjnn93rsnp.cloudfront.net/assets/logo/logotype_black_on_transparent_782x256-7256a7ab03e9652908f43be94681bc4ebeff6d729c36c946c346a80a4f8ca245.png)
+<p align="center">
+	<img src="https://ds9bjnn93rsnp.cloudfront.net/assets/logo/logotype_black_on_transparent_782x256-7256a7ab03e9652908f43be94681bc4ebeff6d729c36c946c346a80a4f8ca245.png" width=300 />
+</p>
 
 [![Documentation](https://img.shields.io/badge/documentation-latest-blue.svg)](http://www.buglife.com/docs/android)
 [![Twitter](https://img.shields.io/badge/twitter-@BuglifeApp-blue.svg)](https://twitter.com/buglifeapp)
 
-Buglife for Android is an awesome library for reporting bugs, getting feedback, annotating screenshots, collecting diagnostic information, and more.
+Buglife is an awesome bug reporting SDK & web platform for iOS apps. Here's how it works:
+
+1. User takes a screenshot, or stops screen recording
+2. User annotates their screenshot & writes feedback
+3. Bug reports are pushed to your team's email/Jira/Slack/Asana/wherever you track bugs.
+
+You can also find Buglife for iOS [here](https://github.com/buglife/buglife-ios).
+
+<p align="center" style="margin-top: 20px; margin-bottom: 20px;">
+	<img src="https://i.imgur.com/73pDl6Q.png" />
+</p>
+
+---
+
+|   | Main Features |
+|---|---------------|
+| 👤 | Free + no account required |
+| 📖 | Open source |
+| 🏃🏽‍♀️ | Fast & lightweight |
+| 🎨 | Themeable |
+| 📩 | Automatic caching & retry |
+| 📜 | Custom form fields, with pickers & multiline text fields  |
+| ℹ️ | Advanced logging, with debug / info / warning levels |
+| 📎 | Custom attachments, including JSON & SQLite support |
 
 ## Installation
 
