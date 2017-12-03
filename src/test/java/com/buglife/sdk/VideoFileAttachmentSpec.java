@@ -26,32 +26,32 @@ import java.io.File;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
-public final class JSONFileAttachmentSpec {
+public final class VideoFileAttachmentSpec {
 
     private FileAttachment mFileAttachment;
 
     @Before
     public void beforeEach() {
-        File file = SpecUtils.getResourceFile("test_json.json");
-        mFileAttachment = FileAttachment.newJSONFileAttachment(file);
+        File file = SpecUtils.getResourceFile("test_video.mp4");
+        mFileAttachment = FileAttachment.newMP4FileAttachment(file);
     }
 
     @Test
     public void serializeWithCorrectFilename() throws JSONException {
         JSONObject json = mFileAttachment.toJSON();
-        assertThat(json.getString("filename")).isEqualTo("test_json.json");
+        assertThat(json.getString("filename")).isEqualTo("test_video.mp4");
     }
 
     @Test
     public void serializeWithCorrectData() throws JSONException {
-        String testJsonBase64 = SpecUtils.readContentsOfResourceFile("test_json_base64.txt");
+        String testVideoBase64 = SpecUtils.readContentsOfResourceFile("test_video_base64.txt");
         JSONObject json = mFileAttachment.toJSON();
-        assertThat(json.getString("base64_attachment_data")).isEqualTo(testJsonBase64);
+        assertThat(json.getString("base64_attachment_data")).isEqualTo(testVideoBase64);
     }
 
     @Test
     public void serializeWithCorrectMimeType() throws JSONException {
         JSONObject json = mFileAttachment.toJSON();
-        assertThat(json.getString("mime_type")).isEqualTo("application/json");
+        assertThat(json.getString("mime_type")).isEqualTo("video/mp4");
     }
 }
