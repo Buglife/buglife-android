@@ -31,16 +31,50 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 class FileAttachment implements IAttachment {
-    @NonNull private final File mFile;
+    private static final String MIME_TYPE_TEXT = "text/plain";
+    private static final String MIME_TYPE_JSON = "application/json";
+    private static final String MIME_TYPE_SQLITE = "application/x-sqlite3";
+    private static final String MIME_TYPE_PNG = "image/png";
+    private static final String MIME_TYPE_JPEG = "image/jpeg";
+    private static final String MIME_TYPE_MP4 = "video/mp4";
 
-    FileAttachment(@NonNull File file) {
+    @NonNull private final File mFile;
+    @NonNull private final String mMimeType;
+
+    static FileAttachment newJSONFileAttachment(@NonNull File file) {
+        return new FileAttachment(file, MIME_TYPE_JSON);
+    }
+
+    static FileAttachment newPNGFileAttachment(@NonNull File file) {
+        return new FileAttachment(file, MIME_TYPE_PNG);
+    }
+
+    static FileAttachment newJPGFileAttachment(@NonNull File file) {
+        return new FileAttachment(file, MIME_TYPE_JPEG);
+    }
+
+    static FileAttachment newMP4FileAttachment(@NonNull File file) {
+        return new FileAttachment(file, MIME_TYPE_MP4);
+    }
+
+    static FileAttachment newPlainTextFileAttachment(@NonNull File file) {
+        return new FileAttachment(file, MIME_TYPE_TEXT);
+    }
+
+    static FileAttachment newSQLiteFileAttachment(@NonNull File file) {
+        return new FileAttachment(file, MIME_TYPE_SQLITE);
+    }
+
+    FileAttachment(@NonNull File file, @NonNull String mimeType) {
         this.mFile = file;
+        this.mMimeType = mimeType;
     }
 
     @Override public JSONObject toJSON() throws JSONException {
         JSONObject json = new JSONObject();
         json.put("filename", mFile.getName());
         json.put("base64_attachment_data", Base64.encodeToString(toByteArray(), Base64.NO_WRAP));
+        json.put("mime_type", mMimeType);
         return json;
     }
 
