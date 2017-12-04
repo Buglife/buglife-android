@@ -319,10 +319,10 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             mListener.onAttachmentRequest();
         }
 
-        // TODO: Implement
-//        List<LogMessage> logMessages = LogDumper.getLogMessages();
-//        Attachment logAttachment = new Attachment.Builder("logs.json", Attachment.TYPE_JSON).build(logMessages);
-//        mQueuedAttachments.add(logAttachment);
+        File logFile = new File(mAppContext.getCacheDir(), "log_" + System.currentTimeMillis());
+        LogDumper.dumpToFile(logFile);
+        Attachment logAttachment = new LogFileAttachment(logFile);
+        mQueuedAttachments.add(logAttachment);
 
         builder.setAttachments(mQueuedAttachments);
         mQueuedAttachments.clear();

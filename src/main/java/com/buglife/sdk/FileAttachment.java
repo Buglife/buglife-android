@@ -18,6 +18,7 @@
 package com.buglife.sdk;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Base64;
 
 import org.json.JSONException;
@@ -73,7 +74,12 @@ public class FileAttachment implements Attachment {
     @Override public JSONObject toJSON() throws JSONException {
         JSONObject json = new JSONObject();
         json.put("filename", mFile.getName());
-        json.put("base64_attachment_data", Base64.encodeToString(toByteArray(), Base64.NO_WRAP));
+
+        byte[] data = toByteArray();
+        if (data != null) {
+            json.put("base64_attachment_data", Base64.encodeToString(data, Base64.NO_WRAP));
+        }
+
         json.put("mime_type", mMimeType);
         return json;
     }
@@ -90,33 +96,23 @@ public class FileAttachment implements Attachment {
         return mMimeType.equals(MIME_TYPE_MP4);
     }
 
+    @Nullable
     private byte[] toByteArray() {
         FileInputStream inputStream = null;
         ByteArrayOutputStream outputStream = null;
         try {
             inputStream = new FileInputStream(mFile);
             outputStream = new ByteArrayOutputStream((int) mFile.length());
-            byte[] buffer = new byte[1024];
-            for (int read = 0; read != -1; read = inputStream.read(buffer)) {
-                outputStream.write(buffer, 0, read);
-            }
+            IOUtils.write(inputStream, outputStream);
             return outputStream.toByteArray();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (inputStream != null) { closeQuietly(inputStream); }
-            if (outputStream != null) { closeQuietly(outputStream); }
+            if (inputStream != null) { IOUtils.closeQuietly(inputStream); }
+            if (outputStream != null) { IOUtils.closeQuietly(outputStream); }
         }
         return null;
-    }
-
-    private void closeQuietly(Closeable closeable) {
-        try {
-            closeable.close();
-        } catch (IOException ignored) {
-            // Ignore
-        }
     }
 }

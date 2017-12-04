@@ -1,5 +1,8 @@
 package com.buglife.sdk;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Date;
 
 final class LogMessage {
@@ -61,5 +64,23 @@ final class LogMessage {
         } else {
             return 0;
         }
+    }
+
+    JSONObject toJSON() {
+        JSONObject json = new JSONObject();
+        Date timestamp = getTimestamp();
+
+        try {
+            json.put("type", getFormattedLevel());
+            json.put("message", getMessage());
+            json.put("context", getTag());
+
+            if (timestamp != null) {
+                json.put("timestamp", timestamp.getTime());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
     }
 }
