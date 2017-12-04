@@ -24,14 +24,17 @@ import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
+import com.buglife.sdk.IOUtils;
 import com.buglife.sdk.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class SubmitReportService extends JobService {
-    public static final String KEY_DATA_PAYLOAD = "payload";
+    public static final String KEY_EXTRA_REPORT_PATH = "report_path";
 
     public static ComponentName getComponentName(Context context) {
         return new ComponentName(context, SubmitReportService.class);
@@ -39,11 +42,14 @@ public class SubmitReportService extends JobService {
 
     @Override public boolean onStartJob(final JobParameters params) {
         try {
-            String jsonReport = params.getExtras().getString(KEY_DATA_PAYLOAD);
-            JSONObject report = new JSONObject(jsonReport);
+            String reportPath = params.getExtras().getString(KEY_EXTRA_REPORT_PATH);
+            final File reportFile = new File(reportPath);
+            String report = IOUtils.readStringFromFile(reportFile);
+            JSONObject jsonReport = new JSONObject(report);
             SubmitReportAsyncTask task = new SubmitReportAsyncTask(getApplicationContext(), new SubmitReportAsyncTask.ResultCallback() {
                 @Override public void onSuccess(JSONObject response) {
                     jobFinished(params, false);
+                    reportFile.delete();
                 }
 
                 @Override public void onFailure(Exception error) {
@@ -51,7 +57,7 @@ public class SubmitReportService extends JobService {
                     jobFinished(params, false);
                 }
             });
-            task.execute(report);
+            task.execute(jsonReport);
             return true;
         } catch (JSONException e) {
             Log.e("Error deserializing JSON report!", e);
