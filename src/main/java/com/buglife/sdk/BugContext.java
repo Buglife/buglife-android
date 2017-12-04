@@ -27,6 +27,7 @@ import com.buglife.sdk.reporting.DeviceSnapshot;
 import com.buglife.sdk.reporting.EnvironmentSnapshot;
 import com.buglife.sdk.reporting.SessionSnapshot;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -151,10 +152,16 @@ final class BugContext implements Parcelable {
 
         Builder(@NonNull Context context) {
             mContext = context;
+            addLogFileAttachment();
         }
 
         Builder setAttachments(@NonNull List<Attachment> attachments) {
             mAttachments = new ArrayList(attachments);
+            return this;
+        }
+
+        Builder addAttachments(ArrayList<Attachment> attachments) {
+            mAttachments.addAll(attachments);
             return this;
         }
 
@@ -183,6 +190,12 @@ final class BugContext implements Parcelable {
             EnvironmentSnapshot environment = new EnvironmentSnapshot(mContext);
             DeviceSnapshot deviceSnapshot = new DeviceSnapshot();
             return new BugContext(mApiIdentity, mAttachments, mAttributeMap, sessionSnapshot, deviceSnapshot, environment);
+        }
+
+        private void addLogFileAttachment() {
+            File logFile = new File(mContext.getCacheDir(), "log_" + System.currentTimeMillis());
+            LogDumper.dumpToFile(logFile);
+            mAttachments.add(new LogFileAttachment(logFile));
         }
     }
 }
