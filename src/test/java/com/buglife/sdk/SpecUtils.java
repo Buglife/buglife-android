@@ -17,31 +17,20 @@ class SpecUtils {
             File file = getResourceFile(filename);
             inputStream = new FileInputStream(file);
             outputStream = new ByteArrayOutputStream((int) file.length());
-            byte[] buffer = new byte[1024];
-            for (int read = 0; read != -1; read = inputStream.read(buffer)) {
-                outputStream.write(buffer, 0, read);
-            }
+            IOUtils.write(inputStream, outputStream);
             return outputStream.toString("utf-8");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (inputStream != null) { closeQuietly(inputStream); }
-            if (outputStream != null) { closeQuietly(outputStream); }
+            if (inputStream != null) { IOUtils.closeQuietly(inputStream); }
+            if (outputStream != null) { IOUtils.closeQuietly(outputStream); }
         }
         return null;
     }
 
     static File getResourceFile(String filename) {
         return new File("src/test/resources", filename);
-    }
-
-    private static void closeQuietly(Closeable closeable) {
-        try {
-            closeable.close();
-        } catch (IOException ignored) {
-            // Ignored
-        }
     }
 }
