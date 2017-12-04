@@ -48,8 +48,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
-
 final class Client implements ForegroundDetector.OnForegroundListener, InvocationMethodManager.OnInvocationMethodTriggeredListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
     private static final String PERMISSION_INTERNET = "android.permission.INTERNET";
@@ -236,8 +234,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // Show the reporter flow starting with the screenshot annotator
-                Intent intent = ScreenshotAnnotatorActivity.newStartIntent(mAppContext, buildBugContext());
-                intent.putExtra(INTENT_KEY_ATTACHMENT, screenshotAttachment);
+                Intent intent = ScreenshotAnnotatorActivity.newStartIntent(mAppContext, screenshotAttachment, buildBugContext());
                 startBuglifeActivity(intent);
                 alertDialog.dismiss();
             }
