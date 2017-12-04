@@ -1,10 +1,9 @@
 package com.buglife.android.example;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
@@ -12,9 +11,12 @@ import android.widget.TextView;
 
 import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
+import com.buglife.sdk.FileAttachment;
 import com.buglife.sdk.InvocationMethod;
 
-import static com.buglife.sdk.Attachment.TYPE_PNG;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,10 +38,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void reportBugButtonTapped(View view) {
-        Bitmap screenshot = Buglife.getScreenshotBitmap();
-        Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
-        Buglife.addAttachment(attachment);
-        Buglife.showReporter();
+        try {
+            Bitmap screenshot = Buglife.getScreenshotBitmap();
+            File file = new File(getCacheDir(), "Screenshot.png");
+            screenshot.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
+            Attachment attachment = FileAttachment.newPNGFileAttachment(file);
+            Buglife.addAttachment(attachment);
+            Buglife.showReporter();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public void recordScreenButtonTapped(View view) {

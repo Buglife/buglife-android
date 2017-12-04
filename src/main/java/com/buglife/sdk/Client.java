@@ -41,13 +41,13 @@ import com.buglife.sdk.screenrecorder.ScreenRecorder;
 import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
-import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
 
 final class Client implements ForegroundDetector.OnForegroundListener, InvocationMethodManager.OnInvocationMethodTriggeredListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
@@ -56,8 +56,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private static final String PERMISSION_READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
     private static final String PERMISSION_SYSTEM_ALERT_WINDOW = "android.permission.SYSTEM_ALERT_WINDOW";
     private static final String PERMISSION_ACCESS_NETWORK_STATE = "android.permission.ACCESS_NETWORK_STATE";
-    private static final String DEFAULT_SCREENSHOT_FILENAME = "Screenshot.jpg";
-    private static final String DEFAULT_SCREENSHOT_ATTACHMENT_TYPE = Attachment.TYPE_PNG;
 
     @NonNull private final Context mAppContext;
     @NonNull private final ApiIdentity mApiIdentity;
@@ -192,8 +190,15 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             return;
         }
 
-        Attachment screenshotAttachment = getScreenshotBuilder().build(bitmap);
-        showAlertDialog(screenshotAttachment);
+        try {
+            // Save bitmap to a temp file
+            String filename = "screenshot_" + System.currentTimeMillis() + ".png";
+            File file = new File(mAppContext.getCacheDir(), filename);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
+            onScreenshotTaken(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private void onScreenshotTaken(File screenshotFile) {
@@ -201,7 +206,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             return;
         }
 
-        Attachment screenshotAttachment = getScreenshotBuilder().build(screenshotFile);
+        FileAttachment screenshotAttachment = FileAttachment.newPNGFileAttachment(screenshotFile);
         showAlertDialog(screenshotAttachment);
     }
 
@@ -209,7 +214,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return !mReportFlowVisible && mForegroundDetector.getForegrounded();
     }
 
-    private void showAlertDialog(@NonNull final Attachment screenshotAttachment) {
+    private void showAlertDialog(@NonNull final FileAttachment screenshotAttachment) {
         mReportFlowVisible = true;
         Activity activity = mForegroundDetector.getCurrentActivity();
         final AlertDialog alertDialog = new AlertDialog.Builder(activity, R.style.buglife_alert_dialog).create();
@@ -221,7 +226,9 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // Show the reporter flow starting with the screenshot annotator
-                startBuglifeActivity(ScreenshotAnnotatorActivity.class, screenshotAttachment);
+                Intent intent = ScreenshotAnnotatorActivity.newStartIntent(mAppContext, buildBugContext());
+                intent.putExtra(INTENT_KEY_ATTACHMENT, screenshotAttachment);
+                startBuglifeActivity(intent);
                 alertDialog.dismiss();
             }
         });
@@ -244,7 +251,8 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             return;
         }
 
-        startBuglifeActivity(ReportActivity.class, null);
+        Intent intent = ReportActivity.newStartIntent(mAppContext, buildBugContext());
+        startBuglifeActivity(intent);
     }
 
     void startScreenRecording() {
@@ -296,18 +304,8 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         screenRecorder.start();
     }
 
-    private void startBuglifeActivity(Class cls, @Nullable Attachment screenshotAttachment) {
-        BugContext bugContext = buildBugContext();
-
+    private void startBuglifeActivity(Intent intent) {
         mReportFlowVisible = true;
-        Intent intent = new Intent(mAppContext, cls);
-        intent.setFlags(intent.getFlags() | FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(INTENT_KEY_BUG_CONTEXT, bugContext);
-
-        if (screenshotAttachment != null) {
-            intent.putExtra(INTENT_KEY_ATTACHMENT, screenshotAttachment);
-        }
-
         mAppContext.startActivity(intent);
     }
 
@@ -321,9 +319,10 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             mListener.onAttachmentRequest();
         }
 
-        List<LogMessage> logMessages = LogDumper.getLogMessages();
-        Attachment logAttachment = new Attachment.Builder("logs.json", Attachment.TYPE_JSON).build(logMessages);
-        mQueuedAttachments.add(logAttachment);
+        // TODO: Implement
+//        List<LogMessage> logMessages = LogDumper.getLogMessages();
+//        Attachment logAttachment = new Attachment.Builder("logs.json", Attachment.TYPE_JSON).build(logMessages);
+//        mQueuedAttachments.add(logAttachment);
 
         builder.setAttachments(mQueuedAttachments);
         mQueuedAttachments.clear();
@@ -390,10 +389,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         Client buildWithEmail(String email) {
             return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.EmailAddress(email));
         }
-    }
-
-    private static Attachment.Builder getScreenshotBuilder() {
-        return new Attachment.Builder(DEFAULT_SCREENSHOT_FILENAME, DEFAULT_SCREENSHOT_ATTACHMENT_TYPE);
     }
 
     private void startInvocationMethod() {

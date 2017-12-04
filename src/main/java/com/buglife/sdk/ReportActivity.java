@@ -51,6 +51,7 @@ import com.android.volley.RequestQueue;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
@@ -65,6 +66,13 @@ public class ReportActivity extends AppCompatActivity {
     private @NonNull List<InputField> mInputFields;
     private @Nullable ProgressDialog mProgressDialog;
     private @NonNull ColorPalette mColorPalette;
+
+    public static Intent newStartIntent(Context context, BugContext bugContext) {
+        Intent intent = new Intent(context, ReportActivity.class);
+        intent.setFlags(intent.getFlags() | FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(INTENT_KEY_BUG_CONTEXT, bugContext);
+        return intent;
+    }
 
     public ReportActivity() {
     }
@@ -194,8 +202,8 @@ public class ReportActivity extends AppCompatActivity {
 
         if (requestCode == ScreenshotAnnotatorActivity.REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                Attachment attachment = data.getParcelableExtra(INTENT_KEY_ATTACHMENT);
-                mBugContext.updateAttachment(attachment);
+                // Attachment attachment = data.getParcelableExtra(INTENT_KEY_ATTACHMENT);
+                // mBugContext.updateAttachment(attachment);
                 mAttachmentAdapter.setAttachments(mBugContext.getMediaAttachments());
             }
         }

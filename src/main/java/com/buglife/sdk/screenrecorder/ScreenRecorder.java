@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
+import com.buglife.sdk.FileAttachment;
 import com.buglife.sdk.Log;
 
 import java.io.File;
@@ -29,7 +30,6 @@ import java.util.Date;
 import java.util.Locale;
 
 import static android.graphics.PixelFormat.TRANSLUCENT;
-import static com.buglife.sdk.Attachment.TYPE_MP4;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public final class ScreenRecorder {
@@ -172,11 +172,7 @@ public final class ScreenRecorder {
     }
 
     private void onRecordingFinished(String path) {
-        Attachment attachment;
-        File file = new File(path);
-
-        attachment = new Attachment.Builder("ScreenRecording.mp4", TYPE_MP4).build(file, true);
-
+        Attachment attachment = FileAttachment.newMP4FileAttachment(new File(path));
         Buglife.addAttachment(attachment);
         Buglife.showReporter();
     }

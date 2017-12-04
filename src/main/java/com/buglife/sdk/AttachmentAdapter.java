@@ -19,6 +19,7 @@ package com.buglife.sdk;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,9 +74,16 @@ class AttachmentAdapter extends BaseAdapter {
         Attachment attachment = getItem(position);
 
         Context context = convertView.getContext();
-        Bitmap scaledBitmap = scaleBitmapForThumbnail(context, attachment.getBitmap(context));
-        thumbnailView.setImageBitmap(scaledBitmap);
-        titleView.setText(attachment.getFilename());
+        if (attachment instanceof FileAttachment) {
+            File file = ((FileAttachment) attachment).getFile();
+            if (attachment.isImageAttachment()) {
+                String path = file.getAbsolutePath();
+                // TODO: Optimize bitmap decoding
+                Bitmap scaledBitmap = scaleBitmapForThumbnail(context, BitmapFactory.decodeFile(path));
+                thumbnailView.setImageBitmap(scaledBitmap);
+            }
+            titleView.setText(file.getName());
+        }
 
         return convertView;
     }
