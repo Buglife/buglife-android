@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.FileAttachment;
 import com.buglife.sdk.InvocationMethod;
@@ -43,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
             Bitmap screenshot = Buglife.getScreenshotBitmap();
             File file = new File(getCacheDir(), "Screenshot.png");
             screenshot.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
-            Attachment attachment = new FileAttachment(file, MimeTypes.PNG);
+            FileAttachment attachment = new FileAttachment(file, MimeTypes.PNG);
             Buglife.addAttachment(attachment);
             Buglife.showReporter();
         } catch (FileNotFoundException e) {
