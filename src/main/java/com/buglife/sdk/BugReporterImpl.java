@@ -34,6 +34,8 @@ import com.buglife.sdk.reporting.SubmitReportTask;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+
 final class BugReporterImpl implements BugReporter {
     private final Context mContext;
 
@@ -47,20 +49,24 @@ final class BugReporterImpl implements BugReporter {
     }
 
     @Override public void report(Report report, ReportSubmissionCallback callback) {
-        JSONObject jsonReport;
+        File reportFile;
 
         try {
-            jsonReport = report.toJSON();
+            JSONObject jsonReport = report.toJSON();
+
+            boolean forceSynchronous = (Buglife.getRetryPolicy() == RetryPolicy.MANUAL);
+
+            if (forceSynchronous) {
+                reportSynchronously(jsonReport, callback);
+                return;
+            }
+
+            String filename = "buglife_report_" + System.currentTimeMillis() + ".json";
+            reportFile = new File(mContext.getCacheDir(), filename);
+            IOUtils.writeStringToFile(jsonReport.toString(), reportFile);
         } catch (JSONException e) {
             Log.e("Failed to serialize bug report!", e);
             callback.onFailure(ReportSubmissionCallback.Error.SERIALIZATION, e);
-            return;
-        }
-
-        boolean forceSynchronous = (Buglife.getRetryPolicy() == RetryPolicy.MANUAL);
-
-        if (forceSynchronous) {
-            reportSynchronously(jsonReport, callback);
             return;
         }
 
@@ -73,23 +79,23 @@ final class BugReporterImpl implements BugReporter {
 
             if (jobScheduler != null) {
                 Log.d("Acquired JobScheduler service...");
-                reportWithJobScheduler(jsonReport, jobScheduler);
+                reportWithJobScheduler(reportFile, jobScheduler);
             } else {
                 Log.e("JobScheduler unavailable; Falling back to legacy report submission.");
-                reportWithLegacy(jsonReport);
+                reportWithLegacy(reportFile);
             }
         } else {
             Log.d("Submitting report using legacy service.");
-            reportWithLegacy(jsonReport);
+            reportWithLegacy(reportFile);
         }
 
         callback.onSuccess();
     }
 
-    private void reportWithLegacy(JSONObject jsonReport) {
-        String jsonReportString = jsonReport.toString();
-        SubmitReportLegacyService.start(mContext, jsonReportString);
+    private void reportWithLegacy(File reportFile) {
+        SubmitReportLegacyService.start(mContext, reportFile);
     }
+
 
     private void reportSynchronously(JSONObject jsonReport, ReportSubmissionCallback callback) {
         SubmitReportTask task = new SubmitReportTask(mContext);
@@ -97,12 +103,10 @@ final class BugReporterImpl implements BugReporter {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void reportWithJobScheduler(@NonNull JSONObject jsonReport, @NonNull JobScheduler jobScheduler) {
+    private void reportWithJobScheduler(@NonNull File reportFile, @NonNull JobScheduler jobScheduler) {
         int jobId = (int) System.currentTimeMillis();
-        String jsonReportString = jsonReport.toString();
-
         PersistableBundle data = new PersistableBundle();
-        data.putString(SubmitReportService.KEY_DATA_PAYLOAD, jsonReportString);
+        data.putString(SubmitReportService.KEY_EXTRA_REPORT_PATH, reportFile.getAbsolutePath());
 
         JobInfo info = new JobInfo.Builder(jobId, SubmitReportService.getComponentName(mContext))
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
