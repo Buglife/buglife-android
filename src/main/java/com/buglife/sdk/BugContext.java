@@ -72,18 +72,6 @@ final class BugContext implements Parcelable {
         return mEnvironmentSnapshot;
     }
 
-//    void updateAttachment(Attachment updatedAttachment) {
-//        for (Attachment attachment : mAttachments) {
-//            if (attachment.isAnnotatedCopy(updatedAttachment)) {
-//                int index = mAttachments.indexOf(attachment);
-//                mAttachments.set(index, updatedAttachment);
-//                return;
-//            }
-//        }
-//
-//        Assert.fail("Unable to find existing copy of attachment");
-//    }
-
     void putAttribute(@NonNull String key, @Nullable String value) {
         mAttributes.put(key, value);
     }
@@ -116,7 +104,7 @@ final class BugContext implements Parcelable {
 
     @Override public void writeToParcel(Parcel dest, int flags) {
         dest.writeParcelable(this.mApiIdentity, flags);
-        dest.writeSerializable(this.mAttachments);
+        dest.writeTypedList(this.mAttachments);
         dest.writeParcelable(this.mAttributes, flags);
         dest.writeParcelable(this.mEnvironmentSnapshot, flags);
         dest.writeParcelable(this.mDeviceSnapshot, flags);
@@ -125,7 +113,7 @@ final class BugContext implements Parcelable {
 
     BugContext(Parcel in) {
         this.mApiIdentity = in.readParcelable(ApiIdentity.class.getClassLoader());
-        this.mAttachments = (ArrayList<FileAttachment>) in.readSerializable();
+        this.mAttachments = in.createTypedArrayList(FileAttachment.CREATOR);
         this.mAttributes = in.readParcelable(AttributeMap.class.getClassLoader());
         this.mEnvironmentSnapshot = in.readParcelable(EnvironmentSnapshot.class.getClassLoader());
         this.mDeviceSnapshot = in.readParcelable(DeviceSnapshot.class.getClassLoader());

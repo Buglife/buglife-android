@@ -17,6 +17,8 @@
 
 package com.buglife.sdk;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Base64;
@@ -31,7 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
 
-public class FileAttachment implements Serializable {
+public class FileAttachment implements Parcelable {
     @NonNull private final File mFile;
     @NonNull private final String mMimeType;
 
@@ -84,4 +86,30 @@ public class FileAttachment implements Serializable {
         }
         return null;
     }
+
+    /* Parcelable */
+
+    @Override public int describeContents() {
+        return 0;
+    }
+
+    @Override public void writeToParcel(Parcel dest, int flags) {
+        dest.writeSerializable(this.mFile);
+        dest.writeString(this.mMimeType);
+    }
+
+    protected FileAttachment(Parcel in) {
+        this.mFile = (File) in.readSerializable();
+        this.mMimeType = in.readString();
+    }
+
+    public static final Creator<FileAttachment> CREATOR = new Creator<FileAttachment>() {
+        @Override public FileAttachment createFromParcel(Parcel source) {
+            return new FileAttachment(source);
+        }
+
+        @Override public FileAttachment[] newArray(int size) {
+            return new FileAttachment[size];
+        }
+    };
 }

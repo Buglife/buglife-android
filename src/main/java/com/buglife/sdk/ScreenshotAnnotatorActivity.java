@@ -42,7 +42,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
@@ -75,10 +74,15 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     private AnnotationView mAnnotationView;
     private ColorPalette mColorPalette;
 
-    public static Intent newStartIntent(Context context, BugContext bugContext) {
-        Intent intent = new Intent(context, ScreenshotAnnotatorActivity.class);
-        intent.setFlags(intent.getFlags() | FLAG_ACTIVITY_NEW_TASK);
+    public static Intent newStartIntent(Context context, FileAttachment screenshotAttachment, BugContext bugContext) {
+        Intent intent = newStartIntent(context, screenshotAttachment);
         intent.putExtra(INTENT_KEY_BUG_CONTEXT, bugContext);
+        return intent;
+    }
+
+    public static Intent newStartIntent(Context context, FileAttachment screenshotAttachment) {
+        Intent intent = new Intent(context, ScreenshotAnnotatorActivity.class);
+        intent.putExtra(INTENT_KEY_ATTACHMENT, screenshotAttachment);
         return intent;
     }
 

@@ -185,8 +185,7 @@ public class ReportActivity extends AppCompatActivity {
     }
 
     private void showScreenshotAnnotatorActivity(FileAttachment attachment) {
-        Intent intent = new Intent(this, ScreenshotAnnotatorActivity.class);
-        intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
+        Intent intent = ScreenshotAnnotatorActivity.newStartIntent(this, attachment);
         startActivityForResult(intent, ScreenshotAnnotatorActivity.REQUEST_CODE);
     }
 
@@ -202,9 +201,7 @@ public class ReportActivity extends AppCompatActivity {
 
         if (requestCode == ScreenshotAnnotatorActivity.REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                // Attachment attachment = data.getParcelableExtra(INTENT_KEY_ATTACHMENT);
-                // mBugContext.updateAttachment(attachment);
-                mAttachmentAdapter.setAttachments(mBugContext.getMediaAttachments());
+                mAttachmentAdapter.notifyDataSetChanged();
             }
         }
     }
