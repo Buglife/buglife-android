@@ -22,6 +22,7 @@ import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.FileAttachment;
 import com.buglife.sdk.Log;
+import com.buglife.sdk.MimeTypes;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -172,7 +173,7 @@ public final class ScreenRecorder {
     }
 
     private void onRecordingFinished(String path) {
-        Attachment attachment = FileAttachment.newMP4FileAttachment(new File(path));
+        Attachment attachment = new FileAttachment(new File(path), MimeTypes.MP4);
         Buglife.addAttachment(attachment);
         Buglife.showReporter();
     }

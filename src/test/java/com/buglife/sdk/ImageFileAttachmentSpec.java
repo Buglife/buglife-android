@@ -33,7 +33,7 @@ public final class ImageFileAttachmentSpec {
     @Before
     public void beforeEach() {
         File file = SpecUtils.getResourceFile("test_image.png");
-        mFileAttachment = FileAttachment.newPNGFileAttachment(file);
+        mFileAttachment = new FileAttachment(file, MimeTypes.PNG);
     }
 
     @Test

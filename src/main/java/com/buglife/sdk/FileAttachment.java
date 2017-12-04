@@ -32,39 +32,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class FileAttachment implements Attachment {
-    private static final String MIME_TYPE_TEXT = "text/plain";
-    private static final String MIME_TYPE_JSON = "application/json";
-    private static final String MIME_TYPE_SQLITE = "application/x-sqlite3";
-    private static final String MIME_TYPE_PNG = "image/png";
-    private static final String MIME_TYPE_JPEG = "image/jpeg";
-    private static final String MIME_TYPE_MP4 = "video/mp4";
-
     @NonNull private final File mFile;
     @NonNull private final String mMimeType;
-
-    public static FileAttachment newJSONFileAttachment(@NonNull File file) {
-        return new FileAttachment(file, MIME_TYPE_JSON);
-    }
-
-    public static FileAttachment newPNGFileAttachment(@NonNull File file) {
-        return new FileAttachment(file, MIME_TYPE_PNG);
-    }
-
-    public static FileAttachment newJPGFileAttachment(@NonNull File file) {
-        return new FileAttachment(file, MIME_TYPE_JPEG);
-    }
-
-    public static FileAttachment newMP4FileAttachment(@NonNull File file) {
-        return new FileAttachment(file, MIME_TYPE_MP4);
-    }
-
-    public static FileAttachment newPlainTextFileAttachment(@NonNull File file) {
-        return new FileAttachment(file, MIME_TYPE_TEXT);
-    }
-
-    public static FileAttachment newSQLiteFileAttachment(@NonNull File file) {
-        return new FileAttachment(file, MIME_TYPE_SQLITE);
-    }
 
     public FileAttachment(@NonNull File file, @NonNull String mimeType) {
         this.mFile = file;
@@ -89,11 +58,11 @@ public class FileAttachment implements Attachment {
     }
 
     @Override public boolean isImageAttachment() {
-        return mMimeType.equals(MIME_TYPE_JPEG) || mMimeType.equals(MIME_TYPE_PNG);
+        return mMimeType.equals(MimeTypes.JPG) || mMimeType.equals(MimeTypes.PNG);
     }
 
     @Override public boolean isVideoAttachment() {
-        return mMimeType.equals(MIME_TYPE_MP4);
+        return mMimeType.equals(MimeTypes.MP4);
     }
 
     @Nullable

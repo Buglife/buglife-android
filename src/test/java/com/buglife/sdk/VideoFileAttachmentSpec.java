@@ -33,7 +33,7 @@ public final class VideoFileAttachmentSpec {
     @Before
     public void beforeEach() {
         File file = SpecUtils.getResourceFile("test_video.mp4");
-        mFileAttachment = FileAttachment.newMP4FileAttachment(file);
+        mFileAttachment = new FileAttachment(file, MimeTypes.MP4);
     }
 
     @Test
