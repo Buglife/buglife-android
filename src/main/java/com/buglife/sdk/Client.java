@@ -301,6 +301,13 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
     private void startScreenRecordingFlow(int resultCode, Intent data) {
         ScreenRecorder screenRecorder = new ScreenRecorder(getApplicationContext(), resultCode, data);
+        screenRecorder.setCallback(new ScreenRecorder.Callback() {
+            @Override public void onFinishedRecording(File file) {
+                Attachment attachment = new FileAttachment(file, MimeTypes.MP4);
+                addAttachment(attachment);
+                showReporter();
+            }
+        });
         screenRecorder.start();
     }
 
