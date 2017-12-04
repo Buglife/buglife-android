@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -37,6 +38,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
@@ -58,7 +64,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     static final int REQUEST_CODE = 100;
 
     // The screenshot attachment being annotated.
-    private @NonNull Attachment mAttachment;
+    private @NonNull FileAttachment mAttachment;
     // The BugContext, which is required if & only if this is the initial activity in the
     // reporter flow.
     private @Nullable BugContext mBugContext;
@@ -68,6 +74,13 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     private ImageButton mBlurTool;
     private AnnotationView mAnnotationView;
     private ColorPalette mColorPalette;
+
+    public static Intent newStartIntent(Context context, BugContext bugContext) {
+        Intent intent = new Intent(context, ScreenshotAnnotatorActivity.class);
+        intent.setFlags(intent.getFlags() | FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(INTENT_KEY_BUG_CONTEXT, bugContext);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +93,8 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         mAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
         mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
-        Bitmap bitmap = mAttachment.getBitmap(this);
+        File file = mAttachment.getFile();
+        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
         mAnnotationView.setImage(bitmap);
 
         mColorPalette = new ColorPalette.Builder(this).build();
@@ -193,8 +207,8 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
     }
 
     private void continueToReportActivity() {
-        Attachment attachment = getAttachmentCopyWithAnnotations();
-        mBugContext.addAttachment(attachment);
+        saveAnnotatedBitmap();
+        mBugContext.addAttachment(mAttachment);
 
         Context context = this;
         Intent intent = new Intent(context, ReportActivity.class);
@@ -253,15 +267,20 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         mBlurTool.setColorFilter(tintColor);
     }
 
-    private @NonNull Attachment getAttachmentCopyWithAnnotations() {
-        Bitmap output = mAnnotationView.captureDecoratedImage();
-        return mAttachment.getCopy(output);
+    private void saveAnnotatedBitmap() {
+        try {
+            Bitmap output = mAnnotationView.captureDecoratedImage();
+            File file = mAttachment.getFile();
+            output.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private void setAttachmentResult() {
-        Attachment attachment = getAttachmentCopyWithAnnotations();
+        saveAnnotatedBitmap();
         Intent intent = new Intent();
-        intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
+        intent.putExtra(INTENT_KEY_ATTACHMENT, mAttachment);
         setResult(Activity.RESULT_OK, intent);
     }
 
