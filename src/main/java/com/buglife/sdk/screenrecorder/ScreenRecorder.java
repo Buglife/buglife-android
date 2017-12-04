@@ -18,11 +18,8 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
-import com.buglife.sdk.FileAttachment;
 import com.buglife.sdk.Log;
-import com.buglife.sdk.MimeTypes;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -46,6 +43,7 @@ public final class ScreenRecorder {
     private boolean mIsRecording;
     private CountDownTimer mCountdownTimer;
     private ScreenProjector mScreenProjector;
+    private @Nullable Callback mCallback;
 
     public ScreenRecorder(Context context, int resultCode, Intent data) {
         mContext = context;
@@ -61,6 +59,10 @@ public final class ScreenRecorder {
     public void start() {
         showOverlay();
         startRecording();
+    }
+
+    public void setCallback(Callback callback) {
+        this.mCallback = callback;
     }
 
     private void showOverlay() {
@@ -165,16 +167,16 @@ public final class ScreenRecorder {
                     @Override
                     public void run() {
                         Log.d("Recording complete: " + uri);
-                        onRecordingFinished(path);
+                        if (mCallback != null) {
+                            mCallback.onFinishedRecording(new File(path));
+                        }
                     }
                 });
             }
         });
     }
 
-    private void onRecordingFinished(String path) {
-        Attachment attachment = new FileAttachment(new File(path), MimeTypes.MP4);
-        Buglife.addAttachment(attachment);
-        Buglife.showReporter();
+    public interface Callback {
+        void onFinishedRecording(File file);
     }
 }
