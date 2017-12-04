@@ -346,7 +346,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
      */
     void onFinishReportFlow() {
         mReportFlowVisible = false;
-        AttachmentDataCache.getInstance().clear();
     }
 
     private static String getApplicationName(Context context) {
