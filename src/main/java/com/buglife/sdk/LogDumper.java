@@ -32,7 +32,7 @@ final class LogDumper {
         IOUtils.writeStringToFile(jsonArray.toString(), file);
     }
 
-    static List<LogMessage> getLogMessages() {
+    private static List<LogMessage> getLogMessages() {
 
         // A typical log line looks like:
         // 11-22 10:54:01.114  2897  2897 I zygote  : Not late-enabling -Xcheck:jni (already on)
