@@ -67,7 +67,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private final ForegroundDetector mForegroundDetector;
     @Nullable private String mUserIdentifier = null;
     @Nullable private String mUserEmail = null;
-    @NonNull private final ArrayList<Attachment> mQueuedAttachments;
+    @NonNull private final ArrayList<FileAttachment> mQueuedAttachments;
     @NonNull private final AttributeMap mAttributes;
     @Nullable private ArrayList<InputField> mInputFields;
     private boolean mReportFlowVisible = false;
@@ -151,7 +151,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return mInvocationMethod;
     }
 
-    void addAttachment(Attachment attachment) {
+    void addAttachment(FileAttachment attachment) {
         mQueuedAttachments.add(attachment);
     }
 
@@ -313,7 +313,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         ScreenRecorder screenRecorder = new ScreenRecorder(getApplicationContext(), resultCode, data);
         screenRecorder.setCallback(new ScreenRecorder.Callback() {
             @Override public void onFinishedRecording(File file) {
-                Attachment attachment = new FileAttachment(file, MimeTypes.MP4);
+                FileAttachment attachment = new FileAttachment(file, MimeTypes.MP4);
                 addAttachment(attachment);
                 showReporter();
             }

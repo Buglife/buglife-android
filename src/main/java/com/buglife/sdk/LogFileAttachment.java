@@ -10,7 +10,7 @@ import java.io.File;
 class LogFileAttachment extends FileAttachment {
     private static final String LOG_VERSION = "2.1";
 
-    public LogFileAttachment(@NonNull File file) {
+    LogFileAttachment(@NonNull File file) {
         super(file, "application/json");
     }
 

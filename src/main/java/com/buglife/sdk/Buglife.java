@@ -117,7 +117,7 @@ public final class Buglife {
      *
      * @param attachment The attachment
      */
-    public static void addAttachment(@NonNull Attachment attachment) {
+    public static void addAttachment(@NonNull FileAttachment attachment) {
         getClient().addAttachment(attachment);
     }
 

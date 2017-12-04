@@ -25,13 +25,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 
-public class FileAttachment implements Attachment {
+public class FileAttachment implements Serializable {
     @NonNull private final File mFile;
     @NonNull private final String mMimeType;
 
@@ -40,7 +40,7 @@ public class FileAttachment implements Attachment {
         this.mMimeType = mimeType;
     }
 
-    @Override public JSONObject toJSON() throws JSONException {
+    public JSONObject toJSON() throws JSONException {
         JSONObject json = new JSONObject();
         json.put("filename", mFile.getName());
 
@@ -57,11 +57,11 @@ public class FileAttachment implements Attachment {
         return mFile;
     }
 
-    @Override public boolean isImageAttachment() {
+    public boolean isImage() {
         return mMimeType.equals(MimeTypes.JPG) || mMimeType.equals(MimeTypes.PNG);
     }
 
-    @Override public boolean isVideoAttachment() {
+    public boolean isVideo() {
         return mMimeType.equals(MimeTypes.MP4);
     }
 

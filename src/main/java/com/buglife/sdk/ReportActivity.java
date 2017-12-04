@@ -80,14 +80,14 @@ public class ReportActivity extends AppCompatActivity {
         Intent intent = getIntent();
         mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
-        final List<Attachment> mediaAttachments = mBugContext.getMediaAttachments();
+        final List<FileAttachment> mediaAttachments = mBugContext.getMediaAttachments();
 
         mAttachmentAdapter = new AttachmentAdapter(mediaAttachments);
         mAttachmentListView.setAdapter(mAttachmentAdapter);
         mAttachmentListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Attachment attachment = mAttachmentAdapter.getItem(position);
+                FileAttachment attachment = mAttachmentAdapter.getItem(position);
                 showActivityForAttachment(attachment);
             }
         });
@@ -169,21 +169,21 @@ public class ReportActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void showActivityForAttachment(Attachment attachment) {
-        if (attachment.isImageAttachment()) {
+    private void showActivityForAttachment(FileAttachment attachment) {
+        if (attachment.isImage()) {
             showScreenshotAnnotatorActivity(attachment);
-        } else if (attachment.isVideoAttachment()) {
+        } else if (attachment.isVideo()) {
             showVideoActivity(attachment);
         }
     }
 
-    private void showScreenshotAnnotatorActivity(Attachment attachment) {
+    private void showScreenshotAnnotatorActivity(FileAttachment attachment) {
         Intent intent = new Intent(this, ScreenshotAnnotatorActivity.class);
         intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
         startActivityForResult(intent, ScreenshotAnnotatorActivity.REQUEST_CODE);
     }
 
-    private void showVideoActivity(Attachment attachment) {
+    private void showVideoActivity(FileAttachment attachment) {
         Intent intent = new Intent(this, VideoActivity.class);
         intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
         startActivity(intent);

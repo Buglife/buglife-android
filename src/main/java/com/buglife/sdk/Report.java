@@ -81,12 +81,10 @@ public final class Report {
         // Attachments
         JSONArray attachmentsParams = new JSONArray();
 
-        for (Attachment attachment : mBugContext.getAttachments()) {
+        for (FileAttachment attachment : mBugContext.getAttachments()) {
             // TODO: Handle these JSON exceptions separately? So that bug reports can still be submitted
             attachmentsParams.put(attachment.toJSON());
-            if (attachment instanceof FileAttachment) {
-                ((FileAttachment) attachment).getFile().delete();
-            }
+            attachment.getFile().delete();
         }
 
         if (attachmentsParams.length() > 0) {
