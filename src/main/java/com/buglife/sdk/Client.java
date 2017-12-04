@@ -206,7 +206,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             return;
         }
 
-        FileAttachment screenshotAttachment = FileAttachment.newPNGFileAttachment(screenshotFile);
+        FileAttachment screenshotAttachment = new FileAttachment(screenshotFile, MimeTypes.PNG);
         showAlertDialog(screenshotAttachment);
     }
 

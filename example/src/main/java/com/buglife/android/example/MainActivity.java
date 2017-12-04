@@ -13,6 +13,7 @@ import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.FileAttachment;
 import com.buglife.sdk.InvocationMethod;
+import com.buglife.sdk.MimeTypes;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             Bitmap screenshot = Buglife.getScreenshotBitmap();
             File file = new File(getCacheDir(), "Screenshot.png");
             screenshot.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
-            Attachment attachment = FileAttachment.newPNGFileAttachment(file);
+            Attachment attachment = new FileAttachment(file, MimeTypes.PNG);
             Buglife.addAttachment(attachment);
             Buglife.showReporter();
         } catch (FileNotFoundException e) {

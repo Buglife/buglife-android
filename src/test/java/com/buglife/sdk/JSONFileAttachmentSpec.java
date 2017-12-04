@@ -33,7 +33,7 @@ public final class JSONFileAttachmentSpec {
     @Before
     public void beforeEach() {
         File file = SpecUtils.getResourceFile("test_json.json");
-        mFileAttachment = FileAttachment.newJSONFileAttachment(file);
+        mFileAttachment = new FileAttachment(file, MimeTypes.JSON);
     }
 
     @Test
