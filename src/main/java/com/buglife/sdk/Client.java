@@ -189,28 +189,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return null;
     }
 
-    private void onScreenshotTakenFromBackgroundThread(final File file) {
-        Handler mainHandler = new Handler(mAppContext.getMainLooper());
-
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                onScreenshotTaken(file);
-            }
-        };
-
-        mainHandler.post(runnable);
-    }
-
-    private void onScreenshotTaken(File screenshotFile) {
-        if (!canInvokeBugReporter()) {
-            return;
-        }
-
-        FileAttachment screenshotAttachment = new FileAttachment(screenshotFile, MimeTypes.PNG);
-        showAlertDialog(screenshotAttachment);
-    }
-
     private void onScreenshotTaken(FileAttachment attachment) {
         if (!canInvokeBugReporter()) {
             return;
@@ -353,18 +331,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mReportFlowVisible = false;
     }
 
-    private static String getApplicationName(Context context) {
-        ApplicationInfo applicationInfo = context.getApplicationInfo();
-        int stringId = applicationInfo.labelRes;
-        return stringId == 0 ? applicationInfo.nonLocalizedLabel.toString() : context.getString(stringId);
-    }
-
-    private boolean isConnectedViaWifi() {
-        ConnectivityManager connectivityManager = (ConnectivityManager)mAppContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo mWifi = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        return mWifi.isConnected();
-    }
-
     @Override public void onShakeInvocationMethodTriggered() {
         if (mReportFlowVisible) {
             return;
@@ -379,7 +345,17 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     }
 
     @Override public void onScreenshotInvocationMethodTriggered(File file) {
-        onScreenshotTakenFromBackgroundThread(file);
+        Handler mainHandler = new Handler(mAppContext.getMainLooper());
+
+        final FileAttachment attachment = new FileAttachment(file, MimeTypes.PNG);
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                onScreenshotTaken(attachment);
+            }
+        };
+
+        mainHandler.post(runnable);
     }
 
     @Deprecated
