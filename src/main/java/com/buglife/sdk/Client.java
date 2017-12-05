@@ -97,19 +97,41 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mRetryPolicy = retryPolicy;
     }
 
-    private boolean checkPermissions() {
-        PackageInfo packageInfo;
+    @Override
+    public void onForegroundEvent() {
+        startInvocationMethod();
+    }
 
-        try {
-            packageInfo = mAppContext.getPackageManager().getPackageInfo(mAppContext.getPackageName(), PackageManager.GET_PERMISSIONS);
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e("Unable to obtain package info", e);
-            return false;
+    @Override
+    public void onBackgroundEvent() {
+        stopInvocationMethod();
+    }
+
+    @Override public void onShakeInvocationMethodTriggered() {
+        if (mReportFlowVisible) {
+            return;
         }
 
-        List requestedPermissions = Arrays.asList(packageInfo.requestedPermissions);
-        List requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_WRITE_EXTERNAL_STORAGE, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);
-        return requestedPermissions.containsAll(requiredPermissions);
+        if (mInvocationMethod == InvocationMethod.SHAKE) {
+            FileAttachment attachment = captureScreenshot();
+            if (attachment != null) {
+                onScreenshotTaken(attachment);
+            }
+        }
+    }
+
+    @Override public void onScreenshotInvocationMethodTriggered(File file) {
+        Handler mainHandler = new Handler(mAppContext.getMainLooper());
+
+        final FileAttachment attachment = new FileAttachment(file, MimeTypes.PNG);
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                onScreenshotTaken(attachment);
+            }
+        };
+
+        mainHandler.post(runnable);
     }
 
     Context getApplicationContext() {
@@ -133,16 +155,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         if (mForegroundDetector.getForegrounded()) {
             startInvocationMethod();
         }
-    }
-
-    @Override
-    public void onForegroundEvent() {
-        startInvocationMethod();
-    }
-
-    @Override
-    public void onBackgroundEvent() {
-        stopInvocationMethod();
     }
 
     InvocationMethod getInvocationMethod() {
@@ -199,6 +211,72 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return null;
     }
 
+    void showReporter() {
+        // showReporter() can be called manually, so check to make sure it isn't already visible
+        if (mReportFlowVisible) {
+            Log.e("Unable to show reporter; Buglife is already visible. Did you call showReporter() twice?");
+            return;
+        }
+
+        Intent intent = ReportActivity.newStartIntent(mAppContext, buildBugContext());
+        startBuglifeActivity(intent);
+    }
+
+    void startScreenRecording() {
+        startScreenRecordingFlow();
+    }
+
+    void submitReport(Report report, ReportSubmissionCallback callback) {
+        reporter.report(report, callback);
+    }
+
+    /**
+     * Called on successful report submissions, as well as cancellation.
+     */
+    void onFinishReportFlow() {
+        mReportFlowVisible = false;
+    }
+
+    @Deprecated
+    Context getContext() {
+        return mAppContext;
+    }
+
+    /***************************
+     * BUILDER
+     ***************************/
+
+    static class Builder {
+        private Application mApplication;
+
+        Builder(Application application) {
+            mApplication = application;
+        }
+
+        Client buildWithApiKey(String apiKey) {
+            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.ApiKey(apiKey));
+        }
+
+        Client buildWithEmail(String email) {
+            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.EmailAddress(email));
+        }
+    }
+
+    private boolean checkPermissions() {
+        PackageInfo packageInfo;
+
+        try {
+            packageInfo = mAppContext.getPackageManager().getPackageInfo(mAppContext.getPackageName(), PackageManager.GET_PERMISSIONS);
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e("Unable to obtain package info", e);
+            return false;
+        }
+
+        List requestedPermissions = Arrays.asList(packageInfo.requestedPermissions);
+        List requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_WRITE_EXTERNAL_STORAGE, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);
+        return requestedPermissions.containsAll(requiredPermissions);
+    }
+
     private void onScreenshotTaken(FileAttachment attachment) {
         if (!canInvokeBugReporter()) {
             return;
@@ -238,21 +316,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         });
 
         alertDialog.show();
-    }
-
-    void showReporter() {
-        // showReporter() can be called manually, so check to make sure it isn't already visible
-        if (mReportFlowVisible) {
-            Log.e("Unable to show reporter; Buglife is already visible. Did you call showReporter() twice?");
-            return;
-        }
-
-        Intent intent = ReportActivity.newStartIntent(mAppContext, buildBugContext());
-        startBuglifeActivity(intent);
-    }
-
-    void startScreenRecording() {
-        startScreenRecordingFlow();
     }
 
     private void startScreenRecordingFlow() {
@@ -328,69 +391,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         builder.setAttributes(mAttributes);
 
         return builder.build();
-    }
-
-    void submitReport(Report report, ReportSubmissionCallback callback) {
-        reporter.report(report, callback);
-    }
-
-    /**
-     * Called on successful report submissions, as well as cancellation.
-     */
-    void onFinishReportFlow() {
-        mReportFlowVisible = false;
-    }
-
-    @Override public void onShakeInvocationMethodTriggered() {
-        if (mReportFlowVisible) {
-            return;
-        }
-
-        if (mInvocationMethod == InvocationMethod.SHAKE) {
-            FileAttachment attachment = captureScreenshot();
-            if (attachment != null) {
-                onScreenshotTaken(attachment);
-            }
-        }
-    }
-
-    @Override public void onScreenshotInvocationMethodTriggered(File file) {
-        Handler mainHandler = new Handler(mAppContext.getMainLooper());
-
-        final FileAttachment attachment = new FileAttachment(file, MimeTypes.PNG);
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                onScreenshotTaken(attachment);
-            }
-        };
-
-        mainHandler.post(runnable);
-    }
-
-    @Deprecated
-    Context getContext() {
-        return mAppContext;
-    }
-
-    /***************************
-     * BUILDER
-     ***************************/
-
-    static class Builder {
-        private Application mApplication;
-
-        Builder(Application application) {
-            mApplication = application;
-        }
-
-        Client buildWithApiKey(String apiKey) {
-            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.ApiKey(apiKey));
-        }
-
-        Client buildWithEmail(String email) {
-            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.EmailAddress(email));
-        }
     }
 
     private void startInvocationMethod() {
