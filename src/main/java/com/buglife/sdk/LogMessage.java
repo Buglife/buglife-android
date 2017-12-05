@@ -74,13 +74,13 @@ final class LogMessage {
             json.put("type", getFormattedLevel());
             json.put("message", getMessage());
             json.put("context", getTag());
-
             if (timestamp != null) {
                 json.put("timestamp", timestamp.getTime());
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
         return json;
     }
 }

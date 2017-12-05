@@ -29,7 +29,6 @@ import com.buglife.sdk.reporting.BugReporter;
 import com.buglife.sdk.reporting.SubmitReportLegacyService;
 import com.buglife.sdk.reporting.SubmitReportService;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -59,7 +58,7 @@ final class BugReporterImpl implements BugReporter {
             } else {
                 reportWithLegacy(reportFile);
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             Log.e("Failed to serialize bug report!", e);
             Toast.makeText(mContext, R.string.error_serialize_report, Toast.LENGTH_LONG).show();
         }

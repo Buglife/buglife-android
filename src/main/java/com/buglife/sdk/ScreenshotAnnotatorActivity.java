@@ -37,6 +37,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -277,7 +278,8 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
             File file = mAttachment.getFile();
             output.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            Log.e("Error saving screenshot!", e);
+            Toast.makeText(getApplicationContext(), R.string.error_save_screenshot, Toast.LENGTH_LONG).show();
         }
     }
 
