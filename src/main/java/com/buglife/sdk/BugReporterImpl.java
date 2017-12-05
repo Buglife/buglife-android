@@ -35,6 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 
 final class BugReporterImpl implements BugReporter {
     private final Context mContext;
@@ -66,6 +67,10 @@ final class BugReporterImpl implements BugReporter {
             IOUtils.writeStringToFile(jsonReport.toString(), reportFile);
         } catch (JSONException e) {
             Log.e("Failed to serialize bug report!", e);
+            callback.onFailure(ReportSubmissionCallback.Error.SERIALIZATION, e);
+            return;
+        } catch (IOException e) {
+            Log.e("Failed to write bug report file!", e);
             callback.onFailure(ReportSubmissionCallback.Error.SERIALIZATION, e);
             return;
         }

@@ -42,7 +42,7 @@ public class FileAttachment implements Parcelable {
         this.mMimeType = mimeType;
     }
 
-    public JSONObject toJSON() throws JSONException {
+    public JSONObject toJSON() throws JSONException, IOException {
         JSONObject json = new JSONObject();
         json.put("filename", mFile.getName());
 
@@ -67,24 +67,16 @@ public class FileAttachment implements Parcelable {
         return mMimeType.equals(MimeTypes.MP4);
     }
 
-    @Nullable
-    private byte[] toByteArray() {
-        FileInputStream inputStream = null;
-        ByteArrayOutputStream outputStream = null;
+    private byte[] toByteArray() throws IOException {
+        FileInputStream inputStream = new FileInputStream(mFile);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream((int) mFile.length());
         try {
-            inputStream = new FileInputStream(mFile);
-            outputStream = new ByteArrayOutputStream((int) mFile.length());
             IOUtils.write(inputStream, outputStream);
             return outputStream.toByteArray();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
-            if (inputStream != null) { IOUtils.closeQuietly(inputStream); }
-            if (outputStream != null) { IOUtils.closeQuietly(outputStream); }
+            IOUtils.closeQuietly(inputStream);
+            IOUtils.closeQuietly(outputStream);
         }
-        return null;
     }
 
     /* Parcelable */

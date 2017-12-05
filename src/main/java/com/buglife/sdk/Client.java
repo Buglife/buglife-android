@@ -210,7 +210,8 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
             onScreenshotTaken(file);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            Log.e("Error saving screenshot!", e);
+            Toast.makeText(mAppContext, R.string.error_save_screenshot, Toast.LENGTH_LONG).show();
         }
     }
 

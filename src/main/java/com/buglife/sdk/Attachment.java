@@ -22,9 +22,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -46,18 +43,6 @@ public class Attachment implements Parcelable {
 
     private Attachment(@NonNull File file, @NonNull String type) {
         mFileAttachment = new FileAttachment(file, type);
-    }
-
-    JSONObject getJSONObject() throws JSONException {
-        return mFileAttachment.toJSON();
-    }
-
-    boolean isImageAttachment() {
-        return mFileAttachment.isImage();
-    }
-
-    boolean isVideoAttachment() {
-        return mFileAttachment.isVideo();
     }
 
     FileAttachment getFileAttachment() {
@@ -136,7 +121,8 @@ public class Attachment implements Parcelable {
             try {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                // This is a pretty serious error, we should rethrow
+                throw new RuntimeException(e);
             }
             return build(file);
         }
