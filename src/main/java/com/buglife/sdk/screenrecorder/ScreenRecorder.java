@@ -18,7 +18,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.Log;
 
@@ -29,7 +28,6 @@ import java.util.Date;
 import java.util.Locale;
 
 import static android.graphics.PixelFormat.TRANSLUCENT;
-import static com.buglife.sdk.Attachment.TYPE_MP4;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public final class ScreenRecorder {
@@ -45,6 +43,7 @@ public final class ScreenRecorder {
     private boolean mIsRecording;
     private CountDownTimer mCountdownTimer;
     private ScreenProjector mScreenProjector;
+    private @Nullable Callback mCallback;
 
     public ScreenRecorder(Context context, int resultCode, Intent data) {
         mContext = context;
@@ -60,6 +59,10 @@ public final class ScreenRecorder {
     public void start() {
         showOverlay();
         startRecording();
+    }
+
+    public void setCallback(Callback callback) {
+        this.mCallback = callback;
     }
 
     private void showOverlay() {
@@ -164,20 +167,16 @@ public final class ScreenRecorder {
                     @Override
                     public void run() {
                         Log.d("Recording complete: " + uri);
-                        onRecordingFinished(path);
+                        if (mCallback != null) {
+                            mCallback.onFinishedRecording(new File(path));
+                        }
                     }
                 });
             }
         });
     }
 
-    private void onRecordingFinished(String path) {
-        Attachment attachment;
-        File file = new File(path);
-
-        attachment = new Attachment.Builder("ScreenRecording.mp4", TYPE_MP4).build(file, true);
-
-        Buglife.addAttachment(attachment);
-        Buglife.showReporter();
+    public interface Callback {
+        void onFinishedRecording(File file);
     }
 }

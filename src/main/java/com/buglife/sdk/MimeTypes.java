@@ -15,21 +15,13 @@
  *
  */
 
-
 package com.buglife.sdk;
 
-import java.io.File;
-
-public class TempFileData extends FileData {
-
-    TempFileData(File file) {
-        super(file);
-    }
-
-    //There is no reason not to delete a TempFileData's file when the attachment cache is cleared.
-    @Override
-    protected void finalize() throws Throwable {
-        mFile.delete();
-        super.finalize();
-    }
+public interface MimeTypes {
+    String PLAIN_TEXT = "text/plain";
+    String JSON = "application/json";
+    String SQLITE = "application/x-sqlite3";
+    String PNG = "image/png";
+    String JPG = "image/jpeg";
+    String MP4 = "video/mp4";
 }

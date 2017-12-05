@@ -27,20 +27,20 @@ import com.buglife.sdk.reporting.DeviceSnapshot;
 import com.buglife.sdk.reporting.EnvironmentSnapshot;
 import com.buglife.sdk.reporting.SessionSnapshot;
 
-import junit.framework.Assert;
-
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 final class BugContext implements Parcelable {
     private final ApiIdentity mApiIdentity;
-    private final ArrayList<Attachment> mAttachments;
+    private final ArrayList<FileAttachment> mAttachments;
     private final AttributeMap mAttributes;
     private final EnvironmentSnapshot mEnvironmentSnapshot;
     private final DeviceSnapshot mDeviceSnapshot;
     private final SessionSnapshot mSessionSnapshot;
 
-    BugContext(ApiIdentity apiIdentity, @NonNull List<Attachment> attachments, @NonNull AttributeMap attributes, SessionSnapshot sessionSnapshot, DeviceSnapshot deviceSnapshot, @NonNull EnvironmentSnapshot environment) {
+    BugContext(ApiIdentity apiIdentity, @NonNull List<FileAttachment> attachments, @NonNull AttributeMap attributes, SessionSnapshot sessionSnapshot, DeviceSnapshot deviceSnapshot, @NonNull EnvironmentSnapshot environment) {
         mApiIdentity = apiIdentity;
         mAttachments = new ArrayList<>(attachments);
         mAttributes = attributes;
@@ -49,19 +49,19 @@ final class BugContext implements Parcelable {
         mEnvironmentSnapshot = environment;
     }
 
-    void addAttachment(@NonNull Attachment attachment) {
+    void addAttachment(@NonNull FileAttachment attachment) {
         mAttachments.add(attachment);
     }
 
-    List<Attachment> getAttachments() {
+    List<FileAttachment> getAttachments() {
         return mAttachments;
     }
 
-    List<Attachment> getMediaAttachments() {
-        ArrayList<Attachment> mediaAttachments = new ArrayList<>();
+    List<FileAttachment> getMediaAttachments() {
+        ArrayList<FileAttachment> mediaAttachments = new ArrayList<>();
 
-        for (Attachment attachment : getAttachments()) {
-            if (attachment.isImageAttachment() || attachment.isVideoAttachment()) {
+        for (FileAttachment attachment : getAttachments()) {
+            if (attachment.isImage() || attachment.isVideo()) {
                 mediaAttachments.add(attachment);
             }
         }
@@ -71,18 +71,6 @@ final class BugContext implements Parcelable {
 
     EnvironmentSnapshot getEnvironmentSnapshot() {
         return mEnvironmentSnapshot;
-    }
-
-    void updateAttachment(Attachment updatedAttachment) {
-        for (Attachment attachment : mAttachments) {
-            if (attachment.isAnnotatedCopy(updatedAttachment)) {
-                int index = mAttachments.indexOf(attachment);
-                mAttachments.set(index, updatedAttachment);
-                return;
-            }
-        }
-
-        Assert.fail("Unable to find existing copy of attachment");
     }
 
     void putAttribute(@NonNull String key, @Nullable String value) {
@@ -126,7 +114,7 @@ final class BugContext implements Parcelable {
 
     BugContext(Parcel in) {
         this.mApiIdentity = in.readParcelable(ApiIdentity.class.getClassLoader());
-        this.mAttachments = in.createTypedArrayList(Attachment.CREATOR);
+        this.mAttachments = in.createTypedArrayList(FileAttachment.CREATOR);
         this.mAttributes = in.readParcelable(AttributeMap.class.getClassLoader());
         this.mEnvironmentSnapshot = in.readParcelable(EnvironmentSnapshot.class.getClassLoader());
         this.mDeviceSnapshot = in.readParcelable(DeviceSnapshot.class.getClassLoader());
@@ -145,7 +133,7 @@ final class BugContext implements Parcelable {
 
     static class Builder {
         private final @NonNull Context mContext;
-        private @NonNull ArrayList<Attachment> mAttachments = new ArrayList();
+        private @NonNull ArrayList<FileAttachment> mAttachments = new ArrayList();
         private @NonNull AttributeMap mAttributeMap = new AttributeMap();
         private @NonNull String mUserEmail;
         private @NonNull String mUserIdentifier;
@@ -153,10 +141,16 @@ final class BugContext implements Parcelable {
 
         Builder(@NonNull Context context) {
             mContext = context;
+            addLogFileAttachment();
         }
 
-        Builder setAttachments(@NonNull List<Attachment> attachments) {
-            mAttachments = new ArrayList(attachments);
+        Builder setAttachments(@NonNull List<FileAttachment> attachments) {
+            mAttachments.clear();
+            return addAttachments(attachments);
+        }
+
+        Builder addAttachments(List<FileAttachment> attachments) {
+            mAttachments.addAll(attachments);
             return this;
         }
 
@@ -185,6 +179,16 @@ final class BugContext implements Parcelable {
             EnvironmentSnapshot environment = new EnvironmentSnapshot(mContext);
             DeviceSnapshot deviceSnapshot = new DeviceSnapshot();
             return new BugContext(mApiIdentity, mAttachments, mAttributeMap, sessionSnapshot, deviceSnapshot, environment);
+        }
+
+        private void addLogFileAttachment() {
+            try {
+                File logFile = new File(mContext.getCacheDir(), "log_" + System.currentTimeMillis());
+                LogDumper.dumpToFile(logFile);
+                mAttachments.add(new LogFileAttachment(logFile));
+            } catch (IOException e) {
+                Log.e("Error dumping logs to file!", e);
+            }
         }
     }
 }

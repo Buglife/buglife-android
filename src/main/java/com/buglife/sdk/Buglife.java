@@ -19,11 +19,13 @@ package com.buglife.sdk;
 
 import android.annotation.TargetApi;
 import android.app.Application;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -103,11 +105,35 @@ public final class Buglife {
 
     /**
      * Captures a screenshot of the current activity.
+     * Deprecated, use {@link Buglife#captureScreenshot()} instead.
      *
      * @return A bitmap of the generated screenshot
      */
+    @Deprecated
     public static Bitmap getScreenshotBitmap() {
         return getClient().getScreenshot();
+    }
+
+    /**
+     * Captures a screenshot of the current activity.
+     *
+     * @return A {@link java.io.File} that represents the screenshot. If screenshot failed, this
+     * will return null.
+     */
+    @Nullable
+    public static FileAttachment captureScreenshot() {
+        return getClient().captureScreenshot();
+    }
+
+    /**
+     * Queues an attachment for the next bug report draft.
+     * Deprecated, use {@link Buglife#addAttachment(FileAttachment)} instead.
+     *
+     * @param attachment The attachment
+     */
+    @Deprecated
+    public static void addAttachment(@NonNull Attachment attachment) {
+        getClient().addAttachment(attachment);
     }
 
     /**
@@ -115,7 +141,7 @@ public final class Buglife {
      *
      * @param attachment The attachment
      */
-    public static void addAttachment(@NonNull Attachment attachment) {
+    public static void addAttachment(@NonNull FileAttachment attachment) {
         getClient().addAttachment(attachment);
     }
 
@@ -179,6 +205,11 @@ public final class Buglife {
 
     static void onFinishReportFlow() {
         getClient().onFinishReportFlow();
+    }
+
+    @Deprecated
+    static Context getContext() {
+        return getClient().getApplicationContext();
     }
 
     private static void verifyDependencies() {

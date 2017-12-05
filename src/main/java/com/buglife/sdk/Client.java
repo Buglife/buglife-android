@@ -41,13 +41,11 @@ import com.buglife.sdk.screenrecorder.ScreenRecorder;
 import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
-import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
 
 final class Client implements ForegroundDetector.OnForegroundListener, InvocationMethodManager.OnInvocationMethodTriggeredListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
@@ -56,8 +54,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private static final String PERMISSION_READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
     private static final String PERMISSION_SYSTEM_ALERT_WINDOW = "android.permission.SYSTEM_ALERT_WINDOW";
     private static final String PERMISSION_ACCESS_NETWORK_STATE = "android.permission.ACCESS_NETWORK_STATE";
-    private static final String DEFAULT_SCREENSHOT_FILENAME = "Screenshot.jpg";
-    private static final String DEFAULT_SCREENSHOT_ATTACHMENT_TYPE = Attachment.TYPE_PNG;
 
     @NonNull private final Context mAppContext;
     @NonNull private final ApiIdentity mApiIdentity;
@@ -67,7 +63,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private final ForegroundDetector mForegroundDetector;
     @Nullable private String mUserIdentifier = null;
     @Nullable private String mUserEmail = null;
-    @NonNull private final ArrayList<Attachment> mQueuedAttachments;
+    @NonNull private final ArrayList<FileAttachment> mQueuedAttachments;
     @NonNull private final AttributeMap mAttributes;
     @Nullable private ArrayList<InputField> mInputFields;
     private boolean mReportFlowVisible = false;
@@ -91,21 +87,44 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         setInvocationMethod(DEFAULT_INVOCATION_METHOD);
     }
 
-    private boolean checkPermissions() {
-        PackageInfo packageInfo;
-
-        try {
-            packageInfo = mAppContext.getPackageManager().getPackageInfo(mAppContext.getPackageName(), PackageManager.GET_PERMISSIONS);
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e("Unable to obtain package info", e);
-            return false;
-        }
-
-        List requestedPermissions = Arrays.asList(packageInfo.requestedPermissions);
-        List requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_WRITE_EXTERNAL_STORAGE, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);
-        return requestedPermissions.containsAll(requiredPermissions);
+    @Override
+    public void onForegroundEvent() {
+        startInvocationMethod();
     }
 
+    @Override
+    public void onBackgroundEvent() {
+        stopInvocationMethod();
+    }
+
+    @Override public void onShakeInvocationMethodTriggered() {
+        if (mReportFlowVisible) {
+            return;
+        }
+
+        if (mInvocationMethod == InvocationMethod.SHAKE) {
+            FileAttachment attachment = captureScreenshot();
+            if (attachment != null) {
+                onScreenshotTaken(attachment);
+            }
+        }
+    }
+
+    @Override public void onScreenshotInvocationMethodTriggered(File file) {
+        Handler mainHandler = new Handler(mAppContext.getMainLooper());
+
+        final FileAttachment attachment = new FileAttachment(file, MimeTypes.PNG);
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                onScreenshotTaken(attachment);
+            }
+        };
+
+        mainHandler.post(runnable);
+    }
+
+    @Deprecated
     Context getApplicationContext() {
         return mAppContext;
     }
@@ -129,21 +148,16 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         }
     }
 
-    @Override
-    public void onForegroundEvent() {
-        startInvocationMethod();
-    }
-
-    @Override
-    public void onBackgroundEvent() {
-        stopInvocationMethod();
-    }
-
     InvocationMethod getInvocationMethod() {
         return mInvocationMethod;
     }
 
+    @Deprecated
     void addAttachment(Attachment attachment) {
+        mQueuedAttachments.add(attachment.getFileAttachment());
+    }
+
+    void addAttachment(FileAttachment attachment) {
         mQueuedAttachments.add(attachment);
     }
 
@@ -174,42 +188,94 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return screenshotter.getBitmap();
     }
 
-    private void onScreenshotTakenFromBackgroundThread(final File file) {
-        Handler mainHandler = new Handler(mAppContext.getMainLooper());
-
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                onScreenshotTaken(file);
-            }
-        };
-
-        mainHandler.post(runnable);
+    @Nullable FileAttachment captureScreenshot() {
+        Bitmap bitmap = getScreenshot();
+        String filename = "screenshot_" + System.currentTimeMillis() + ".png";
+        File file = new File(mAppContext.getCacheDir(), filename);
+        try {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
+            return new FileAttachment(file, MimeTypes.PNG);
+        } catch (FileNotFoundException e) {
+            Log.e("Error saving screenshot!", e);
+            Toast.makeText(mAppContext, R.string.error_save_screenshot, Toast.LENGTH_LONG).show();
+        }
+        return null;
     }
 
-    private void onScreenshotTaken(Bitmap bitmap) {
+    void showReporter() {
+        // showReporter() can be called manually, so check to make sure it isn't already visible
+        if (mReportFlowVisible) {
+            Log.e("Unable to show reporter; Buglife is already visible. Did you call showReporter() twice?");
+            return;
+        }
+
+        Intent intent = ReportActivity.newStartIntent(mAppContext, buildBugContext());
+        startBuglifeActivity(intent);
+    }
+
+    void startScreenRecording() {
+        startScreenRecordingFlow();
+    }
+
+    void submitReport(Report report) {
+        reporter.report(report);
+    }
+
+    /**
+     * Called on successful report submissions, as well as cancellation.
+     */
+    void onFinishReportFlow() {
+        mReportFlowVisible = false;
+    }
+
+    /***************************
+     * BUILDER
+     ***************************/
+
+    static class Builder {
+        private Application mApplication;
+
+        Builder(Application application) {
+            mApplication = application;
+        }
+
+        Client buildWithApiKey(String apiKey) {
+            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.ApiKey(apiKey));
+        }
+
+        Client buildWithEmail(String email) {
+            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.EmailAddress(email));
+        }
+    }
+
+    private boolean checkPermissions() {
+        PackageInfo packageInfo;
+
+        try {
+            packageInfo = mAppContext.getPackageManager().getPackageInfo(mAppContext.getPackageName(), PackageManager.GET_PERMISSIONS);
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e("Unable to obtain package info", e);
+            return false;
+        }
+
+        List requestedPermissions = Arrays.asList(packageInfo.requestedPermissions);
+        List requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_WRITE_EXTERNAL_STORAGE, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);
+        return requestedPermissions.containsAll(requiredPermissions);
+    }
+
+    private void onScreenshotTaken(FileAttachment attachment) {
         if (!canInvokeBugReporter()) {
             return;
         }
 
-        Attachment screenshotAttachment = getScreenshotBuilder().build(bitmap);
-        showAlertDialog(screenshotAttachment);
-    }
-
-    private void onScreenshotTaken(File screenshotFile) {
-        if (!canInvokeBugReporter()) {
-            return;
-        }
-
-        Attachment screenshotAttachment = getScreenshotBuilder().build(screenshotFile);
-        showAlertDialog(screenshotAttachment);
+        showAlertDialog(attachment);
     }
 
     private boolean canInvokeBugReporter() {
         return !mReportFlowVisible && mForegroundDetector.getForegrounded();
     }
 
-    private void showAlertDialog(@NonNull final Attachment screenshotAttachment) {
+    private void showAlertDialog(@NonNull final FileAttachment screenshotAttachment) {
         mReportFlowVisible = true;
         Activity activity = mForegroundDetector.getCurrentActivity();
         final AlertDialog alertDialog = new AlertDialog.Builder(activity, R.style.buglife_alert_dialog).create();
@@ -221,7 +287,8 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // Show the reporter flow starting with the screenshot annotator
-                startBuglifeActivity(ScreenshotAnnotatorActivity.class, screenshotAttachment);
+                Intent intent = ScreenshotAnnotatorActivity.newStartIntent(mAppContext, screenshotAttachment, buildBugContext());
+                startBuglifeActivity(intent);
                 alertDialog.dismiss();
             }
         });
@@ -237,23 +304,9 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         alertDialog.show();
     }
 
-    void showReporter() {
-        // showReporter() can be called manually, so check to make sure it isn't already visible
-        if (mReportFlowVisible) {
-            Log.e("Unable to show reporter; Buglife is already visible. Did you call showReporter() twice?");
-            return;
-        }
-
-        startBuglifeActivity(ReportActivity.class, null);
-    }
-
-    void startScreenRecording() {
-        startScreenRecordingFlow();
-    }
-
     private void startScreenRecordingFlow() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            Toast.makeText(getApplicationContext(), R.string.screen_recording_minimum_os_error, Toast.LENGTH_LONG).show();
+            Toast.makeText(mAppContext, R.string.screen_recording_minimum_os_error, Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -283,7 +336,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
                     }
 
                     if (toastStringResId != 0) {
-                        Toast.makeText(getApplicationContext(), toastStringResId, Toast.LENGTH_LONG).show();
+                        Toast.makeText(mAppContext, toastStringResId, Toast.LENGTH_LONG).show();
                     }
                 }
             });
@@ -292,22 +345,19 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     }
 
     private void startScreenRecordingFlow(int resultCode, Intent data) {
-        ScreenRecorder screenRecorder = new ScreenRecorder(getApplicationContext(), resultCode, data);
+        ScreenRecorder screenRecorder = new ScreenRecorder(mAppContext, resultCode, data);
+        screenRecorder.setCallback(new ScreenRecorder.Callback() {
+            @Override public void onFinishedRecording(File file) {
+                FileAttachment attachment = new FileAttachment(file, MimeTypes.MP4);
+                addAttachment(attachment);
+                showReporter();
+            }
+        });
         screenRecorder.start();
     }
 
-    private void startBuglifeActivity(Class cls, @Nullable Attachment screenshotAttachment) {
-        BugContext bugContext = buildBugContext();
-
+    private void startBuglifeActivity(Intent intent) {
         mReportFlowVisible = true;
-        Intent intent = new Intent(mAppContext, cls);
-        intent.setFlags(intent.getFlags() | FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(INTENT_KEY_BUG_CONTEXT, bugContext);
-
-        if (screenshotAttachment != null) {
-            intent.putExtra(INTENT_KEY_ATTACHMENT, screenshotAttachment);
-        }
-
         mAppContext.startActivity(intent);
     }
 
@@ -321,79 +371,12 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             mListener.onAttachmentRequest();
         }
 
-        List<LogMessage> logMessages = LogDumper.getLogMessages();
-        Attachment logAttachment = new Attachment.Builder("logs.json", Attachment.TYPE_JSON).build(logMessages);
-        mQueuedAttachments.add(logAttachment);
-
-        builder.setAttachments(mQueuedAttachments);
+        builder.addAttachments(mQueuedAttachments);
         mQueuedAttachments.clear();
 
         builder.setAttributes(mAttributes);
 
         return builder.build();
-    }
-
-    void submitReport(Report report) {
-        reporter.report(report);
-    }
-
-    /**
-     * Called on successful report submissions, as well as cancellation.
-     */
-    void onFinishReportFlow() {
-        mReportFlowVisible = false;
-        AttachmentDataCache.getInstance().clear();
-    }
-
-    private static String getApplicationName(Context context) {
-        ApplicationInfo applicationInfo = context.getApplicationInfo();
-        int stringId = applicationInfo.labelRes;
-        return stringId == 0 ? applicationInfo.nonLocalizedLabel.toString() : context.getString(stringId);
-    }
-
-    private boolean isConnectedViaWifi() {
-        ConnectivityManager connectivityManager = (ConnectivityManager)mAppContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo mWifi = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        return mWifi.isConnected();
-    }
-
-    @Override public void onShakeInvocationMethodTriggered() {
-        if (mReportFlowVisible) {
-            return;
-        }
-
-        if (mInvocationMethod == InvocationMethod.SHAKE) {
-            Bitmap bitmap = getScreenshot();
-            onScreenshotTaken(bitmap);
-        }
-    }
-
-    @Override public void onScreenshotInvocationMethodTriggered(File file) {
-        onScreenshotTakenFromBackgroundThread(file);
-    }
-
-    /***************************
-     * BUILDER
-     ***************************/
-
-    static class Builder {
-        private Application mApplication;
-
-        Builder(Application application) {
-            mApplication = application;
-        }
-
-        Client buildWithApiKey(String apiKey) {
-            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.ApiKey(apiKey));
-        }
-
-        Client buildWithEmail(String email) {
-            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.EmailAddress(email));
-        }
-    }
-
-    private static Attachment.Builder getScreenshotBuilder() {
-        return new Attachment.Builder(DEFAULT_SCREENSHOT_FILENAME, DEFAULT_SCREENSHOT_ATTACHMENT_TYPE);
     }
 
     private void startInvocationMethod() {

@@ -1,6 +1,10 @@
 package com.buglife.sdk;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
@@ -19,7 +23,16 @@ final class LogDumper {
     private static final String processId = Integer.toString(android.os.Process
             .myPid());
 
-    static List<LogMessage> getLogMessages() {
+    static void dumpToFile(File file) throws IOException {
+        JSONArray jsonArray = new JSONArray();
+        for (LogMessage logMessage : getLogMessages()) {
+            JSONObject json = logMessage.toJSON();
+            jsonArray.put(json);
+        }
+        IOUtils.writeStringToFile(jsonArray.toString(), file);
+    }
+
+    private static List<LogMessage> getLogMessages() {
 
         // A typical log line looks like:
         // 11-22 10:54:01.114  2897  2897 I zygote  : Not late-enabling -Xcheck:jni (already on)

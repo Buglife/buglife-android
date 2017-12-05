@@ -19,6 +19,7 @@ package com.buglife.sdk;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,13 +36,13 @@ import java.util.List;
  * Adapter for showing a list of attachment objects in the bug reporter UI
  */
 class AttachmentAdapter extends BaseAdapter {
-    private ArrayList<Attachment> mDataSource;
+    private ArrayList<FileAttachment> mDataSource;
 
-    AttachmentAdapter(List<Attachment> attachments) {
-        mDataSource = new ArrayList<Attachment>(attachments);
+    AttachmentAdapter(List<FileAttachment> attachments) {
+        mDataSource = new ArrayList<>(attachments);
     }
 
-    void setAttachments(List<Attachment> attachments) {
+    void setAttachments(List<FileAttachment> attachments) {
         mDataSource = new ArrayList<>(attachments);
         notifyDataSetChanged();
     }
@@ -51,7 +53,7 @@ class AttachmentAdapter extends BaseAdapter {
     }
 
     @Override
-    public Attachment getItem(int position) {
+    public FileAttachment getItem(int position) {
         return mDataSource.get(position);
     }
 
@@ -69,12 +71,17 @@ class AttachmentAdapter extends BaseAdapter {
 
         ImageView thumbnailView = (ImageView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_thumbnail);
         TextView titleView = (TextView) convertView.findViewById(com.buglife.sdk.R.id.attachment_list_title);
-        Attachment attachment = getItem(position);
+        FileAttachment attachment = getItem(position);
 
         Context context = convertView.getContext();
-        Bitmap scaledBitmap = scaleBitmapForThumbnail(context, attachment.getBitmap(context));
-        thumbnailView.setImageBitmap(scaledBitmap);
-        titleView.setText(attachment.getFilename());
+        File file = attachment.getFile();
+        if (attachment.isImage()) {
+            String path = file.getAbsolutePath();
+            // TODO: Optimize bitmap decoding
+            Bitmap scaledBitmap = scaleBitmapForThumbnail(context, BitmapFactory.decodeFile(path));
+            thumbnailView.setImageBitmap(scaledBitmap);
+        }
+        titleView.setText(file.getName());
 
         return convertView;
     }

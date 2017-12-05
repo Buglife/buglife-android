@@ -3,22 +3,15 @@ package com.buglife.sdk;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.view.KeyEvent;
 import android.widget.MediaController;
-import android.widget.ProgressBar;
 import android.widget.VideoView;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.URI;
 
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
 
@@ -35,9 +28,8 @@ public final class VideoActivity extends Activity {
         mVideoView = (VideoView) findViewById(R.id.video_view);
 
         Intent intent = getIntent();
-        Attachment videoAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
-        FileData fileData = (FileData) videoAttachment.getData();
-        File file = fileData.getFile();
+        FileAttachment videoAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
+        File file = videoAttachment.getFile();
         mVideoView.setVideoURI(Uri.fromFile(file));
 
         mMediaController = new BuglifeMediaController(this);

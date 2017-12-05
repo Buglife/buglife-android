@@ -25,6 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 
@@ -38,7 +39,7 @@ public final class Report {
         mBugContext = bugContext;
     }
 
-    public JSONObject toJSON() throws JSONException {
+    public JSONObject toJSON() throws JSONException, IOException {
         String whatHappened = mBugContext.getAttribute(TextInputField.SUMMARY_ATTRIBUTE_NAME);
 
         JSONObject params = new JSONObject();
@@ -81,9 +82,10 @@ public final class Report {
         // Attachments
         JSONArray attachmentsParams = new JSONArray();
 
-        for (Attachment attachment : mBugContext.getAttachments()) {
+        for (FileAttachment attachment : mBugContext.getAttachments()) {
             // TODO: Handle these JSON exceptions separately? So that bug reports can still be submitted
-            attachmentsParams.put(attachment.getJSONObject());
+            attachmentsParams.put(attachment.toJSON());
+            attachment.getFile().delete();
         }
 
         if (attachmentsParams.length() > 0) {

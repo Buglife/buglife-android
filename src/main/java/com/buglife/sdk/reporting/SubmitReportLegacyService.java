@@ -21,9 +21,12 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import com.android.volley.NoConnectionError;
+import com.buglife.sdk.IOUtils;
 import com.buglife.sdk.Log;
+import com.buglife.sdk.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,12 +44,12 @@ import java.util.Iterator;
 import java.util.List;
 
 public class SubmitReportLegacyService extends IntentService {
-    private static final String KEY_EXTRA_JSON_REPORT = "json_report";
+    private static final String KEY_EXTRA_REPORT_PATH = "report_path";
     private SubmitReportTask mTask;
 
-    public static void start(Context context, String jsonReport) {
+    public static void start(Context context, File jsonReportFile) {
         Intent intent = new Intent(context, SubmitReportLegacyService.class);
-        intent.putExtra(KEY_EXTRA_JSON_REPORT, jsonReport);
+        intent.putExtra(KEY_EXTRA_REPORT_PATH, jsonReportFile.getAbsolutePath());
         context.startService(intent);
     }
 
@@ -68,9 +71,18 @@ public class SubmitReportLegacyService extends IntentService {
         File cacheFile = getReportsCacheFile(getApplicationContext());
         List<String> pendingJsonReports = readLinesFromFile(cacheFile);
 
-        if (intent != null && intent.hasExtra(KEY_EXTRA_JSON_REPORT)) {
-            String newJsonReport = intent.getStringExtra(KEY_EXTRA_JSON_REPORT);
-            pendingJsonReports.add(newJsonReport);
+        if (intent != null && intent.hasExtra(KEY_EXTRA_REPORT_PATH)) {
+            String reportPath = intent.getStringExtra(KEY_EXTRA_REPORT_PATH);
+            File reportFile = new File(reportPath);
+            try {
+                String report = IOUtils.readStringFromFile(reportFile);
+                pendingJsonReports.add(report);
+                reportFile.delete();
+            } catch (IOException e) {
+                Log.e("Error reading report from disk!", e);
+                Toast.makeText(getApplicationContext(), R.string.error_process_report, Toast.LENGTH_LONG).show();
+                return;
+            }
         }
 
         if (pendingJsonReports.isEmpty()) {
@@ -140,7 +152,7 @@ public class SubmitReportLegacyService extends IntentService {
         } catch (IOException error) {
             error.printStackTrace();
         } finally {
-            closeQuietly(writer);
+            IOUtils.closeQuietly(writer);
         }
     }
 
@@ -163,18 +175,8 @@ public class SubmitReportLegacyService extends IntentService {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            closeQuietly(reader);
+            IOUtils.closeQuietly(reader);
         }
         return output;
-    }
-
-    private static void closeQuietly(@Nullable Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (IOException error) {
-                // Ignore
-            }
-        }
     }
 }

@@ -51,6 +51,7 @@ import com.android.volley.RequestQueue;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_ATTACHMENT;
 import static com.buglife.sdk.ActivityUtils.INTENT_KEY_BUG_CONTEXT;
@@ -66,6 +67,13 @@ public class ReportActivity extends AppCompatActivity {
     private @Nullable ProgressDialog mProgressDialog;
     private @NonNull ColorPalette mColorPalette;
 
+    public static Intent newStartIntent(Context context, BugContext bugContext) {
+        Intent intent = new Intent(context, ReportActivity.class);
+        intent.setFlags(intent.getFlags() | FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(INTENT_KEY_BUG_CONTEXT, bugContext);
+        return intent;
+    }
+
     public ReportActivity() {
     }
 
@@ -79,14 +87,14 @@ public class ReportActivity extends AppCompatActivity {
         Intent intent = getIntent();
         mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
-        final List<Attachment> mediaAttachments = mBugContext.getMediaAttachments();
+        final List<FileAttachment> mediaAttachments = mBugContext.getMediaAttachments();
 
         mAttachmentAdapter = new AttachmentAdapter(mediaAttachments);
         mAttachmentListView.setAdapter(mAttachmentAdapter);
         mAttachmentListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Attachment attachment = mAttachmentAdapter.getItem(position);
+                FileAttachment attachment = mAttachmentAdapter.getItem(position);
                 showActivityForAttachment(attachment);
             }
         });
@@ -168,21 +176,20 @@ public class ReportActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void showActivityForAttachment(Attachment attachment) {
-        if (attachment.isImageAttachment()) {
+    private void showActivityForAttachment(FileAttachment attachment) {
+        if (attachment.isImage()) {
             showScreenshotAnnotatorActivity(attachment);
-        } else if (attachment.isVideoAttachment()) {
+        } else if (attachment.isVideo()) {
             showVideoActivity(attachment);
         }
     }
 
-    private void showScreenshotAnnotatorActivity(Attachment attachment) {
-        Intent intent = new Intent(this, ScreenshotAnnotatorActivity.class);
-        intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
+    private void showScreenshotAnnotatorActivity(FileAttachment attachment) {
+        Intent intent = ScreenshotAnnotatorActivity.newStartIntent(this, attachment);
         startActivityForResult(intent, ScreenshotAnnotatorActivity.REQUEST_CODE);
     }
 
-    private void showVideoActivity(Attachment attachment) {
+    private void showVideoActivity(FileAttachment attachment) {
         Intent intent = new Intent(this, VideoActivity.class);
         intent.putExtra(INTENT_KEY_ATTACHMENT, attachment);
         startActivity(intent);
@@ -194,9 +201,7 @@ public class ReportActivity extends AppCompatActivity {
 
         if (requestCode == ScreenshotAnnotatorActivity.REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                Attachment attachment = data.getParcelableExtra(INTENT_KEY_ATTACHMENT);
-                mBugContext.updateAttachment(attachment);
-                mAttachmentAdapter.setAttachments(mBugContext.getMediaAttachments());
+                mAttachmentAdapter.notifyDataSetChanged();
             }
         }
     }

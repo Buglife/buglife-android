@@ -29,8 +29,9 @@ import com.buglife.sdk.reporting.BugReporter;
 import com.buglife.sdk.reporting.SubmitReportLegacyService;
 import com.buglife.sdk.reporting.SubmitReportService;
 
-import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
 
 final class BugReporterImpl implements BugReporter {
     private final Context mContext;
@@ -47,34 +48,36 @@ final class BugReporterImpl implements BugReporter {
     @Override public void report(Report report) {
         try {
             JSONObject jsonReport = report.toJSON();
+
+            String filename = "buglife_report_" + System.currentTimeMillis() + ".json";
+            File reportFile = new File(mContext.getCacheDir(), filename);
+            IOUtils.writeStringToFile(jsonReport.toString(), reportFile);
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                reportWithJobScheduler(jsonReport);
+                reportWithJobScheduler(reportFile);
             } else {
-                reportWithLegacy(jsonReport);
+                reportWithLegacy(reportFile);
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             Log.e("Failed to serialize bug report!", e);
             Toast.makeText(mContext, R.string.error_serialize_report, Toast.LENGTH_LONG).show();
         }
     }
 
-    private void reportWithLegacy(JSONObject jsonReport) {
-        String jsonReportString = jsonReport.toString();
-        SubmitReportLegacyService.start(mContext, jsonReportString);
+    private void reportWithLegacy(File reportFile) {
+        SubmitReportLegacyService.start(mContext, reportFile);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void reportWithJobScheduler(JSONObject jsonReport) {
+    private void reportWithJobScheduler(File reportFile) {
         JobScheduler jobScheduler = (JobScheduler) mContext.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         if (jobScheduler == null) {
             throw new RuntimeException("Failed to obtain JobScheduler!");
         }
 
         int jobId = (int) System.currentTimeMillis();
-        String jsonReportString = jsonReport.toString();
-
         PersistableBundle data = new PersistableBundle();
-        data.putString(SubmitReportService.KEY_DATA_PAYLOAD, jsonReportString);
+        data.putString(SubmitReportService.KEY_EXTRA_REPORT_PATH, reportFile.getAbsolutePath());
 
         JobInfo info = new JobInfo.Builder(jobId, SubmitReportService.getComponentName(mContext))
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)

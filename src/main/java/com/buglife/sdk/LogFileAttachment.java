@@ -17,29 +17,24 @@
 
 package com.buglife.sdk;
 
-import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
-import android.util.Base64;
 
-import java.io.ByteArrayOutputStream;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-final class BitmapData extends AttachmentData {
+import java.io.File;
+import java.io.IOException;
 
-    final private Bitmap mBitmap;
+class LogFileAttachment extends FileAttachment {
+    private static final String LOG_VERSION = "2.1";
 
-    BitmapData(@NonNull Bitmap bitmap) {
-        mBitmap = bitmap;
+    LogFileAttachment(@NonNull File file) {
+        super(file, "application/json");
     }
 
-    Bitmap getBitmap() {
-        return mBitmap;
+    @Override public JSONObject toJSON() throws JSONException, IOException {
+        JSONObject json = super.toJSON();
+        json.put("log_version", LOG_VERSION);
+        return json;
     }
-
-    @NonNull String getBase64EncodedData() {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        mBitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
-        byte[] b = baos.toByteArray();
-        return Base64.encodeToString(b, Base64.DEFAULT);
-    }
-
 }

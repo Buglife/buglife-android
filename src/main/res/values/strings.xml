@@ -18,4 +18,6 @@
     <string name="screen_recording_permission_denied_overlay">Oops! We need permission to draw screen overlays before we can record your screen.</string>
     <string name="screen_recording_permission_denied_recording">Oops! We need permission if you\'d like to record your screen.</string>
     <string name="error_serialize_report">Failed to serialize bug report!</string>
+    <string name="error_process_report">There was an error processing bug report!</string>
+    <string name="error_save_screenshot">There was an error saving screenshot!</string>
 </resources>
