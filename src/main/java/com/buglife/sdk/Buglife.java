@@ -106,15 +106,29 @@ public final class Buglife {
 
     /**
      * Captures a screenshot of the current activity.
+     * Deprecated, use {@link Buglife#captureScreenshot()} instead.
      *
      * @return A bitmap of the generated screenshot
      */
+    @Deprecated
     public static Bitmap getScreenshotBitmap() {
         return getClient().getScreenshot();
     }
 
     /**
+     * Captures a screenshot of the current activity.
+     *
+     * @return A {@link java.io.File} that represents the screenshot. If screenshot failed, this
+     * will return null.
+     */
+    @Nullable
+    public static FileAttachment captureScreenshot() {
+        return getClient().captureScreenshot();
+    }
+
+    /**
      * Queues an attachment for the next bug report draft.
+     * Deprecated, use {@link Buglife#addAttachment(FileAttachment)} instead.
      *
      * @param attachment The attachment
      */

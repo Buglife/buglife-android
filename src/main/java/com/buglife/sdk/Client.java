@@ -185,6 +185,20 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return screenshotter.getBitmap();
     }
 
+    @Nullable FileAttachment captureScreenshot() {
+        Bitmap bitmap = getScreenshot();
+        String filename = "screenshot_" + System.currentTimeMillis() + ".png";
+        File file = new File(mAppContext.getCacheDir(), filename);
+        try {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
+            return new FileAttachment(file, MimeTypes.PNG);
+        } catch (FileNotFoundException e) {
+            Log.e("Error saving screenshot!", e);
+            Toast.makeText(mAppContext, R.string.error_save_screenshot, Toast.LENGTH_LONG).show();
+        }
+        return null;
+    }
+
     private void onScreenshotTakenFromBackgroundThread(final File file) {
         Handler mainHandler = new Handler(mAppContext.getMainLooper());
 
@@ -198,23 +212,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mainHandler.post(runnable);
     }
 
-    private void onScreenshotTaken(Bitmap bitmap) {
-        if (!canInvokeBugReporter()) {
-            return;
-        }
-
-        try {
-            // Save bitmap to a temp file
-            String filename = "screenshot_" + System.currentTimeMillis() + ".png";
-            File file = new File(mAppContext.getCacheDir(), filename);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
-            onScreenshotTaken(file);
-        } catch (FileNotFoundException e) {
-            Log.e("Error saving screenshot!", e);
-            Toast.makeText(mAppContext, R.string.error_save_screenshot, Toast.LENGTH_LONG).show();
-        }
-    }
-
     private void onScreenshotTaken(File screenshotFile) {
         if (!canInvokeBugReporter()) {
             return;
@@ -222,6 +219,14 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
         FileAttachment screenshotAttachment = new FileAttachment(screenshotFile, MimeTypes.PNG);
         showAlertDialog(screenshotAttachment);
+    }
+
+    private void onScreenshotTaken(FileAttachment attachment) {
+        if (!canInvokeBugReporter()) {
+            return;
+        }
+
+        showAlertDialog(attachment);
     }
 
     private boolean canInvokeBugReporter() {
@@ -376,8 +381,10 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         }
 
         if (mInvocationMethod == InvocationMethod.SHAKE) {
-            Bitmap bitmap = getScreenshot();
-            onScreenshotTaken(bitmap);
+            FileAttachment attachment = captureScreenshot();
+            if (attachment != null) {
+                onScreenshotTaken(attachment);
+            }
         }
     }
 

@@ -11,7 +11,10 @@ import android.widget.TextView;
 
 import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
+import com.buglife.sdk.FileAttachment;
 import com.buglife.sdk.InvocationMethod;
+
+import java.io.File;
 
 import static com.buglife.sdk.Attachment.TYPE_PNG;
 
@@ -35,9 +38,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void reportBugButtonTapped(View view) {
-        Bitmap screenshot = Buglife.getScreenshotBitmap();
-        Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
-        Buglife.addAttachment(attachment);
+        FileAttachment screenshot = Buglife.captureScreenshot();
+        Buglife.addAttachment(screenshot);
         Buglife.showReporter();
     }
 
