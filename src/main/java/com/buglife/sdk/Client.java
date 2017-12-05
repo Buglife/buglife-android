@@ -134,6 +134,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mainHandler.post(runnable);
     }
 
+    @Deprecated
     Context getApplicationContext() {
         return mAppContext;
     }
@@ -237,11 +238,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mReportFlowVisible = false;
     }
 
-    @Deprecated
-    Context getContext() {
-        return mAppContext;
-    }
-
     /***************************
      * BUILDER
      ***************************/
@@ -320,7 +316,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
     private void startScreenRecordingFlow() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            Toast.makeText(getApplicationContext(), R.string.screen_recording_minimum_os_error, Toast.LENGTH_LONG).show();
+            Toast.makeText(mAppContext, R.string.screen_recording_minimum_os_error, Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -350,7 +346,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
                     }
 
                     if (toastStringResId != 0) {
-                        Toast.makeText(getApplicationContext(), toastStringResId, Toast.LENGTH_LONG).show();
+                        Toast.makeText(mAppContext, toastStringResId, Toast.LENGTH_LONG).show();
                     }
                 }
             });
@@ -359,7 +355,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     }
 
     private void startScreenRecordingFlow(int resultCode, Intent data) {
-        ScreenRecorder screenRecorder = new ScreenRecorder(getApplicationContext(), resultCode, data);
+        ScreenRecorder screenRecorder = new ScreenRecorder(mAppContext, resultCode, data);
         screenRecorder.setCallback(new ScreenRecorder.Callback() {
             @Override public void onFinishedRecording(File file) {
                 FileAttachment attachment = new FileAttachment(file, MimeTypes.MP4);

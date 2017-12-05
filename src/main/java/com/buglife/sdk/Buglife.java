@@ -227,7 +227,7 @@ public final class Buglife {
 
     @Deprecated
     static Context getContext() {
-        return getClient().getContext();
+        return getClient().getApplicationContext();
     }
 
     private static void verifyDependencies() {
