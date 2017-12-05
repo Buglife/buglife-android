@@ -19,6 +19,7 @@ package com.buglife.sdk;
 
 import android.annotation.TargetApi;
 import android.app.Application;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -117,6 +118,16 @@ public final class Buglife {
      *
      * @param attachment The attachment
      */
+    @Deprecated
+    public static void addAttachment(@NonNull Attachment attachment) {
+        getClient().addAttachment(attachment);
+    }
+
+    /**
+     * Queues an attachment for the next bug report draft.
+     *
+     * @param attachment The attachment
+     */
     public static void addAttachment(@NonNull FileAttachment attachment) {
         getClient().addAttachment(attachment);
     }
@@ -198,6 +209,11 @@ public final class Buglife {
 
     static void onFinishReportFlow() {
         getClient().onFinishReportFlow();
+    }
+
+    @Deprecated
+    static Context getContext() {
+        return getClient().getContext();
     }
 
     private static void verifyDependencies() {

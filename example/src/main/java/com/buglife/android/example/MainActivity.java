@@ -9,14 +9,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.buglife.sdk.Attachment;
 import com.buglife.sdk.Buglife;
-import com.buglife.sdk.FileAttachment;
 import com.buglife.sdk.InvocationMethod;
-import com.buglife.sdk.MimeTypes;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import static com.buglife.sdk.Attachment.TYPE_PNG;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,16 +35,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void reportBugButtonTapped(View view) {
-        try {
-            Bitmap screenshot = Buglife.getScreenshotBitmap();
-            File file = new File(getCacheDir(), "Screenshot.png");
-            screenshot.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
-            FileAttachment attachment = new FileAttachment(file, MimeTypes.PNG);
-            Buglife.addAttachment(attachment);
-            Buglife.showReporter();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        Bitmap screenshot = Buglife.getScreenshotBitmap();
+        Attachment attachment = new Attachment.Builder("Screenshot.png", TYPE_PNG).build(screenshot);
+        Buglife.addAttachment(attachment);
+        Buglife.showReporter();
     }
 
     public void recordScreenButtonTapped(View view) {

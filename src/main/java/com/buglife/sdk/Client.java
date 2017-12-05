@@ -149,6 +149,11 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return mInvocationMethod;
     }
 
+    @Deprecated
+    void addAttachment(Attachment attachment) {
+        mQueuedAttachments.add(attachment.getFileAttachment());
+    }
+
     void addAttachment(FileAttachment attachment) {
         mQueuedAttachments.add(attachment);
     }
@@ -377,6 +382,11 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
     @Override public void onScreenshotInvocationMethodTriggered(File file) {
         onScreenshotTakenFromBackgroundThread(file);
+    }
+
+    @Deprecated
+    Context getContext() {
+        return mAppContext;
     }
 
     /***************************
