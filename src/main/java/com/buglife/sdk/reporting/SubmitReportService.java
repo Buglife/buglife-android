@@ -23,14 +23,17 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.widget.Toast;
 
 import com.buglife.sdk.IOUtils;
 import com.buglife.sdk.Log;
+import com.buglife.sdk.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class SubmitReportService extends JobService {
@@ -59,8 +62,13 @@ public class SubmitReportService extends JobService {
             });
             task.execute(jsonReport);
             return true;
-        } catch (JSONException e) {
-            Log.e("Error deserializing JSON report!", e);
+        } catch (Exception error) {
+            if (error instanceof JSONException) {
+                Log.e("Error deserializing JSON report!", error);
+            } else if (error instanceof IOException) {
+                Log.e("Error reading report from disk!", error);
+            }
+            Toast.makeText(getApplicationContext(), R.string.error_process_report, Toast.LENGTH_LONG).show();
         }
         return false;
     }

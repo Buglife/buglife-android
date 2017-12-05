@@ -17,14 +17,11 @@
 
 package com.buglife.sdk;
 
-import android.support.annotation.Nullable;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,41 +30,27 @@ import java.io.OutputStream;
 public class IOUtils {
     private IOUtils() {/* No instances */}
 
-    static void writeStringToFile(String data, File file) {
-        OutputStream output = null;
-        InputStream input = null;
+    static void writeStringToFile(String data, File file) throws IOException {
+        OutputStream output = new FileOutputStream(file);
+        InputStream input = new ByteArrayInputStream(data.getBytes());
         try {
-            input = new ByteArrayInputStream(data.getBytes());
-            output = new FileOutputStream(file);
             write(input, output);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
-            if (output != null) { closeQuietly(output); }
-            if (input != null) { closeQuietly(input); }
+            closeQuietly(output);
+            closeQuietly(input);
         }
     }
 
-    @Nullable
-    public static String readStringFromFile(File file) {
-        ByteArrayOutputStream output = null;
-        FileInputStream input = null;
+    public static String readStringFromFile(File file) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream((int) file.length());
+        FileInputStream input = new FileInputStream(file);
         try {
-            input = new FileInputStream(file);
-            output = new ByteArrayOutputStream((int) file.length());
             write(input, output);
             return output.toString("utf-8");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
-            if (output != null) { closeQuietly(output); }
-            if (input != null) { closeQuietly(input); }
+            closeQuietly(output);
+            closeQuietly(input);
         }
-        return null;
     }
 
     static void write(InputStream input, OutputStream output) throws IOException {
