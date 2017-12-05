@@ -21,10 +21,12 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import com.android.volley.NoConnectionError;
 import com.buglife.sdk.IOUtils;
 import com.buglife.sdk.Log;
+import com.buglife.sdk.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,9 +74,15 @@ public class SubmitReportLegacyService extends IntentService {
         if (intent != null && intent.hasExtra(KEY_EXTRA_REPORT_PATH)) {
             String reportPath = intent.getStringExtra(KEY_EXTRA_REPORT_PATH);
             File reportFile = new File(reportPath);
-            String report = IOUtils.readStringFromFile(reportFile);
-            pendingJsonReports.add(report);
-            reportFile.delete();
+            try {
+                String report = IOUtils.readStringFromFile(reportFile);
+                pendingJsonReports.add(report);
+                reportFile.delete();
+            } catch (IOException e) {
+                Log.e("Error reading report from disk!", e);
+                Toast.makeText(getApplicationContext(), R.string.error_process_report, Toast.LENGTH_LONG).show();
+                return;
+            }
         }
 
         if (pendingJsonReports.isEmpty()) {

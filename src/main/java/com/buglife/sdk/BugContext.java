@@ -28,6 +28,7 @@ import com.buglife.sdk.reporting.EnvironmentSnapshot;
 import com.buglife.sdk.reporting.SessionSnapshot;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -181,9 +182,13 @@ final class BugContext implements Parcelable {
         }
 
         private void addLogFileAttachment() {
-            File logFile = new File(mContext.getCacheDir(), "log_" + System.currentTimeMillis());
-            LogDumper.dumpToFile(logFile);
-            mAttachments.add(new LogFileAttachment(logFile));
+            try {
+                File logFile = new File(mContext.getCacheDir(), "log_" + System.currentTimeMillis());
+                LogDumper.dumpToFile(logFile);
+                mAttachments.add(new LogFileAttachment(logFile));
+            } catch (IOException e) {
+                Log.e("Error dumping logs to file!", e);
+            }
         }
     }
 }

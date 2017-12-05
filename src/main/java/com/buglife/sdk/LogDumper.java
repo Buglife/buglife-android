@@ -23,7 +23,7 @@ final class LogDumper {
     private static final String processId = Integer.toString(android.os.Process
             .myPid());
 
-    static void dumpToFile(File file) {
+    static void dumpToFile(File file) throws IOException {
         JSONArray jsonArray = new JSONArray();
         for (LogMessage logMessage : getLogMessages()) {
             JSONObject json = logMessage.toJSON();
