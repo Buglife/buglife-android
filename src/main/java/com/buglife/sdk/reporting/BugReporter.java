@@ -20,5 +20,5 @@ package com.buglife.sdk.reporting;
 import com.buglife.sdk.Report;
 
 public interface BugReporter {
-    void report(Report report) throws ReportSchedulingException;
+    void report(Report report, ReportSubmissionCallback callback);
 }

@@ -39,7 +39,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.buglife.sdk.reporting.ReportSchedulingException;
+import com.buglife.sdk.reporting.ReportSubmissionCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -217,15 +217,33 @@ public class ReportActivity extends AppCompatActivity {
     private void submitReport() {
         Report report = new Report(mBugContext);
 
-        try {
-            Buglife.submitReport(report);
-            Toast.makeText(ReportActivity.this, R.string.thanks_for_filing_a_bug, Toast.LENGTH_SHORT).show();
-            dismiss();
-        } catch (ReportSchedulingException e) {
-            e.printStackTrace();
-            e.getCause().printStackTrace();
-            Toast.makeText(ReportActivity.this, R.string.report_scheduling_exception_dialog_message, Toast.LENGTH_LONG).show();
+        if (Buglife.getRetryPolicy() == RetryPolicy.MANUAL) {
+            showProgressDialog();
         }
+
+        Buglife.submitReport(report, new ReportSubmissionCallback() {
+            @Override
+            public void onSuccess() {
+                dismissProgressDialog();
+                Toast.makeText(ReportActivity.this, R.string.thanks_for_filing_a_bug, Toast.LENGTH_SHORT).show();
+                dismiss();
+            }
+
+            @Override
+            public void onFailure(Error error, Throwable throwable) {
+                dismissProgressDialog();
+                throwable.printStackTrace();
+
+                switch (error) {
+                    case NETWORK:
+                        showErrorDialog(getString(R.string.error_dialog_message));
+                        break;
+                    case SERIALIZATION:
+                        showErrorDialog(getString(R.string.error_dialog_message_check_logs));
+                        break;
+                }
+            }
+        });
     }
 
     private void showProgressDialog() {
@@ -241,10 +259,11 @@ public class ReportActivity extends AppCompatActivity {
         }
     }
 
-    private void showErrorDialog() {
+    private void showErrorDialog(String message) {
         final AlertDialog alertDialog = new AlertDialog.Builder(this, R.style.buglife_alert_dialog).create();
         alertDialog.setTitle(R.string.error_dialog_title);
         alertDialog.setMessage(getString(R.string.error_dialog_message));
+        alertDialog.setMessage(message);
         alertDialog.setCancelable(false);
 
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(R.string.ok), new DialogInterface.OnClickListener() {

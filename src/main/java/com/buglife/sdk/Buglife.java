@@ -24,7 +24,7 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.buglife.sdk.reporting.ReportSchedulingException;
+import com.buglife.sdk.reporting.ReportSubmissionCallback;
 
 import java.util.List;
 
@@ -175,8 +175,25 @@ public final class Buglife {
         getClient().startScreenRecording();
     }
 
-    static void submitReport(Report report) throws ReportSchedulingException {
-        getClient().submitReport(report);
+    /**
+     * Gets the current retry policy .
+     * @warning This is an experimental API, and is subject to change!
+     */
+    public static RetryPolicy getRetryPolicy() {
+        return getClient().getRetryPolicy();
+    }
+
+    /**
+     * Specifies the retry policy when submitting bug reports.
+     * @param retryPolicy The retry policy
+     * @warning This is an experimental API, and is subject to change!
+     */
+    public static void setRetryPolicy(RetryPolicy retryPolicy) {
+        getClient().setRetryPolicy(retryPolicy);
+    }
+
+    static void submitReport(Report report, ReportSubmissionCallback callback) {
+        getClient().submitReport(report, callback);
     }
 
     static void onFinishReportFlow() {

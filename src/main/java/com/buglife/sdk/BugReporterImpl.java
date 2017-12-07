@@ -26,9 +26,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 
 import com.buglife.sdk.reporting.BugReporter;
-import com.buglife.sdk.reporting.ReportSchedulingException;
+import com.buglife.sdk.reporting.ReportSubmissionCallback;
 import com.buglife.sdk.reporting.SubmitReportLegacyService;
 import com.buglife.sdk.reporting.SubmitReportService;
+import com.buglife.sdk.reporting.SubmitReportTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,17 +46,27 @@ final class BugReporterImpl implements BugReporter {
         }
     }
 
-    @Override public void report(Report report) throws ReportSchedulingException {
+    @Override public void report(Report report, ReportSubmissionCallback callback) {
         JSONObject jsonReport;
 
         try {
             jsonReport = report.toJSON();
         } catch (JSONException e) {
             Log.e("Failed to serialize bug report!", e);
-            throw new ReportSchedulingException(e);
+            callback.onFailure(ReportSubmissionCallback.Error.SERIALIZATION, e);
+            return;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        boolean forceSynchronous = (Buglife.getRetryPolicy() == RetryPolicy.MANUAL);
+
+        if (forceSynchronous) {
+            reportSynchronously(jsonReport, callback);
+            return;
+        }
+
+        boolean forceLegacy = (Buglife.getRetryPolicy() == RetryPolicy.AUTOMATIC_LEGACY);
+
+        if (!forceLegacy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Log.d("Attempting to schedule report submission...");
 
             JobScheduler jobScheduler = (JobScheduler) mContext.getSystemService(Context.JOB_SCHEDULER_SERVICE);
@@ -71,11 +82,18 @@ final class BugReporterImpl implements BugReporter {
             Log.d("Submitting report using legacy service.");
             reportWithLegacy(jsonReport);
         }
+
+        callback.onSuccess();
     }
 
     private void reportWithLegacy(JSONObject jsonReport) {
         String jsonReportString = jsonReport.toString();
         SubmitReportLegacyService.start(mContext, jsonReportString);
+    }
+
+    private void reportSynchronously(JSONObject jsonReport, ReportSubmissionCallback callback) {
+        SubmitReportTask task = new SubmitReportTask(mContext);
+        task.execute(jsonReport, callback);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

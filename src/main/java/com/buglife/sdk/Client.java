@@ -37,7 +37,7 @@ import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
 import com.buglife.sdk.reporting.BugReporter;
-import com.buglife.sdk.reporting.ReportSchedulingException;
+import com.buglife.sdk.reporting.ReportSubmissionCallback;
 import com.buglife.sdk.screenrecorder.ScreenRecorder;
 import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
 
@@ -60,6 +60,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private static final String DEFAULT_SCREENSHOT_FILENAME = "Screenshot.jpg";
     private static final String DEFAULT_SCREENSHOT_ATTACHMENT_TYPE = Attachment.TYPE_PNG;
 
+    private RetryPolicy mRetryPolicy = RetryPolicy.AUTOMATIC;
     @NonNull private final Context mAppContext;
     @NonNull private final ApiIdentity mApiIdentity;
     @Nullable private BuglifeListener mListener;
@@ -90,6 +91,14 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         }
 
         setInvocationMethod(DEFAULT_INVOCATION_METHOD);
+    }
+
+    RetryPolicy getRetryPolicy() {
+        return mRetryPolicy;
+    }
+
+    void setRetryPolicy(RetryPolicy retryPolicy) {
+        mRetryPolicy = retryPolicy;
     }
 
     private boolean checkPermissions() {
@@ -334,8 +343,8 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return builder.build();
     }
 
-    void submitReport(Report report) throws ReportSchedulingException {
-        reporter.report(report);
+    void submitReport(Report report, ReportSubmissionCallback callback) {
+        reporter.report(report, callback);
     }
 
     /**

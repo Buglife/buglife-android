@@ -17,23 +17,13 @@
 
 package com.buglife.sdk.reporting;
 
-import android.support.annotation.NonNull;
+public interface ReportSubmissionCallback {
 
-/**
- * This exception should be thrown when an unexpected error
- * prevents a bug report submission job from being scheduled.
- * Note that this is NOT the same as a bug report submission
- * failing due to network error, etc, since the submission
- * hasn't even been successfully scheduled.
- */
-public class ReportSchedulingException extends Exception {
-    @NonNull private final Throwable mCause;
+    void onSuccess();
+    void onFailure(Error error, Throwable throwable);
 
-    public ReportSchedulingException(@NonNull Throwable cause) {
-        mCause = cause;
-    }
-
-    public Throwable getCause() {
-        return mCause;
+    enum Error {
+        SERIALIZATION,
+        NETWORK
     }
 }
