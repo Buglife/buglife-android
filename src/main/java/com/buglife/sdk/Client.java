@@ -37,6 +37,7 @@ import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
 import com.buglife.sdk.reporting.BugReporter;
+import com.buglife.sdk.reporting.ReportSchedulingException;
 import com.buglife.sdk.screenrecorder.ScreenRecorder;
 import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
 
@@ -333,7 +334,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return builder.build();
     }
 
-    void submitReport(Report report) {
+    void submitReport(Report report) throws ReportSchedulingException {
         reporter.report(report);
     }
 

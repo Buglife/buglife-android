@@ -24,6 +24,8 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.buglife.sdk.reporting.ReportSchedulingException;
+
 import java.util.List;
 
 /**
@@ -173,7 +175,7 @@ public final class Buglife {
         getClient().startScreenRecording();
     }
 
-    static void submitReport(Report report) {
+    static void submitReport(Report report) throws ReportSchedulingException {
         getClient().submitReport(report);
     }
 

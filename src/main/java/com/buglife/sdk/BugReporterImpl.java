@@ -22,10 +22,11 @@ import android.app.job.JobScheduler;
 import android.content.Context;
 import android.os.Build;
 import android.os.PersistableBundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.widget.Toast;
 
 import com.buglife.sdk.reporting.BugReporter;
+import com.buglife.sdk.reporting.ReportSchedulingException;
 import com.buglife.sdk.reporting.SubmitReportLegacyService;
 import com.buglife.sdk.reporting.SubmitReportService;
 
@@ -44,17 +45,31 @@ final class BugReporterImpl implements BugReporter {
         }
     }
 
-    @Override public void report(Report report) {
+    @Override public void report(Report report) throws ReportSchedulingException {
+        JSONObject jsonReport;
+
         try {
-            JSONObject jsonReport = report.toJSON();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                reportWithJobScheduler(jsonReport);
-            } else {
-                reportWithLegacy(jsonReport);
-            }
+            jsonReport = report.toJSON();
         } catch (JSONException e) {
             Log.e("Failed to serialize bug report!", e);
-            Toast.makeText(mContext, R.string.error_serialize_report, Toast.LENGTH_LONG).show();
+            throw new ReportSchedulingException(e);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Log.d("Attempting to schedule report submission...");
+
+            JobScheduler jobScheduler = (JobScheduler) mContext.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+
+            if (jobScheduler != null) {
+                Log.d("Acquired JobScheduler service...");
+                reportWithJobScheduler(jsonReport, jobScheduler);
+            } else {
+                Log.e("JobScheduler unavailable; Falling back to legacy report submission.");
+                reportWithLegacy(jsonReport);
+            }
+        } else {
+            Log.d("Submitting report using legacy service.");
+            reportWithLegacy(jsonReport);
         }
     }
 
@@ -64,12 +79,7 @@ final class BugReporterImpl implements BugReporter {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void reportWithJobScheduler(JSONObject jsonReport) {
-        JobScheduler jobScheduler = (JobScheduler) mContext.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        if (jobScheduler == null) {
-            throw new RuntimeException("Failed to obtain JobScheduler!");
-        }
-
+    private void reportWithJobScheduler(@NonNull JSONObject jsonReport, @NonNull JobScheduler jobScheduler) {
         int jobId = (int) System.currentTimeMillis();
         String jsonReportString = jsonReport.toString();
 
