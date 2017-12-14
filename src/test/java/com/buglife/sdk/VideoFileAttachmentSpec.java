@@ -37,20 +37,20 @@ public final class VideoFileAttachmentSpec {
     }
 
     @Test
-    public void serializeWithCorrectFilename() throws JSONException {
+    public void serializeWithCorrectFilename() throws Exception {
         JSONObject json = mFileAttachment.toJSON();
         assertThat(json.getString("filename")).isEqualTo("test_video.mp4");
     }
 
     @Test
-    public void serializeWithCorrectData() throws JSONException {
+    public void serializeWithCorrectData() throws Exception {
         String testVideoBase64 = SpecUtils.readContentsOfResourceFile("test_video_base64.txt");
         JSONObject json = mFileAttachment.toJSON();
         assertThat(json.getString("base64_attachment_data")).isEqualTo(testVideoBase64);
     }
 
     @Test
-    public void serializeWithCorrectMimeType() throws JSONException {
+    public void serializeWithCorrectMimeType() throws Exception {
         JSONObject json = mFileAttachment.toJSON();
         assertThat(json.getString("mime_type")).isEqualTo("video/mp4");
     }

@@ -37,20 +37,20 @@ public final class ImageFileAttachmentSpec {
     }
 
     @Test
-    public void serializeWithCorrectFilename() throws JSONException {
+    public void serializeWithCorrectFilename() throws Exception {
         JSONObject json = mFileAttachment.toJSON();
         assertThat(json.getString("filename")).isEqualTo("test_image.png");
     }
 
     @Test
-    public void serializeWithCorrectData() throws JSONException {
+    public void serializeWithCorrectData() throws Exception {
         String testImageBase64 = SpecUtils.readContentsOfResourceFile("test_image_base64.txt");
         JSONObject json = mFileAttachment.toJSON();
         assertThat(json.getString("base64_attachment_data")).isEqualTo(testImageBase64);
     }
 
     @Test
-    public void serializeWithCorrectMimeType() throws JSONException {
+    public void serializeWithCorrectMimeType() throws Exception {
         JSONObject json = mFileAttachment.toJSON();
         assertThat(json.getString("mime_type")).isEqualTo("image/png");
     }
