@@ -53,6 +53,15 @@ public class IOUtils {
         }
     }
 
+    public static void deleteRecursively(File fileOrDirectory) throws IOException {
+        if (fileOrDirectory.isDirectory()) {
+            for (File child : fileOrDirectory.listFiles()) {
+                deleteRecursively(child);
+            }
+        }
+        fileOrDirectory.delete();
+    }
+
     static void write(InputStream input, OutputStream output) throws IOException {
         byte[] buffer = new byte[1024];
         for (int read = 0; read != -1; read = input.read(buffer)) {

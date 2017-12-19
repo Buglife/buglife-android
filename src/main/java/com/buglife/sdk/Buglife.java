@@ -128,7 +128,6 @@ public final class Buglife {
 
     /**
      * Queues an attachment for the next bug report draft.
-     * Deprecated, use {@link Buglife#addAttachment(FileAttachment)} instead.
      *
      * @param attachment The attachment
      */
@@ -138,7 +137,7 @@ public final class Buglife {
     }
 
     /**
-     * Queues an attachment for the next bug report draft.
+     * Queues a file attachment for the next bug report draft.
      *
      * @param attachment The attachment
      */
