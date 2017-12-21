@@ -74,6 +74,16 @@ final class BugReporterImpl implements BugReporter {
             callback.onFailure(ReportSubmissionCallback.Error.SERIALIZATION, e);
             return;
         }
+        finally {
+            // clean up some nasty global state
+            try {
+                File tempAttachmentDir = new File(mContext.getCacheDir() + Attachment.TEMP_ATTACHMENTS_DIR);
+                IOUtils.deleteRecursively(tempAttachmentDir);
+            } catch (IOException e) {
+                Log.e("Failed to delete temporary attachment directory, temp attachments may be leaking", e);
+                // not much else to do here. This is not a critical failure, just an ugly one.
+            }
+        }
 
         boolean forceLegacy = (Buglife.getRetryPolicy() == RetryPolicy.AUTOMATIC_LEGACY);
 

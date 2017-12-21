@@ -22,15 +22,15 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
+import org.json.JSONObject;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 
-/**
- * Represents a file/resource that can be attached to a bug report.
- * This class is now deprecated. Prefer {@link FileAttachment} over {@link Attachment}.
- */
-@Deprecated
 public class Attachment implements Parcelable {
     public static final String TYPE_TEXT = MimeTypes.PLAIN_TEXT;
     public static final String TYPE_JSON = MimeTypes.JSON;
@@ -38,6 +38,8 @@ public class Attachment implements Parcelable {
     public static final String TYPE_PNG = MimeTypes.PNG;
     public static final String TYPE_JPEG = MimeTypes.JPG;
     public static final String TYPE_MP4 = MimeTypes.MP4;
+
+    public static final String TEMP_ATTACHMENTS_DIR = "tempAttachments";
 
     private FileAttachment mFileAttachment;
 
@@ -117,7 +119,10 @@ public class Attachment implements Parcelable {
          * @return The attachment
          */
         public @NonNull Attachment build(@NonNull Bitmap bitmap) {
-            File file = new File(Buglife.getContext().getCacheDir(), mFilename);
+            File tempDir = new File(Buglife.getContext().getCacheDir(), TEMP_ATTACHMENTS_DIR);
+            tempDir.mkdir();
+
+            File file = new File(tempDir, mFilename);
             try {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
             } catch (FileNotFoundException e) {
@@ -126,5 +131,53 @@ public class Attachment implements Parcelable {
             }
             return build(file);
         }
+
+        /**
+         * Builds a file attachment using a JSON object
+         * @param json the JSON object
+         * @return The Attachment
+         */
+
+        public @NonNull Attachment build(@NonNull JSONObject json) {
+            File tempDir = new File(Buglife.getContext().getCacheDir(), TEMP_ATTACHMENTS_DIR);
+            tempDir.mkdir();
+
+            File file = new File(tempDir, mFilename);
+            try {
+                String jsonstr = json.toString();
+                BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+                bw.write(jsonstr);
+                bw.close();
+            }
+            catch (IOException e) {
+                // Rethrow
+                throw new RuntimeException(e);
+            }
+            return build(file);
+        }
+
+        /**
+         * Builds a file attachment using string data
+         * @param data base64 string data
+         * @return The Attachment
+         */
+        public @NonNull Attachment build(@NonNull String data) {
+            File tempDir = new File(Buglife.getContext().getCacheDir(), TEMP_ATTACHMENTS_DIR);
+            tempDir.mkdir();
+
+            File file = new File(tempDir, mFilename);
+            try {
+                BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+                bw.write(data);
+                bw.close();
+            }
+            catch (IOException e) {
+                // Rethrow
+                throw new RuntimeException(e);
+            }
+            return build(file);
+        }
+
+
     }
 }
