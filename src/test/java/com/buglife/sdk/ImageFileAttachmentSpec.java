@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
@@ -37,20 +38,20 @@ public final class ImageFileAttachmentSpec {
     }
 
     @Test
-    public void serializeWithCorrectFilename() throws JSONException {
+    public void serializeWithCorrectFilename() throws JSONException, IOException {
         JSONObject json = mFileAttachment.toJSON();
         assertThat(json.getString("filename")).isEqualTo("test_image.png");
     }
 
     @Test
-    public void serializeWithCorrectData() throws JSONException {
+    public void serializeWithCorrectData() throws JSONException, IOException {
         String testImageBase64 = SpecUtils.readContentsOfResourceFile("test_image_base64.txt");
         JSONObject json = mFileAttachment.toJSON();
         assertThat(json.getString("base64_attachment_data")).isEqualTo(testImageBase64);
     }
 
     @Test
-    public void serializeWithCorrectMimeType() throws JSONException {
+    public void serializeWithCorrectMimeType() throws JSONException, IOException {
         JSONObject json = mFileAttachment.toJSON();
         assertThat(json.getString("mime_type")).isEqualTo("image/png");
     }
