@@ -17,9 +17,33 @@
 
 package com.buglife.sdk;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Represents a method of invoking the bug reporter UI.
  */
 public enum InvocationMethod {
-    NONE, SHAKE, SCREENSHOT
+    NONE(0),
+    SHAKE(1),
+    SCREENSHOT(2);
+    private int mValue;
+    private InvocationMethod(int value) {
+        mValue = value;
+    }
+    private static Map map = new HashMap<>();
+    static {
+        for (InvocationMethod invocationMethod : InvocationMethod.values()) {
+            map.put(invocationMethod.mValue, invocationMethod);
+        }
+    }
+    public static InvocationMethod valueOf(int methodValue) {
+        return (InvocationMethod) map.get(methodValue);
+    }
+
+    public int getValue() {
+        return mValue;
+    }
+
+
 }
