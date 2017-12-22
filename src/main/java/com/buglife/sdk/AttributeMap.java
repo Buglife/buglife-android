@@ -30,7 +30,7 @@ import java.util.Set;
  * Represents a collection of custom attributes set by a user.
  */
 final class AttributeMap implements Parcelable {
-    private final HashMap<String, String> mAttributes;
+    private final HashMap<String, Attribute> mAttributes;
 
     AttributeMap() {
         mAttributes = new HashMap();
@@ -47,8 +47,8 @@ final class AttributeMap implements Parcelable {
 
         for (int i = 0; i < size; i++) {
             String key = source.readString();
-            String value = source.readString();
-            mAttributes.put(key, value);
+            Attribute attr = source.readParcelable(getClass().getClassLoader());
+            mAttributes.put(key, attr);
         }
     }
 
@@ -58,9 +58,9 @@ final class AttributeMap implements Parcelable {
         dest.writeInt(size);
 
         if (size > 0) {
-            for (Map.Entry<String, String> entry : mAttributes.entrySet()) {
+            for (Map.Entry<String, Attribute> entry : mAttributes.entrySet()) {
                 dest.writeString(entry.getKey());
-                dest.writeString(entry.getValue());
+                dest.writeParcelable(entry.getValue(), 0);
             }
         }
     }
@@ -82,11 +82,11 @@ final class AttributeMap implements Parcelable {
         }
     };
 
-    void put(@NonNull String key, @Nullable String value) {
+    void put(@NonNull String key, @Nullable Attribute value) {
         mAttributes.put(key, value);
     }
 
-    @Nullable String get(@NonNull String key) {
+    @Nullable Attribute get(@NonNull String key) {
         return mAttributes.get(key);
     }
 
@@ -94,7 +94,7 @@ final class AttributeMap implements Parcelable {
         mAttributes.clear();
     }
 
-    Set<Map.Entry<String, String>> entrySet() {
+    Set<Map.Entry<String, Attribute>> entrySet() {
         return mAttributes.entrySet();
     }
 }
