@@ -138,7 +138,8 @@ public class ReportActivity extends AppCompatActivity {
 
     private @Nullable String getValueForInputField(@NonNull InputField inputField) {
         String attributeName = inputField.getAttributeName();
-        return mBugContext.getAttribute(attributeName);
+        Attribute attribute = mBugContext.getAttribute(attributeName);
+        return attribute == null ? null : attribute.getValue();
     }
 
     void setValueForInputField(@NonNull InputField inputField, @Nullable String value) {

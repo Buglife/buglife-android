@@ -74,10 +74,10 @@ final class BugContext implements Parcelable {
     }
 
     void putAttribute(@NonNull String key, @Nullable String value) {
-        mAttributes.put(key, value);
+        mAttributes.put(key, new Attribute(value, Attribute.ValueType.STRING, Attribute.FLAG_CUSTOM));
     }
 
-    @Nullable String getAttribute(@NonNull String key) {
+    @Nullable Attribute getAttribute(@NonNull String key) {
         return mAttributes.get(key);
     }
 

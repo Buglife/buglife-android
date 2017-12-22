@@ -172,7 +172,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     }
 
     void putAttribute(@NonNull String key, @Nullable String value) {
-        mAttributes.put(key, value);
+        mAttributes.put(key, new Attribute(value, Attribute.ValueType.STRING, Attribute.FLAG_CUSTOM));
     }
 
     void setInputFields(@NonNull InputField... inputFields) {

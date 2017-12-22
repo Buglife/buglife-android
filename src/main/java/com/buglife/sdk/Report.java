@@ -40,7 +40,7 @@ public final class Report {
     }
 
     public JSONObject toJSON() throws JSONException, IOException {
-        String whatHappened = mBugContext.getAttribute(TextInputField.SUMMARY_ATTRIBUTE_NAME);
+        String whatHappened = mBugContext.getAttribute(TextInputField.SUMMARY_ATTRIBUTE_NAME).getValue();
 
         JSONObject params = new JSONObject();
         JSONObject reportParams = new JSONObject();
@@ -96,8 +96,9 @@ public final class Report {
         JSONObject attributesParams = new JSONObject();
         AttributeMap attributes = mBugContext.getAttributes();
 
-        for (Map.Entry<String, String> attribute : attributes.entrySet()) {
+        for (Map.Entry<String, Attribute> attribute : attributes.entrySet()) {
             String attributeName = attribute.getKey();
+            Attribute attr = attribute.getValue();
 
             if (attributeName.equals(TextInputField.SUMMARY_ATTRIBUTE_NAME)) {
                 // Skip system attributes
@@ -105,8 +106,9 @@ public final class Report {
             }
 
             JSONObject attributeParams = new JSONObject();
-            attributeParams.put("attribute_type", 0);
-            attributeParams.put("attribute_value", attribute.getValue());
+            attributeParams.put("attribute_type", attr.getValueType());
+            attributeParams.put("attribute_value", attr.getValue());
+            attributeParams.put("flag", attr.getFlags());
             attributesParams.put(attributeName, attributeParams);
         }
 
