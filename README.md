@@ -5,7 +5,7 @@
 [![Documentation](https://img.shields.io/badge/documentation-latest-blue.svg)](http://www.buglife.com/docs/android)
 [![Twitter](https://img.shields.io/badge/twitter-@BuglifeApp-blue.svg)](https://twitter.com/buglifeapp)
 
-Buglife is an awesome bug reporting SDK & web platform for iOS apps. Here's how it works:
+Buglife is an awesome bug reporting SDK & web platform for Android apps. Here's how it works:
 
 1. User takes a screenshot, or stops screen recording
 2. User annotates their screenshot & writes feedback
