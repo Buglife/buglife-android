@@ -372,7 +372,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
     private void startBuglifeActivity(Intent intent) {
         mReportFlowVisible = true;
-        mAppContext.startActivity(intent);
+        mForegroundDetector.getCurrentActivity().startActivity(intent);
     }
 
     private @NonNull BugContext buildBugContext() {
