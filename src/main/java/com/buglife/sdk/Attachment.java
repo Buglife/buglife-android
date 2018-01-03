@@ -78,7 +78,6 @@ public class Attachment implements Parcelable {
     /**
      * Builder for Attachment objects.
      */
-    @Deprecated
     public static class Builder {
         @NonNull final private String mFilename;
         @NonNull final private String mType;

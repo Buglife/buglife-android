@@ -131,7 +131,6 @@ public final class Buglife {
      *
      * @param attachment The attachment
      */
-    @Deprecated
     public static void addAttachment(@NonNull Attachment attachment) {
         getClient().addAttachment(attachment);
     }
