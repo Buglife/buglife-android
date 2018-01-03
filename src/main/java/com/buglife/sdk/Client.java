@@ -152,6 +152,10 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     }
 
     void setInvocationMethod(InvocationMethod invocationMethod) {
+        if (mInvocationMethod != invocationMethod) {
+            stopInvocationMethod();
+        }
+
         mInvocationMethod = invocationMethod;
         if (mForegroundDetector.getForegrounded()) {
             startInvocationMethod();
