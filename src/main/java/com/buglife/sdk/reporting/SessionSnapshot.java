@@ -41,7 +41,15 @@ public class SessionSnapshot implements Parcelable {
     public SessionSnapshot(Context context, String userEmail, String userIdentifier) {
         mPlatform = "android";
         mSDKVersion = com.buglife.sdk.BuildConfig.VERSION_NAME;
-        mSDKName = "Buglife Android";
+        String sdkStr;
+        try {
+            Class.forName("com.buglife.BuglifeModule");
+            sdkStr = "Buglife React Native Android";
+        }
+        catch (ClassNotFoundException e) {
+            sdkStr = "Buglife Android";
+        }
+        mSDKName = sdkStr;
         mUserEmail = userEmail;
         mUserIdentifier = userIdentifier;
         mBundleIdentifier = context.getPackageName();
