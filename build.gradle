@@ -28,10 +28,10 @@ ext {
 
 android {
     compileSdkVersion 27
-    buildToolsVersion "26.0.2"
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 27
         versionCode PUBLISH_VERSION_CODE
         versionName PUBLISH_VERSION_NAME
@@ -45,11 +45,11 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:27.0.0'
-    compile 'com.android.support:design:27.0.0'
-    compile 'com.android.support:support-dynamic-animation:27.0.0'
-    compile 'com.android.volley:volley:1.0.0'
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.assertj:assertj-core:2.8.0'
-    testCompile 'org.json:json:20171018'
+    implementation "com.android.support:appcompat-v7:27.0.2"
+    implementation "com.android.support:design:27.0.2"
+    implementation "com.android.support:support-dynamic-animation:27.0.2"
+    implementation "com.android.volley:volley:1.0.0"
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.assertj:assertj-core:2.8.0'
+    testImplementation 'org.json:json:20171018'
 }
