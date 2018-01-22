@@ -105,7 +105,8 @@ final class BugContext implements Parcelable {
 
     @Override public void writeToParcel(Parcel dest, int flags) {
         dest.writeParcelable(this.mApiIdentity, flags);
-        dest.writeTypedList(this.mAttachments);
+        dest.writeInt(this.mAttachments.size());
+        dest.writeList(this.mAttachments);
         dest.writeParcelable(this.mAttributes, flags);
         dest.writeParcelable(this.mEnvironmentSnapshot, flags);
         dest.writeParcelable(this.mDeviceSnapshot, flags);
@@ -114,7 +115,9 @@ final class BugContext implements Parcelable {
 
     BugContext(Parcel in) {
         this.mApiIdentity = in.readParcelable(ApiIdentity.class.getClassLoader());
-        this.mAttachments = in.createTypedArrayList(FileAttachment.CREATOR);
+        int attachmentsSize = in.readInt();
+        this.mAttachments = new ArrayList<>(attachmentsSize);
+        in.readList(this.mAttachments, FileAttachment.class.getClassLoader());
         this.mAttributes = in.readParcelable(AttributeMap.class.getClassLoader());
         this.mEnvironmentSnapshot = in.readParcelable(EnvironmentSnapshot.class.getClassLoader());
         this.mDeviceSnapshot = in.readParcelable(DeviceSnapshot.class.getClassLoader());

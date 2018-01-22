@@ -17,6 +17,7 @@
 
 package com.buglife.sdk;
 
+import android.os.Parcel;
 import android.support.annotation.NonNull;
 
 import org.json.JSONException;
@@ -31,6 +32,21 @@ class LogFileAttachment extends FileAttachment {
     LogFileAttachment(@NonNull File file) {
         super(file, "application/json");
     }
+
+    protected LogFileAttachment(Parcel in) {
+        super(in);
+    }
+
+    public static final Creator<LogFileAttachment> CREATOR = new Creator<LogFileAttachment>() {
+        @Override public LogFileAttachment createFromParcel(Parcel source) {
+            return new LogFileAttachment(source);
+        }
+
+        @Override public LogFileAttachment[] newArray(int size) {
+            return new LogFileAttachment[size];
+        }
+    };
+
 
     @Override public JSONObject toJSON() throws JSONException, IOException {
         JSONObject json = super.toJSON();
