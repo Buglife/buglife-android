@@ -23,12 +23,9 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -37,6 +34,7 @@ import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
 import com.buglife.sdk.reporting.BugReporter;
+import com.buglife.sdk.reporting.ClientEventReporter;
 import com.buglife.sdk.reporting.ReportSubmissionCallback;
 import com.buglife.sdk.screenrecorder.ScreenRecorder;
 import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
@@ -72,7 +70,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private boolean mReportFlowVisible = false;
     private final BugReporter reporter;
 
-    Client(Application application, BugReporter reporter, @NonNull ApiIdentity apiIdentity) {
+    Client(Application application, BugReporter reporter, @NonNull final ApiIdentity apiIdentity) {
         mAppContext = application.getApplicationContext();
         this.reporter = reporter;
         mApiIdentity = apiIdentity;
@@ -88,6 +86,14 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         }
 
         setInvocationMethod(DEFAULT_INVOCATION_METHOD);
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ClientEventReporter.getInstance(mAppContext).reportClientEvent("app_launch", mApiIdentity);
+            }
+        }, 10000);
     }
 
     RetryPolicy getRetryPolicy() {
@@ -149,10 +155,12 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     void setUserIdentifier(@Nullable String userIdentifier) {
         mUserIdentifier = userIdentifier;
     }
+    @Nullable String getUserIdentifier() { return mUserIdentifier; }
 
     void setUserEmail(@Nullable String userEmail) {
         mUserEmail = userEmail;
     }
+    @Nullable String getUserEmail() { return mUserIdentifier; }
 
     void setInvocationMethod(InvocationMethod invocationMethod) {
         if (mInvocationMethod != invocationMethod) {
@@ -228,6 +236,16 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
         Intent intent = ReportActivity.newStartIntent(mAppContext, buildBugContext());
         startBuglifeActivity(intent);
+        if (mActualInvocationMethod == InvocationMethod.NONE) {
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ClientEventReporter.getInstance(mAppContext).reportClientEvent("reporter_invoked_manually", mApiIdentity);
+                }
+            }, 2000);
+
+        }
     }
 
     void startScreenRecording() {
@@ -367,6 +385,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             @Override public void onFinishedRecording(File file) {
                 FileAttachment attachment = new FileAttachment(file, MimeTypes.MP4);
                 addAttachment(attachment);
+                mActualInvocationMethod = InvocationMethod.SCREEN_RECORDING;
                 showReporter();
             }
         });

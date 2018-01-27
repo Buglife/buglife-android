@@ -28,6 +28,8 @@ import com.android.volley.toolbox.Volley;
 public class NetworkManager {
 
     private static final int INITIAL_TIMEOUT_MS = 60 * 1000;
+    public static final String BUGLIFE_URL = "https://www.buglife.com";
+
 
     private static NetworkManager mInstance;
     private RequestQueue mRequestQueue;

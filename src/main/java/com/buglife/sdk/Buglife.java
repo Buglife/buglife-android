@@ -93,15 +93,35 @@ public final class Buglife {
     }
 
     /**
+     * Returns any user identifier than has been set, if any
+     *
+     * @return the user identifier or null (default)
+     */
+    public static @Nullable String getUserIdentifier() {
+        return getClient().getUserIdentifier();
+    }
+
+    /**
      * Specifies an email for the user that will be submitted with bug reports.
      *
      * @note This is the email address of the user of your app; This is NOT the email address
      *       to which bug reports will be sent.
      *
+     * @note The userEmail is *not* persisted across app launches
+     *
      * @param userEmail The user email.
      */
     public static void setUserEmail(@Nullable String userEmail) {
         getClient().setUserEmail(userEmail);
+    }
+
+    /**
+     *
+     * Returns any user email address that has been set, if any
+     * @return the user email or null (default)
+     */
+    public static @Nullable String getUserEmail() {
+        return getClient().getUserEmail();
     }
 
     /**

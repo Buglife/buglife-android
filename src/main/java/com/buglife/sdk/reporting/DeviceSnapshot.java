@@ -17,9 +17,11 @@
 
 package com.buglife.sdk.reporting;
 
+import android.content.Context;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 
 public final class DeviceSnapshot implements Parcelable {
@@ -29,12 +31,12 @@ public final class DeviceSnapshot implements Parcelable {
     private final String mDeviceBrand;
     @Nullable private final String mDeviceIdentifier;
 
-    public DeviceSnapshot() {
+    public DeviceSnapshot(Context context) {
         mOSVersion = android.os.Build.VERSION.RELEASE;
         mDeviceManufacturer = Build.MANUFACTURER;
         mDeviceModel = Build.MODEL;
         mDeviceBrand = Build.BRAND;
-        mDeviceIdentifier = null;
+        mDeviceIdentifier = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 
     public String getOSVersion() {

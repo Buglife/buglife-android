@@ -186,7 +186,7 @@ final class BugContext implements Parcelable {
         public BugContext build() {
             SessionSnapshot sessionSnapshot = new SessionSnapshot(mContext, mUserEmail, mUserIdentifier);
             EnvironmentSnapshot environment = new EnvironmentSnapshot(mContext, mInvocationMethod);
-            DeviceSnapshot deviceSnapshot = new DeviceSnapshot();
+            DeviceSnapshot deviceSnapshot = new DeviceSnapshot(mContext);
             return new BugContext(mApiIdentity, mAttachments, mAttributeMap, sessionSnapshot, deviceSnapshot, environment);
         }
 

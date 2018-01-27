@@ -25,6 +25,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -38,6 +39,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import com.buglife.sdk.reporting.ClientEventReporter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -167,6 +170,14 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         }
 
         ActivityUtils.setStatusBarColor(this, mColorPalette.getColorPrimaryDark());
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ClientEventReporter.getInstance(Buglife.getContext()).reportClientEvent("presented_reporter", mBugContext.getApiIdentity());
+            }
+        }, 2000);
+
     }
 
     @Override

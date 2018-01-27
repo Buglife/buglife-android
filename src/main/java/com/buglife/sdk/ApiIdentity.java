@@ -20,7 +20,7 @@ package com.buglife.sdk;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-interface ApiIdentity extends Parcelable {
+public interface ApiIdentity extends Parcelable {
     String getId();
 
     class ApiKey implements ApiIdentity {

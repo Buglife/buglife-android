@@ -29,9 +29,10 @@ import com.buglife.sdk.NetworkManager;
 
 import org.json.JSONObject;
 
+
 public final class SubmitReportTask {
-    private static final String BUGLIFE_URL = "https://www.buglife.com/api/v1/reports.json";
     private final NetworkManager mNetworkManager;
+    private static final String BUGLIFE_REPORT_URL = NetworkManager.BUGLIFE_URL+"/api/v1/reports.json";
 
     public SubmitReportTask(Context context) {
         mNetworkManager = NetworkManager.getInstance(context);
@@ -44,7 +45,7 @@ public final class SubmitReportTask {
      */
     public Result execute(JSONObject report) {
         RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_URL, report, future, future);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_REPORT_URL, report, future, future);
         mNetworkManager.addToRequestQueue(request);
         Log.d("JSON object request for report added to request queue...");
 
@@ -64,7 +65,7 @@ public final class SubmitReportTask {
      * @param callback Calls back with the result of the request; this is called on the main thread
      */
     public void execute(JSONObject report, final ReportSubmissionCallback callback) {
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_URL, report, new Response.Listener<JSONObject>() {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_REPORT_URL, report, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.d("Report submitted successfully!");

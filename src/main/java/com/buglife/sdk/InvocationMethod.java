@@ -26,7 +26,9 @@ import java.util.Map;
 public enum InvocationMethod {
     NONE(0),
     SHAKE(1),
-    SCREENSHOT(2);
+    SCREENSHOT(2),
+    BUG_BUTTON(4),
+    SCREEN_RECORDING(8);
     private int mValue;
     private InvocationMethod(int value) {
         mValue = value;
