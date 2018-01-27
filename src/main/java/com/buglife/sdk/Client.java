@@ -62,6 +62,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     @Nullable private BuglifeListener mListener;
     @NonNull private InvocationMethod mInvocationMethod;
     @Nullable private InvocationMethodManager mInvocationMethodManager;
+    @NonNull private  InvocationMethod mActualInvocationMethod = InvocationMethod.NONE;
     private final ForegroundDetector mForegroundDetector;
     @Nullable private String mUserIdentifier = null;
     @Nullable private String mUserEmail = null;
@@ -113,6 +114,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         }
 
         if (mInvocationMethod == InvocationMethod.SHAKE) {
+            mActualInvocationMethod = mInvocationMethod;
             FileAttachment attachment = captureScreenshot();
             if (attachment != null) {
                 onScreenshotTaken(attachment);
@@ -121,6 +123,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     }
 
     @Override public void onScreenshotInvocationMethodTriggered(File file) {
+        mActualInvocationMethod = InvocationMethod.SCREENSHOT;
         Handler mainHandler = new Handler(mAppContext.getMainLooper());
 
         final FileAttachment attachment = new FileAttachment(file, MimeTypes.PNG);
@@ -379,14 +382,18 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         BugContext.Builder builder = new BugContext.Builder(mAppContext)
                 .setUserEmail(mUserEmail)
                 .setUserIdentifier(mUserIdentifier)
-                .setApiIdentity(mApiIdentity);
+                .setApiIdentity(mApiIdentity)
+                .setInvocationMethod(mActualInvocationMethod);
 
         if (mListener != null) {
             mListener.onAttachmentRequest();
         }
 
         builder.addAttachments(mQueuedAttachments);
+        //reset for the next one
         mQueuedAttachments.clear();
+        mActualInvocationMethod = InvocationMethod.NONE;
+
 
         builder.setAttributes(mAttributes);
 

@@ -73,6 +73,7 @@ public final class Report {
         reportParams.put("android_mobile_network_subtype", environmentSnapshot.getMobileNetworkSubtype());
         reportParams.put("wifi_connected", environmentSnapshot.getWifiConnected());
         reportParams.put("locale", environmentSnapshot.getLocale());
+        reportParams.put("invocation_method", environmentSnapshot.getInvokationMethod().getValue());
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZ");
 

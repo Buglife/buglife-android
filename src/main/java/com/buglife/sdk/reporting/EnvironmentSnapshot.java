@@ -27,6 +27,8 @@ import android.os.StatFs;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.buglife.sdk.InvocationMethod;
+
 import java.util.Date;
 
 /**
@@ -43,8 +45,9 @@ public final class EnvironmentSnapshot implements Parcelable {
     private final boolean mWifiConnected;
     @Nullable private final String mLocale;
     @NonNull private final Date mInvokedAt;
+    @NonNull private final InvocationMethod mInvocationMethod;
 
-    public EnvironmentSnapshot(Context mContext) {
+    public EnvironmentSnapshot(Context mContext, InvocationMethod invocationMethod) {
         mBatteryLevel = EnvironmentUtils.getBatteryLevel(mContext);
         ActivityManager.MemoryInfo memoryInfo = EnvironmentUtils.getMemoryInfo(mContext);
         mFreeMemoryBytes = memoryInfo.availMem;
@@ -65,6 +68,7 @@ public final class EnvironmentSnapshot implements Parcelable {
         mWifiConnected = connectivity.isConnectedToWiFi();
         mLocale = EnvironmentUtils.getLocale(mContext).toString();
         mInvokedAt = new Date();
+        mInvocationMethod = invocationMethod;
     }
 
     public float getBatteryLevel() {
@@ -105,6 +109,8 @@ public final class EnvironmentSnapshot implements Parcelable {
 
     public Date getInvokedAt() {return  mInvokedAt; }
 
+    @NonNull public InvocationMethod getInvokationMethod() { return mInvocationMethod; }
+
     /* Parcelable */
 
     EnvironmentSnapshot(Parcel in) {
@@ -118,6 +124,7 @@ public final class EnvironmentSnapshot implements Parcelable {
         mWifiConnected = in.readByte() != 0;
         mLocale = in.readString();
         mInvokedAt = (Date) in.readSerializable();
+        mInvocationMethod = InvocationMethod.valueOf(in.readInt());
     }
 
     @Override
@@ -132,6 +139,7 @@ public final class EnvironmentSnapshot implements Parcelable {
         dest.writeByte((byte) (mWifiConnected ? 1 : 0));
         dest.writeString(mLocale);
         dest.writeSerializable(mInvokedAt);
+        dest.writeInt(mInvocationMethod.getValue());
     }
 
     @Override
