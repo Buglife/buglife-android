@@ -42,7 +42,7 @@ final class BugReporterImpl implements BugReporter {
 
     BugReporterImpl(Context context) {
         mContext = context;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (shouldUseLegacyReporter()) {
             // Kick off submit report service in case there are cached reports still
             // available.
             SubmitReportLegacyService.start(mContext);
@@ -87,7 +87,7 @@ final class BugReporterImpl implements BugReporter {
 
         boolean forceLegacy = (Buglife.getRetryPolicy() == RetryPolicy.AUTOMATIC_LEGACY);
 
-        if (!forceLegacy && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (!forceLegacy && !shouldUseLegacyReporter()) {
             Log.d("Attempting to schedule report submission...");
 
             JobScheduler jobScheduler = (JobScheduler) mContext.getSystemService(Context.JOB_SCHEDULER_SERVICE);
@@ -130,5 +130,9 @@ final class BugReporterImpl implements BugReporter {
                 .build();
 
         jobScheduler.schedule(info);
+    }
+
+    private boolean shouldUseLegacyReporter() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP;
     }
 }
