@@ -30,7 +30,7 @@ final class ColorPalette {
     private static final String ATTRIBUTE_COLOR_PRIMARY = "colorPrimary";
     private static final String ATTRIBUTE_COLOR_PRIMARY_DARK = "colorPrimaryDark";
     private static final String ATTRIBUTE_COLOR_ACCENT = "colorAccent";
-    private static final String ATTRIBUTE_TEXT_COLOR_PRIMARY = "android:textColorPrimary";
+    private static final String ATTRIBUTE_TEXT_COLOR_PRIMARY = "textColorPrimary";
 
     private @ColorInt int mColorPrimary;
     private @ColorInt int mColorPrimaryDark;
