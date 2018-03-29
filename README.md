@@ -37,7 +37,7 @@ You can also find Buglife for iOS [here](https://github.com/buglife/buglife-ios)
 
 	```groovy
 	dependencies {
-		compile 'com.buglife.sdk:buglife-android:1.3.0'
+		compile 'com.buglife.sdk:buglife-android:1.3.1'
 	}
 	```
 
