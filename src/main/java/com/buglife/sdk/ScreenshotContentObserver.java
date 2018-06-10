@@ -86,7 +86,7 @@ final class ScreenshotContentObserver implements ScreenshotObserver {
 
                 @Override
                 public void onPermissionDenied() {
-                    Toast.makeText(currentActivity, "Buglife needs read store permission to capture screenshots!", Toast.LENGTH_LONG).show();
+                    Log.w("Buglife needs read storage permission to capture screenshots!");
                     permissionListener.onPermissionDenied();
                 }
             });
