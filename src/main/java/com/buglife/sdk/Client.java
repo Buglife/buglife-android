@@ -294,7 +294,12 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         }
 
         List requestedPermissions = Arrays.asList(packageInfo.requestedPermissions);
-        List requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_WRITE_EXTERNAL_STORAGE, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);
+        List requiredPermissions;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);
+        } else {
+            requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_WRITE_EXTERNAL_STORAGE, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);
+        }
         return requestedPermissions.containsAll(requiredPermissions);
     }
 
