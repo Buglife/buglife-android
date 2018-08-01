@@ -46,7 +46,6 @@ public final class Buglife {
      * @param apiKey      Your Buglife API key. You can find this on the Buglife web dashboard
      */
     public static void initWithApiKey(@NonNull Application application, @NonNull String apiKey) {
-        verifyDependencies();
         mClient = new Client.Builder(application).buildWithApiKey(apiKey);
     }
 
@@ -63,7 +62,6 @@ public final class Buglife {
      *                    should belong to you or someone on your team.
      */
     public static void initWithEmail(@NonNull Application application, @NonNull String email) {
-        verifyDependencies();
         mClient = new Client.Builder(application).buildWithEmail(email);
     }
 
@@ -246,20 +244,6 @@ public final class Buglife {
     @Deprecated
     static Context getContext() {
         return getClient().getApplicationContext();
-    }
-
-    private static void verifyDependencies() {
-        try {
-            Class<?> clazz = Class.forName("com.android.volley.toolbox.JsonObjectRequest");
-        } catch (ClassNotFoundException e) {
-            throw new BuglifeException("Unable to initialize Buglife. Dependency `com.android.volley:volley` not found");
-        }
-
-        try {
-            Class<?> clazz = Class.forName("android.support.v7.app.ActionBar");
-        } catch (ClassNotFoundException e) {
-            throw new BuglifeException("Unable to initialize Buglife. Dependency `com.android.support:appcompat-v7` not found");
-        }
     }
 
     private static Client getClient() {
