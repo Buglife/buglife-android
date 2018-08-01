@@ -174,7 +174,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                ClientEventReporter.getInstance(Buglife.getContext()).reportClientEvent("presented_reporter", mBugContext.getApiIdentity());
+                //ClientEventReporter.getInstance(Buglife.getContext()).reportClientEvent("presented_reporter", mBugContext.getApiIdentity());
             }
         }, 2000);
 
