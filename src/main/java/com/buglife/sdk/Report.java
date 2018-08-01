@@ -40,13 +40,15 @@ public final class Report {
     }
 
     public JSONObject toJSON() throws JSONException, IOException {
-        String whatHappened = mBugContext.getAttribute(TextInputField.SUMMARY_ATTRIBUTE_NAME).getValue();
-
         JSONObject params = new JSONObject();
         JSONObject reportParams = new JSONObject();
         JSONObject appParams = new JSONObject();
 
-        reportParams.put("what_happened", whatHappened);
+        Attribute summaryAttribute = mBugContext.getAttribute(TextInputField.SUMMARY_ATTRIBUTE_NAME);
+
+        if (summaryAttribute != null) {
+            reportParams.put("what_happened", summaryAttribute.getValue());
+        }
 
         SessionSnapshot sessionSnapshot = mBugContext.getSessionSnapshot();
         reportParams.put("sdk_version", sessionSnapshot.getSDKVersion());
