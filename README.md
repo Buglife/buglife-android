@@ -37,8 +37,7 @@ You can also find Buglife for iOS [here](https://github.com/buglife/buglife-ios)
 
 	```groovy
 	dependencies {
-		implementation 'com.buglife.sdk:buglife-android:1.3.2'
-		implementation 'com.android.volley:volley:1.1.0'
+		implementation 'com.buglife.sdk:buglife-android:1.3.3'
 	}
 	```
 
@@ -178,7 +177,7 @@ Check out the [Buglife Android guide](http://www.buglife.com/docs/android) for c
 ## License
 
 ```
-Copyright (C) 2017 Buglife, Inc.
+Copyright (C) 2018 Buglife, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
