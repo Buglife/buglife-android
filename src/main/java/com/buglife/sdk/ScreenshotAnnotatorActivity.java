@@ -98,7 +98,9 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         mAnnotationView = (AnnotationView) findViewById(R.id.annotation_view);
 
         Intent intent = getIntent();
+        intent.setExtrasClassLoader(FileAttachment.class.getClassLoader());
         mAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
+        intent.setExtrasClassLoader(BugContext.class.getClassLoader());
         mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
         File file = mAttachment.getFile();

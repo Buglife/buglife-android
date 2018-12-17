@@ -28,6 +28,7 @@ public final class VideoActivity extends Activity {
         mVideoView = (VideoView) findViewById(R.id.video_view);
 
         Intent intent = getIntent();
+        intent.setExtrasClassLoader(FileAttachment.class.getClassLoader());
         FileAttachment videoAttachment = intent.getParcelableExtra(INTENT_KEY_ATTACHMENT);
         File file = videoAttachment.getFile();
         mVideoView.setVideoURI(Uri.fromFile(file));

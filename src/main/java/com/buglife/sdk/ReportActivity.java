@@ -79,6 +79,7 @@ public class ReportActivity extends AppCompatActivity {
         mAttachmentListView = (ListView) findViewById(R.id.attachment_list_view);
 
         Intent intent = getIntent();
+        intent.setExtrasClassLoader(BugContext.class.getClassLoader());
         mBugContext = intent.getParcelableExtra(INTENT_KEY_BUG_CONTEXT);
 
         final List<FileAttachment> mediaAttachments = mBugContext.getMediaAttachments();
