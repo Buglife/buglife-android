@@ -17,8 +17,12 @@
 
 package com.buglife.sdk.reporting;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Parcel;
@@ -28,7 +32,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.buglife.sdk.InvocationMethod;
+import com.buglife.sdk.ActivityUtils;
 
+import java.security.Permission;
 import java.util.Date;
 
 /**
@@ -46,7 +52,9 @@ public final class EnvironmentSnapshot implements Parcelable {
     @Nullable private final String mLocale;
     @NonNull private final Date mInvokedAt;
     @NonNull private final InvocationMethod mInvocationMethod;
+    @Nullable private final Location mLocation;
 
+    @SuppressLint("MissingPermission")
     public EnvironmentSnapshot(Context mContext, InvocationMethod invocationMethod) {
         mBatteryLevel = EnvironmentUtils.getBatteryLevel(mContext);
         ActivityManager.MemoryInfo memoryInfo = EnvironmentUtils.getMemoryInfo(mContext);
@@ -69,6 +77,25 @@ public final class EnvironmentSnapshot implements Parcelable {
         mLocale = EnvironmentUtils.getLocale(mContext).toString();
         mInvokedAt = new Date();
         mInvocationMethod = invocationMethod;
+
+        LocationManager locationManager = (LocationManager)mContext.getSystemService(Context.LOCATION_SERVICE);
+        Location tempLocation = null;
+        String[] fineLoc = {Manifest.permission.ACCESS_FINE_LOCATION};
+        if (ActivityUtils.arePermissionsGranted(mContext, fineLoc)) {
+            tempLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (tempLocation == null) {
+                // Fall back to network provider
+                tempLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            }
+        }
+        else {
+            String[] coarseLoc = {Manifest.permission.ACCESS_COARSE_LOCATION};
+            if (ActivityUtils.arePermissionsGranted(mContext, coarseLoc)) {
+                tempLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            }
+        }
+        mLocation = tempLocation;
+
     }
 
     public float getBatteryLevel() {
@@ -111,6 +138,10 @@ public final class EnvironmentSnapshot implements Parcelable {
 
     @NonNull public InvocationMethod getInvokationMethod() { return mInvocationMethod; }
 
+    @Nullable public Location getLocation() {
+        return mLocation;
+    }
+
     /* Parcelable */
 
     EnvironmentSnapshot(Parcel in) {
@@ -125,6 +156,7 @@ public final class EnvironmentSnapshot implements Parcelable {
         mLocale = in.readString();
         mInvokedAt = (Date) in.readSerializable();
         mInvocationMethod = InvocationMethod.valueOf(in.readInt());
+        mLocation = in.readParcelable(Location.class.getClassLoader());
     }
 
     @Override
@@ -140,6 +172,7 @@ public final class EnvironmentSnapshot implements Parcelable {
         dest.writeString(mLocale);
         dest.writeSerializable(mInvokedAt);
         dest.writeInt(mInvocationMethod.getValue());
+        dest.writeParcelable(mLocation, flags);
     }
 
     @Override

@@ -32,7 +32,7 @@ import android.text.Html;
 import android.view.Window;
 import android.view.WindowManager;
 
-final class ActivityUtils {
+public final class ActivityUtils {
     static final String INTENT_KEY_BUG_CONTEXT = "INTENT_KEY_BUG_CONTEXT";
     static final String INTENT_KEY_ATTACHMENT = "INTENT_KEY_ATTACHMENT";
 
@@ -47,7 +47,7 @@ final class ActivityUtils {
         window.setStatusBarColor(color);
     }
 
-    static boolean arePermissionsGranted(Context context, String[] permissions) {
+    public static boolean arePermissionsGranted(Context context, String[] permissions) {
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
                 return false;

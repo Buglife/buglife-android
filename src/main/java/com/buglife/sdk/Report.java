@@ -17,6 +17,8 @@
 
 package com.buglife.sdk;
 
+import android.location.Location;
+
 import com.buglife.sdk.reporting.DeviceSnapshot;
 import com.buglife.sdk.reporting.EnvironmentSnapshot;
 import com.buglife.sdk.reporting.SessionSnapshot;
@@ -24,6 +26,7 @@ import com.buglife.sdk.reporting.SessionSnapshot;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Attr;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -98,6 +101,14 @@ public final class Report {
         // Attributes
         JSONObject attributesParams = new JSONObject();
         AttributeMap attributes = mBugContext.getAttributes();
+
+        //well this is a little awkward
+        Location location = environmentSnapshot.getLocation();
+
+        if (location != null) {
+            Attribute deviceLocation = new Attribute("" + location.getLatitude() + "," + location.getLongitude(), Attribute.ValueType.STRING, Attribute.FLAG_SYSTEM);
+            attributes.put("Device location", deviceLocation);
+        }
 
         for (Map.Entry<String, Attribute> attribute : attributes.entrySet()) {
             String attributeName = attribute.getKey();
