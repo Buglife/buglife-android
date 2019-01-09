@@ -198,7 +198,8 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         ArrayList<InputField> inputFields = mInputFields;
 
         if (inputFields == null || inputFields.isEmpty()) {
-            TextInputField summaryInputField = TextInputField.summaryInputField();
+            String summaryFieldTitle = mAppContext.getString(R.string.summary_field_title);
+            TextInputField summaryInputField = TextInputField.summaryInputField(summaryFieldTitle);
             inputFields = new ArrayList();
             inputFields.add(summaryInputField);
         }

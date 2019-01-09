@@ -9,12 +9,12 @@ buildscript {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     buildToolsVersion '28.0.3'
 
      defaultConfig {
          minSdkVersion 16
-         targetSdkVersion 27
+         targetSdkVersion 28
      }
     buildTypes {
         debug {
@@ -28,8 +28,8 @@ android {
 }
 
 dependencies {
-    compile rootProject
-    compile 'com.android.support:appcompat-v7:27.0.2'
-    compile 'com.android.support.constraint:constraint-layout:1.1.0-beta3'
-    compile 'com.android.support:design:27.0.2'
+    implementation rootProject
+    implementation "com.android.support:appcompat-v7:$SUPPORT_VERSION"
+    implementation 'com.android.support.constraint:constraint-layout:2.0.0-alpha3'
+    implementation "com.android.support:design:$SUPPORT_VERSION"
 }
