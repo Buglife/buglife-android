@@ -18,7 +18,6 @@
 package com.buglife.sdk;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 /**
  * Represents a single- or multi-line text input field in the Buglife bug reporter interface.
@@ -62,11 +61,13 @@ public final class TextInputField extends InputField {
      * Returns the system-provided summary field (i.e. "What happened?").
      * When there are no custom input fields configured,
      * the bug reporter UI shows the summary field by default.
+     * @param title The summary field title
      */
     public static TextInputField summaryInputField() {
         TextInputField summaryInputField = new TextInputField(SUMMARY_ATTRIBUTE_NAME, true);
         summaryInputField.setMultiline(true);
-        summaryInputField.setTitle("What happened?");
+        String title = Buglife.getContext().getString(R.string.summary_field_title);
+        summaryInputField.setTitle(title);
         return summaryInputField;
     }
 }
