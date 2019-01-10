@@ -63,9 +63,10 @@ public final class TextInputField extends InputField {
      * the bug reporter UI shows the summary field by default.
      * @param title The summary field title
      */
-    public static TextInputField summaryInputField(String title) {
+    public static TextInputField summaryInputField() {
         TextInputField summaryInputField = new TextInputField(SUMMARY_ATTRIBUTE_NAME, true);
         summaryInputField.setMultiline(true);
+        String title = Buglife.getContext().getString(R.string.summary_field_title);
         summaryInputField.setTitle(title);
         return summaryInputField;
     }
