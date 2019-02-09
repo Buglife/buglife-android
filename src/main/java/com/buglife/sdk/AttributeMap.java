@@ -47,7 +47,7 @@ final class AttributeMap implements Parcelable {
 
         for (int i = 0; i < size; i++) {
             String key = source.readString();
-            Attribute attr = source.readParcelable(getClass().getClassLoader());
+            Attribute attr = source.readParcelable(Attribute.class.getClassLoader());
             mAttributes.put(key, attr);
         }
     }
