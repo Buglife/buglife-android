@@ -224,6 +224,7 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void continueToReportActivity() {
         saveAnnotatedBitmap();
         mBugContext.addAttachment(mAttachment);

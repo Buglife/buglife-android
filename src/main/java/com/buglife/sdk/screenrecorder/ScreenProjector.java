@@ -44,17 +44,19 @@ public class ScreenProjector {
 
         mScreenEncoder.start();
 
-        mMediaProjection = mMediaProjectionManager.getMediaProjection(mResultCode, mResultData);
-        mVirtualDisplay = mMediaProjection.createVirtualDisplay(
-                VIRTUAL_DISPLAY_NAME,
-                mScreenEncoder.getWidth(),
-                mScreenEncoder.getHeight(),
-                mDensity,
-                VIRTUAL_DISPLAY_FLAG_PRESENTATION,
-                mScreenEncoder.getSurface(),
-                null,
-                null
-        );
+        mMediaProjection = mMediaProjectionManager.getMediaProjection(mResultCode, mResultData); // can return null
+        if (mMediaProjection != null) {
+            mVirtualDisplay = mMediaProjection.createVirtualDisplay(
+                    VIRTUAL_DISPLAY_NAME,
+                    mScreenEncoder.getWidth(),
+                    mScreenEncoder.getHeight(),
+                    mDensity,
+                    VIRTUAL_DISPLAY_FLAG_PRESENTATION,
+                    mScreenEncoder.getSurface(),
+                    null,
+                    null
+            );
+        }
     }
 
     void stop() {

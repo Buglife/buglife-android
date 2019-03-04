@@ -17,6 +17,8 @@
 
 package com.buglife.sdk;
 
+import android.support.annotation.Nullable;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -69,9 +71,11 @@ public class IOUtils {
         }
     }
 
-    public static void closeQuietly(Closeable closeable) {
+    public static void closeQuietly(@Nullable Closeable closeable) {
         try {
-            closeable.close();
+            if (closeable != null) {
+                closeable.close();
+            }
         } catch (IOException ignored) {
             // Ignore
         }

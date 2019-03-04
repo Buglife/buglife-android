@@ -55,7 +55,7 @@ public final class EnvironmentSnapshot implements Parcelable {
     @Nullable private final Location mLocation;
 
     @SuppressLint("MissingPermission")
-    public EnvironmentSnapshot(Context mContext, InvocationMethod invocationMethod) {
+    public EnvironmentSnapshot(Context mContext, @NonNull InvocationMethod invocationMethod) {
         mBatteryLevel = EnvironmentUtils.getBatteryLevel(mContext);
         ActivityManager.MemoryInfo memoryInfo = EnvironmentUtils.getMemoryInfo(mContext);
         mFreeMemoryBytes = memoryInfo.availMem;

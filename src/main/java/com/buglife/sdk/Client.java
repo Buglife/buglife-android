@@ -74,7 +74,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mAppContext = application.getApplicationContext();
         this.reporter = reporter;
         mApiIdentity = apiIdentity;
-        mQueuedAttachments = new ArrayList();
+        mQueuedAttachments = new ArrayList<>();
         mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
 

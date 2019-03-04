@@ -101,6 +101,7 @@ public class AnnotationView extends View {
                 if (type == Annotation.Type.LOUPE && !CollectionUtils.isEmpty(mAnnotations.get(Annotation.Type.BLUR))) {
                     image = mImage.copy(mImage.getConfig(), true);
                     Canvas offScreenCanvas = new Canvas(image);
+                    //noinspection ConstantConditions - isEmpty handles it
                     for (Annotation annotation : mAnnotations.get(Annotation.Type.BLUR)) {
                         annotation.render(offScreenCanvas, mImage);
                     }
@@ -207,12 +208,12 @@ public class AnnotationView extends View {
                 } else {
                     // If we're creating a new annotation, then just set the end point
                     mCurrentAnnotation.setEndPercentPoint(percentX, percentY);
-                    if (mAnnotations.containsKey(mCurrentAnnotation.getAnnotationType())) {
-                        Set<Annotation> annotations = mAnnotations.get(mCurrentAnnotation.getAnnotationType());
+                    Set<Annotation> annotations = mAnnotations.get(mCurrentAnnotation.getAnnotationType());
+                    if (annotations != null) {
                         annotations.add(mCurrentAnnotation);
                         mAnnotations.put(mCurrentAnnotation.getAnnotationType(), annotations);
                     } else {
-                        Set<Annotation> annotations = new HashSet<>();
+                        annotations = new HashSet<>();
                         annotations.add(mCurrentAnnotation);
                         mAnnotations.put(mCurrentAnnotation.getAnnotationType(), annotations);
                     }

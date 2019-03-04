@@ -276,9 +276,17 @@ final class ColorPalette {
             }
 
             int colorAttr = resources.getIdentifier(colorResourceName, "attr", packageName);
-            TypedArray a = context.getTheme().obtainStyledAttributes(themeId, new int[] { colorAttr });
-            int color = a.getColor(0, fallback);
-            a.recycle();
+            int color;
+            try {
+                TypedArray a = context.getTheme().obtainStyledAttributes(themeId, new int[]{colorAttr});
+                color = a.getColor(0, fallback);
+                a.recycle();
+            } catch (Resources.NotFoundException e) {
+                color = fallback;
+            } catch (UnsupportedOperationException e) {
+                color = fallback;
+            }
+
 
             return color;
         }

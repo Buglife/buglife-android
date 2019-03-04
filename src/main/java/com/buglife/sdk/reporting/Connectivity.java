@@ -32,7 +32,7 @@ final class Connectivity {
     @Nullable private final NetworkInfo mMobileInfo;
     @Nullable private final String mCarrierName;
 
-    Connectivity(NetworkInfo wifiInfo, NetworkInfo mobileInfo, String carrierName) {
+    Connectivity(@Nullable NetworkInfo wifiInfo, @Nullable NetworkInfo mobileInfo, @Nullable String carrierName) {
         mWifiInfo = wifiInfo;
         mMobileInfo = mobileInfo;
         mCarrierName = carrierName;

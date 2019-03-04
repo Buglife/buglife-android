@@ -66,13 +66,17 @@ public class ScreenFileEncoder {
     }
 
     private void startEncoder() {
-        mEncoder.start();
-        mTrackIndex = -1;
+        if (mEncoder != null) { // any throw in setUpEncoder can make mEncoder return null
+            mEncoder.start();
+            mTrackIndex = -1;
+        }
     }
 
     private void stopEncoder() {
         stopMuxer();
-        mEncoder.stop();
+        if (mEncoder != null) { // this one's a little pedantic
+            mEncoder.stop();
+        }
     }
 
     private void setUpEncoder() {
@@ -127,9 +131,11 @@ public class ScreenFileEncoder {
                     if (mTrackIndex >= 0) {
                         throw new RuntimeException("format changed twice");
                     }
-                    mTrackIndex = mMuxer.addTrack(codec.getOutputFormat());
-                    if (mTrackIndex >= 0) {
-                        startMuxer();
+                    if (mMuxer != null) {
+                        mTrackIndex = mMuxer.addTrack(codec.getOutputFormat());
+                        if (mTrackIndex >= 0) {
+                            startMuxer();
+                        }
                     }
                 }
             });
