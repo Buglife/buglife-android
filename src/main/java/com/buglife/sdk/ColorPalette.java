@@ -281,12 +281,9 @@ final class ColorPalette {
                 TypedArray a = context.getTheme().obtainStyledAttributes(themeId, new int[]{colorAttr});
                 color = a.getColor(0, fallback);
                 a.recycle();
-            } catch (Resources.NotFoundException e) {
-                color = fallback;
-            } catch (UnsupportedOperationException e) {
+            } catch (Exception e) { // I count 5 ways this can fail, and we need to guard against them all... the same way.
                 color = fallback;
             }
-
 
             return color;
         }
