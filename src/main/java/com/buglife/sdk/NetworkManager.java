@@ -39,6 +39,7 @@ public class NetworkManager {
         mOkHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(INITIAL_TIMEOUT_MS, TimeUnit.MILLISECONDS)
                 .readTimeout(INITIAL_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .writeTimeout(INITIAL_TIMEOUT_MS, TimeUnit.MILLISECONDS)
                 .build();
     }
 
