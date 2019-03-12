@@ -17,17 +17,16 @@
 
 package com.buglife.sdk.reporting;
 
-import android.content.Context;
-import android.os.AsyncTask;
-
 import org.json.JSONObject;
+
+import android.os.AsyncTask;
 
 public class SubmitReportAsyncTask extends AsyncTask<JSONObject, Void, SubmitReportTask.Result> {
     private final ResultCallback mCallback;
     private final SubmitReportTask mTask;
 
-    SubmitReportAsyncTask(Context context, ResultCallback callback) {
-        mTask = new SubmitReportTask(context);
+    SubmitReportAsyncTask(ResultCallback callback) {
+        mTask = new SubmitReportTask();
         mCallback = callback;
     }
 

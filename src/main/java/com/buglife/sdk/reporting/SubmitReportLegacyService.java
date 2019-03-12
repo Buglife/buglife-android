@@ -17,13 +17,6 @@
 
 package com.buglife.sdk.reporting;
 
-import android.app.IntentService;
-import android.content.Context;
-import android.content.Intent;
-import android.support.annotation.Nullable;
-import android.widget.Toast;
-
-import com.android.volley.NoConnectionError;
 import com.buglife.sdk.IOUtils;
 import com.buglife.sdk.Log;
 import com.buglife.sdk.R;
@@ -31,14 +24,20 @@ import com.buglife.sdk.R;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.IntentService;
+import android.content.Context;
+import android.content.Intent;
+import android.support.annotation.Nullable;
+import android.widget.Toast;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -64,7 +63,7 @@ public class SubmitReportLegacyService extends IntentService {
 
     @Override public void onCreate() {
         super.onCreate();
-        mTask = new SubmitReportTask(getApplicationContext());
+        mTask = new SubmitReportTask();
     }
 
     @Override protected void onHandleIntent(@Nullable Intent intent) {
@@ -129,7 +128,7 @@ public class SubmitReportLegacyService extends IntentService {
 
     private boolean shouldRemoveReportFromCache(Exception error) {
         Throwable cause = error.getCause();
-        return !(cause instanceof NoConnectionError);
+        return !(cause instanceof ConnectException);
     }
 
     /* Utility methods */

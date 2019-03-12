@@ -17,13 +17,13 @@
 
 package com.buglife.sdk;
 
-import android.content.Context;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.RetryPolicy;
-import com.android.volley.toolbox.Volley;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class NetworkManager {
 
@@ -32,24 +32,30 @@ public class NetworkManager {
 
 
     private static NetworkManager mInstance;
-    private RequestQueue mRequestQueue;
+    private OkHttpClient mOkHttpClient;
 
-    private NetworkManager(Context context) {
-        mRequestQueue = Volley.newRequestQueue(context);
+    private NetworkManager() {
+        mOkHttpClient = new OkHttpClient.Builder()
+                .connectTimeout(INITIAL_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .readTimeout(INITIAL_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .build();
     }
 
-    public static synchronized NetworkManager getInstance(Context context) {
+    public static synchronized NetworkManager getInstance() {
         if (mInstance == null) {
-            mInstance = new NetworkManager(context);
+            mInstance = new NetworkManager();
         }
 
         return mInstance;
     }
 
-    public <T> void addToRequestQueue(Request<T> request) {
-        // Volley's default initial timeout is way too short, so let's bump it up.
-        RetryPolicy retryPolicy = new DefaultRetryPolicy(INITIAL_TIMEOUT_MS, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
-        request.setRetryPolicy(retryPolicy);
-        mRequestQueue.add(request);
+    public Response executeRequest(Request request) throws IOException {
+        return mOkHttpClient.newCall(request).execute();
     }
+
+    public void executeRequestAsync(Request request, Callback callback) {
+        mOkHttpClient.newCall(request)
+                     .enqueue(callback);
+    }
+
 }

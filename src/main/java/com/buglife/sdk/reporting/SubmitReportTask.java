@@ -17,25 +17,27 @@
 
 package com.buglife.sdk.reporting;
 
-import android.content.Context;
-
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.RequestFuture;
 import com.buglife.sdk.Log;
 import com.buglife.sdk.NetworkManager;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public final class SubmitReportTask {
     private final NetworkManager mNetworkManager;
+    private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String BUGLIFE_REPORT_URL = NetworkManager.BUGLIFE_URL+"/api/v1/reports.json";
 
-    public SubmitReportTask(Context context) {
-        mNetworkManager = NetworkManager.getInstance(context);
+    public SubmitReportTask() {
+        mNetworkManager = NetworkManager.getInstance();
     }
 
     /**
@@ -44,15 +46,17 @@ public final class SubmitReportTask {
      * @return The result of the network request
      */
     public Result execute(JSONObject report) {
-        RequestFuture<JSONObject> future = RequestFuture.newFuture();
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_REPORT_URL, report, future, future);
-        mNetworkManager.addToRequestQueue(request);
-        Log.d("JSON object request for report added to request queue...");
+        final Request request = newRequest(report);
 
         try {
-            JSONObject response = future.get();
+            final Response response = mNetworkManager.executeRequest(request);
+            if (response.body() == null) {
+                return new Result(new IllegalStateException("Response body was null!"));
+            }
+
+            final JSONObject responseJSONObject = new JSONObject(response.body().string());
             Log.d("Report submitted successfully!");
-            return new Result(response);
+            return new Result(responseJSONObject);
         } catch (Exception error) {
             Log.d("Error submitting report", error);
             return new Result(error);
@@ -65,21 +69,27 @@ public final class SubmitReportTask {
      * @param callback Calls back with the result of the request; this is called on the main thread
      */
     public void execute(JSONObject report, final ReportSubmissionCallback callback) {
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_REPORT_URL, report, new Response.Listener<JSONObject>() {
+        mNetworkManager.executeRequestAsync(newRequest(report), new Callback() {
             @Override
-            public void onResponse(JSONObject response) {
-                Log.d("Report submitted successfully!");
-                callback.onSuccess();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
+            public void onFailure(final Call call, final IOException error) {
                 Log.d("Error submitting report", error);
                 callback.onFailure(ReportSubmissionCallback.Error.NETWORK, error);
             }
+
+            @Override
+            public void onResponse(final Call call, final Response response) throws IOException {
+                Log.d("Report submitted successfully!");
+                callback.onSuccess();
+            }
         });
-        mNetworkManager.addToRequestQueue(request);
         Log.d("JSON object request for report added to request queue...");
+    }
+
+    private Request newRequest(JSONObject report) {
+        return new Request.Builder()
+                .url(BUGLIFE_REPORT_URL)
+                .post(RequestBody.create(MEDIA_TYPE_JSON, report.toString()))
+                .build();
     }
 
     public class Result {

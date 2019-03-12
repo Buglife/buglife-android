@@ -113,7 +113,7 @@ final class BugReporterImpl implements BugReporter {
 
 
     private void reportSynchronously(JSONObject jsonReport, ReportSubmissionCallback callback) {
-        SubmitReportTask task = new SubmitReportTask(mContext);
+        SubmitReportTask task = new SubmitReportTask();
         task.execute(jsonReport, callback);
     }
 
