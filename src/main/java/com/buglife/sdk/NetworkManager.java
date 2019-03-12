@@ -20,6 +20,7 @@ package com.buglife.sdk;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -53,9 +54,31 @@ public class NetworkManager {
         return mOkHttpClient.newCall(request).execute();
     }
 
-    public void executeRequestAsync(Request request, Callback callback) {
+    public void executeRequestAsync(Request request, final Callback callback) {
         mOkHttpClient.newCall(request)
-                     .enqueue(callback);
+                     .enqueue(new Callback() {
+                         @Override
+                         public void onFailure(final Call call, final IOException e) {
+                             callback.onFailure(call, e);
+                         }
+
+                         @Override
+                         public void onResponse(final Call call, final Response response)
+                                 throws IOException {
+                             try {
+                                 callback.onResponse(call, response);
+                             } finally {
+                                closeResponseBody(response);
+                             }
+
+                         }
+                     });
+    }
+
+    private void closeResponseBody(Response response) {
+        if (response.body() != null) {
+            response.close();
+        }
     }
 
 }
