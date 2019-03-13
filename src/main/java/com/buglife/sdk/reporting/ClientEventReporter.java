@@ -18,12 +18,6 @@
 
 package com.buglife.sdk.reporting;
 
-import android.content.Context;
-
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.buglife.sdk.ApiIdentity;
 import com.buglife.sdk.Buglife;
 import com.buglife.sdk.Log;
@@ -32,12 +26,24 @@ import com.buglife.sdk.NetworkManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
 
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public final class ClientEventReporter {
     private static ClientEventReporter sInstance;
     private final Context mContext;
-    private final String BUGLIFE_CLIENT_EVENTS_URL = NetworkManager.BUGLIFE_URL+"/api/v1/client_events.json";
+
+    private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
+    private static final String BUGLIFE_CLIENT_EVENTS_URL = NetworkManager.BUGLIFE_URL+"/api/v1/client_events.json";
+
     ClientEventReporter(Context context) {
         mContext = context;
     }
@@ -87,19 +93,22 @@ public final class ClientEventReporter {
             e.printStackTrace();
         }
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BUGLIFE_CLIENT_EVENTS_URL, params, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.d("Client Event posted successfully: " + eventName);
+        final Request request = new Request.Builder()
+                .url(BUGLIFE_CLIENT_EVENTS_URL)
+                .post(RequestBody.create(MEDIA_TYPE_JSON, params.toString()))
+                .build();
 
-            }
-        }, new Response.ErrorListener() {
+        NetworkManager.getInstance().executeRequestAsync(request, new Callback() {
             @Override
-            public void onErrorResponse(VolleyError error) {
+            public void onFailure(final Call call, final IOException error) {
                 Log.d("Error submitting client event", error);
             }
+
+            @Override
+            public void onResponse(final Call call, final Response response) throws IOException {
+                Log.d("Client Event posted successfully: " + eventName);
+            }
         });
-        NetworkManager.getInstance(mContext).addToRequestQueue(request);
 
     }
 }

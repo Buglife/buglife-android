@@ -49,7 +49,7 @@ public class SubmitReportService extends JobService {
             final File reportFile = new File(reportPath);
             String report = IOUtils.readStringFromFile(reportFile);
             JSONObject jsonReport = new JSONObject(report);
-            SubmitReportAsyncTask task = new SubmitReportAsyncTask(getApplicationContext(), new SubmitReportAsyncTask.ResultCallback() {
+            SubmitReportAsyncTask task = new SubmitReportAsyncTask(new SubmitReportAsyncTask.ResultCallback() {
                 @Override public void onSuccess(JSONObject response) {
                     jobFinished(params, false);
                     reportFile.delete();
