@@ -33,11 +33,11 @@ You can also find Buglife for iOS [here](https://github.com/buglife/buglife-ios)
 
 ## Installation
 
-1. Add `buglife-android` as a dependency to your app's `build.gradle`. You'll also need to add [Android Volley](https://developer.android.com/training/volley/) if you haven't already.
+1. Add `buglife-android` as a dependency to your app's `build.gradle`.
 
 	```groovy
 	dependencies {
-		implementation 'com.buglife.sdk:buglife-android:1.4.2'
+		implementation 'com.buglife.sdk:buglife-android:1.4.3'
 	}
 	```
 
@@ -177,7 +177,7 @@ Check out the [Buglife Android guide](http://www.buglife.com/docs/android) for c
 ## License
 
 ```
-Copyright (C) 2018 Buglife, Inc.
+Copyright (C) 2017-2019 Buglife, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
