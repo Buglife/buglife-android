@@ -42,6 +42,7 @@ import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,8 +70,16 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     @Nullable private ArrayList<InputField> mInputFields;
     private boolean mReportFlowVisible = false;
     private final BugReporter reporter;
+    @Nullable private Class crashlifeClass;
 
     Client(Application application, BugReporter reporter, @NonNull final ApiIdentity apiIdentity) {
+        try {
+            crashlifeClass = Class.forName("com.buglife.crashlife.sdk.Crashlife");
+            Method m = crashlifeClass.getDeclaredMethod("initWithApiKey", Context.class, String.class);
+            m.invoke(crashlifeClass, application, apiIdentity.getId());
+            Log.d("Crashlife found, initialized");
+        } catch (Exception ignored) {
+        }
         mAppContext = application.getApplicationContext();
         this.reporter = reporter;
         mApiIdentity = apiIdentity;
@@ -154,6 +163,13 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
     void setUserIdentifier(@Nullable String userIdentifier) {
         mUserIdentifier = userIdentifier;
+        if (crashlifeClass != null) {
+            try {
+                Method m = crashlifeClass.getDeclaredMethod("setUserIdentifer", String.class);
+                m.invoke(crashlifeClass, userIdentifier);
+            } catch (Exception ignored) {
+            }
+        }
     }
     @Nullable String getUserIdentifier() { return mUserIdentifier; }
 
@@ -188,10 +204,17 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
     void putAttribute(@NonNull String key, @Nullable String value) {
         mAttributes.put(key, new Attribute(value, Attribute.ValueType.STRING, Attribute.FLAG_CUSTOM));
+        if (crashlifeClass != null) {
+            try {
+                Method m = crashlifeClass.getDeclaredMethod("putAttribute", String.class, String.class);
+                m.invoke(crashlifeClass, key, value);
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     void setInputFields(@NonNull InputField... inputFields) {
-        mInputFields = new ArrayList(Arrays.asList(inputFields));
+        mInputFields = new ArrayList<>(Arrays.asList(inputFields));
     }
 
     List<InputField> getInputFields() {
@@ -199,13 +222,13 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
         if (inputFields == null || inputFields.isEmpty()) {
             TextInputField summaryInputField = TextInputField.summaryInputField();
-            inputFields = new ArrayList();
+            inputFields = new ArrayList<>();
             inputFields.add(summaryInputField);
         }
 
         // return a copy of the array so that adding new fields during
         // a report flow doesn't break things
-        return new ArrayList(inputFields);
+        return new ArrayList<>(inputFields);
     }
 
     Bitmap getScreenshot() {
@@ -293,7 +316,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             return false;
         }
 
-        List requestedPermissions = Arrays.asList(packageInfo.requestedPermissions);
+        List<? extends String> requestedPermissions = Arrays.asList(packageInfo.requestedPermissions);
         List requiredPermissions;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);

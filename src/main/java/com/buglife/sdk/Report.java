@@ -30,6 +30,7 @@ import org.w3c.dom.Attr;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -80,7 +81,7 @@ public final class Report {
         reportParams.put("locale", environmentSnapshot.getLocale());
         reportParams.put("invocation_method", environmentSnapshot.getInvokationMethod().getValue());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZ");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZ", Locale.US);
 
         reportParams.put("invoked_at", sdf.format(environmentSnapshot.getInvokedAt()));
         reportParams.put("submission_attempts", 1);
