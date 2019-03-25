@@ -26,6 +26,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import static android.graphics.PixelFormat.TRANSLUCENT;
 
@@ -119,6 +120,7 @@ public final class ScreenRecorder {
         final int scaledDisplayHeight = (displayMetrics.heightPixels * VIDEO_SCALE) / 100;
 
         final DateFormat fileFormat = new SimpleDateFormat("'Buglife_'yyyy-MM-dd-HH-mm-ss'.mp4'", Locale.US);
+        fileFormat.setTimeZone(Buglife.getTimeZone());
         String outputFilename = fileFormat.format(new Date());
         mOutputFilePath = new File(mOutputDirectory, outputFilename);
         Log.d("output file path = " + mOutputFilePath);

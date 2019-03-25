@@ -26,7 +26,6 @@ import com.buglife.sdk.reporting.SessionSnapshot;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Attr;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -82,6 +81,7 @@ public final class Report {
         reportParams.put("invocation_method", environmentSnapshot.getInvokationMethod().getValue());
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZ", Locale.US);
+        sdf.setTimeZone(Buglife.getTimeZone());
 
         reportParams.put("invoked_at", sdf.format(environmentSnapshot.getInvokedAt()));
         reportParams.put("submission_attempts", 1);

@@ -29,13 +29,16 @@ import com.buglife.sdk.reporting.ReportSubmissionCallback;
 import com.buglife.sdk.reporting.SubmitReportProvider;
 
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Buglife! Handles initialization and configuration of Buglife.
  */
 public final class Buglife {
+    @NonNull private static final String DEFAULT_TIMEZONE = "UTC";
     @Nullable private static Client mClient = null;
     @NonNull private static String mServerUrl = NetworkManager.BUGLIFE_URL;
+    @NonNull private static TimeZone mTimeZone = TimeZone.getTimeZone(DEFAULT_TIMEZONE);
 
     private Buglife() {}
 
@@ -74,12 +77,10 @@ public final class Buglife {
     }
 
     public static class Builder {
-        @NonNull
-        private Application mApplication;
-        @NonNull
-        private String mServerUrl = NetworkManager.BUGLIFE_URL;
-        @Nullable
-        private SubmitReportProvider mSubmitReportProvider = null;
+        @NonNull private Application mApplication;
+        @NonNull private String mServerUrl = NetworkManager.BUGLIFE_URL;
+        @Nullable private SubmitReportProvider mSubmitReportProvider = null;
+        @NonNull private TimeZone mTimeZone = TimeZone.getTimeZone(DEFAULT_TIMEZONE);
 
         /**
          * Build mechanism to assemble all mandatory and optional parameters when initializing
@@ -105,9 +106,15 @@ public final class Buglife {
             return this;
         }
 
+        public Builder setDefaultTimeZone(@NonNull String timeZone) {
+            this.mTimeZone = TimeZone.getTimeZone(timeZone);
+            return this;
+        }
+
         public void buildWithApiKey(@NonNull String apiKey) {
             verifyDependencies();
             Buglife.mServerUrl = mServerUrl;
+            Buglife.mTimeZone = mTimeZone;
             mClient = new Client.Builder(mApplication)
                     .setReportSubmitProvider(mSubmitReportProvider)
                     .buildWithApiKey(apiKey);
@@ -116,6 +123,7 @@ public final class Buglife {
         public void buildWithEmail(@NonNull String email) {
             verifyDependencies();
             Buglife.mServerUrl = mServerUrl;
+            Buglife.mTimeZone = mTimeZone;
             mClient = new Client.Builder(mApplication)
                     .setReportSubmitProvider(mSubmitReportProvider)
                     .buildWithEmail(email);
@@ -341,5 +349,10 @@ public final class Buglife {
     @NonNull
     public static SubmitReportProvider getSubmitReportProvider() {
         return getClient().getSubmitReportProvider();
+    }
+
+    @NonNull
+    public static TimeZone getTimeZone() {
+        return mTimeZone;
     }
 }

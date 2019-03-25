@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +39,7 @@ final class LogDumper {
         // 11-22 10:54:01.114  2897  2897 I zygote  : Not late-enabling -Xcheck:jni (already on)
         Pattern pattern = Pattern.compile("([\\S]+)[\\s]+([\\S]+)[\\s]+[\\d]+[\\s]+[\\d]+[\\s]+([A-Z])[\\s]+(.+): (.+)");
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MM-dd HH:mm:ss.SSS");
+        simpleDateFormat.setTimeZone(Buglife.getTimeZone());
         ArrayList<LogMessage> logMessages = new ArrayList<>();
 
         try {
