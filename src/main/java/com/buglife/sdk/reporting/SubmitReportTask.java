@@ -31,7 +31,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public final class SubmitReportTask {
+public final class SubmitReportTask implements ReportSubmitter {
     private final NetworkManager mNetworkManager;
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String BUGLIFE_REPORT_URL = NetworkManager.BUGLIFE_URL+"/api/v1/reports.json";
@@ -45,21 +45,21 @@ public final class SubmitReportTask {
      * @param report a JSON payload with the report to submit
      * @return The result of the network request
      */
-    public Result execute(JSONObject report) {
+    public SubmitReportResult execute(JSONObject report) {
         final Request request = newRequest(report);
 
         try {
             final Response response = mNetworkManager.executeRequest(request);
             if (response.body() == null) {
-                return new Result(new IllegalStateException("Response body was null!"));
+                return new SubmitReportResult(new IllegalStateException("Response body was null!"));
             }
 
             final JSONObject responseJSONObject = new JSONObject(response.body().string());
             Log.d("Report submitted successfully!");
-            return new Result(responseJSONObject);
+            return new SubmitReportResult(responseJSONObject);
         } catch (Exception error) {
             Log.d("Error submitting report", error);
-            return new Result(error);
+            return new SubmitReportResult(error);
         }
     }
 
@@ -92,26 +92,4 @@ public final class SubmitReportTask {
                 .build();
     }
 
-    public class Result {
-        private final JSONObject mResponse;
-        private final Exception mError;
-
-        Result(JSONObject response) {
-            mResponse = response;
-            mError = null;
-        }
-
-        Result(Exception error) {
-            mResponse = null;
-            mError = error;
-        }
-
-        JSONObject getResponse() {
-            return mResponse;
-        }
-
-        public Exception getError() {
-            return mError;
-        }
-    }
 }

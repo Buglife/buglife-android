@@ -94,9 +94,9 @@ public class SubmitReportLegacyService extends IntentService {
             String jsonReport = iterator.next();
             try {
                 JSONObject report = new JSONObject(jsonReport);
-                SubmitReportTask.Result result = mTask.execute(report);
-                if (result.getError() != null) {
-                    handleError(iterator, result.getError());
+                SubmitReportResult submitReportResult = mTask.execute(report);
+                if (submitReportResult.getError() != null) {
+                    handleError(iterator, submitReportResult.getError());
                 } else {
                     handleSuccess(iterator);
                 }

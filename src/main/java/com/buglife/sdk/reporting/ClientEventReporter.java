@@ -40,20 +40,20 @@ import okhttp3.Response;
 public final class ClientEventReporter {
     private static ClientEventReporter sInstance;
     private final Context mContext;
+    private String url;
 
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
-    private static final String BUGLIFE_CLIENT_EVENTS_URL = NetworkManager.BUGLIFE_URL+"/api/v1/client_events.json";
 
     ClientEventReporter(Context context) {
         mContext = context;
+        this.url = Buglife.getServerUrl() + "/api/v1/client_events.json";
     }
+
     public static synchronized ClientEventReporter getInstance(Context context) {
         if (sInstance == null) {
             sInstance = new ClientEventReporter(context);
         }
-
         return sInstance;
-
     }
 
     public void reportClientEvent(final String eventName, ApiIdentity identity)
@@ -94,7 +94,7 @@ public final class ClientEventReporter {
         }
 
         final Request request = new Request.Builder()
-                .url(BUGLIFE_CLIENT_EVENTS_URL)
+                .url(url)
                 .post(RequestBody.create(MEDIA_TYPE_JSON, params.toString()))
                 .build();
 

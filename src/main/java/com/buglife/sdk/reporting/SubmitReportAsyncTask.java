@@ -21,7 +21,7 @@ import org.json.JSONObject;
 
 import android.os.AsyncTask;
 
-public class SubmitReportAsyncTask extends AsyncTask<JSONObject, Void, SubmitReportTask.Result> {
+public class SubmitReportAsyncTask extends AsyncTask<JSONObject, Void, SubmitReportResult> {
     private final ResultCallback mCallback;
     private final SubmitReportTask mTask;
 
@@ -30,11 +30,11 @@ public class SubmitReportAsyncTask extends AsyncTask<JSONObject, Void, SubmitRep
         mCallback = callback;
     }
 
-    @Override protected SubmitReportTask.Result doInBackground(JSONObject... reports) {
+    @Override protected SubmitReportResult doInBackground(JSONObject... reports) {
         return mTask.execute(reports[0]);
     }
 
-    @Override protected void onPostExecute(SubmitReportTask.Result result) {
+    @Override protected void onPostExecute(SubmitReportResult result) {
         if (result.getError() != null) {
             mCallback.onFailure(result.getError());
         } else if (result.getResponse() != null) {
