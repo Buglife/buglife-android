@@ -22,4 +22,6 @@
     <string name="error_process_report">There was an error processing bug report!</string>
     <string name="error_save_screenshot">There was an error saving screenshot!</string>
     <string name="summary_field_title">What happened?</string>
+    <string name="error_fill_required_data">Error, please fill all required data!</string>
+    <string name="error_sending">Error when sending bug report</string>
 </resources>

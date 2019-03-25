@@ -172,14 +172,6 @@ public class ScreenshotAnnotatorActivity extends AppCompatActivity {
         }
 
         ActivityUtils.setStatusBarColor(this, mColorPalette.getColorPrimaryDark());
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                //ClientEventReporter.getInstance(Buglife.getContext()).reportClientEvent("presented_reporter", mBugContext.getApiIdentity());
-            }
-        }, 2000);
-
     }
 
     @Override
