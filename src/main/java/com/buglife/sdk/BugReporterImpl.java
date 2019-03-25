@@ -27,9 +27,10 @@ import android.support.annotation.RequiresApi;
 
 import com.buglife.sdk.reporting.BugReporter;
 import com.buglife.sdk.reporting.ReportSubmissionCallback;
+import com.buglife.sdk.reporting.ISubmitReportTask;
+import com.buglife.sdk.reporting.SubmitReportProvider;
 import com.buglife.sdk.reporting.SubmitReportLegacyService;
 import com.buglife.sdk.reporting.SubmitReportService;
-import com.buglife.sdk.reporting.SubmitReportTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,10 +39,12 @@ import java.io.File;
 import java.io.IOException;
 
 final class BugReporterImpl implements BugReporter {
-    private final Context mContext;
+    @NonNull private final Context mContext;
+    @NonNull private final SubmitReportProvider mReportsubmitReportProvider;
 
-    BugReporterImpl(Context context) {
+    BugReporterImpl(@NonNull Context context, @NonNull SubmitReportProvider submitReportProvider) {
         mContext = context;
+        this.mReportsubmitReportProvider = submitReportProvider;
         if (shouldUseLegacyReporter()) {
             // Kick off submit report service in case there are cached reports still
             // available.
@@ -113,7 +116,7 @@ final class BugReporterImpl implements BugReporter {
 
 
     private void reportSynchronously(JSONObject jsonReport, ReportSubmissionCallback callback) {
-        SubmitReportTask task = new SubmitReportTask();
+        ISubmitReportTask task = mReportsubmitReportProvider.generateSubmitReport();
         task.execute(jsonReport, callback);
     }
 

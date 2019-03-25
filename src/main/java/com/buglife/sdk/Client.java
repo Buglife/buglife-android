@@ -36,6 +36,8 @@ import android.widget.Toast;
 import com.buglife.sdk.reporting.BugReporter;
 import com.buglife.sdk.reporting.ClientEventReporter;
 import com.buglife.sdk.reporting.ReportSubmissionCallback;
+import com.buglife.sdk.reporting.SubmitReportProvider;
+import com.buglife.sdk.reporting.SubmitReportProviderDefault;
 import com.buglife.sdk.screenrecorder.ScreenRecorder;
 import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
 
@@ -71,8 +73,14 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     private boolean mReportFlowVisible = false;
     private final BugReporter reporter;
     @Nullable private Class crashlifeClass;
+    @NonNull private final SubmitReportProvider mSubmitReportProvider;
 
-    Client(Application application, BugReporter reporter, @NonNull final ApiIdentity apiIdentity) {
+    private Client(
+            @NonNull Application application,
+            @NonNull BugReporter reporter,
+            @NonNull final ApiIdentity apiIdentity,
+            @Nullable SubmitReportProvider submitReportProvider
+    ) {
         try {
             crashlifeClass = Class.forName("com.buglife.crashlife.sdk.Crashlife");
             Method m = crashlifeClass.getDeclaredMethod("initWithApiKey", Context.class, String.class);
@@ -86,6 +94,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mQueuedAttachments = new ArrayList<>();
         mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
+        mSubmitReportProvider = (submitReportProvider == null) ? new SubmitReportProviderDefault(mAppContext) : submitReportProvider;
 
         boolean hasPermissions = checkPermissions();
 
@@ -155,6 +164,10 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     @Deprecated
     Context getApplicationContext() {
         return mAppContext;
+    }
+
+    @NonNull public SubmitReportProvider getSubmitReportProvider() {
+        return mSubmitReportProvider;
     }
 
     void setListener(@Nullable BuglifeListener listener) {
@@ -291,18 +304,39 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
      ***************************/
 
     static class Builder {
-        private Application mApplication;
+        @NonNull private Application mApplication;
+        @NonNull private SubmitReportProvider mSubmitReportProvider;
 
-        Builder(Application application) {
-            mApplication = application;
+        Builder(@NonNull Application application) {
+            this.mApplication = application;
+            this.mSubmitReportProvider = new SubmitReportProviderDefault(application);
+        }
+
+        public Builder setReportSubmitProvider(@Nullable SubmitReportProvider submitReportProvider) {
+            if (submitReportProvider == null) {
+                this.mSubmitReportProvider = new SubmitReportProviderDefault(mApplication);
+            } else {
+                this.mSubmitReportProvider = submitReportProvider;
+            }
+            return this;
         }
 
         Client buildWithApiKey(String apiKey) {
-            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.ApiKey(apiKey));
+            return new Client(
+                    mApplication,
+                    new BugReporterImpl(mApplication, mSubmitReportProvider),
+                    new ApiIdentity.ApiKey(apiKey),
+                    mSubmitReportProvider
+            );
         }
 
         Client buildWithEmail(String email) {
-            return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.EmailAddress(email));
+            return new Client(
+                    mApplication,
+                    new BugReporterImpl(mApplication, mSubmitReportProvider),
+                    new ApiIdentity.EmailAddress(email),
+                    mSubmitReportProvider
+            );
         }
     }
 

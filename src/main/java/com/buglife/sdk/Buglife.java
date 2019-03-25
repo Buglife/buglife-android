@@ -26,6 +26,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.buglife.sdk.reporting.ReportSubmissionCallback;
+import com.buglife.sdk.reporting.SubmitReportProvider;
 
 import java.util.List;
 
@@ -34,6 +35,7 @@ import java.util.List;
  */
 public final class Buglife {
     @Nullable private static Client mClient = null;
+    @NonNull private static String mServerUrl = NetworkManager.BUGLIFE_URL;
 
     private Buglife() {}
 
@@ -46,6 +48,7 @@ public final class Buglife {
      * @param apiKey      Your Buglife API key. You can find this on the Buglife web dashboard
      */
     public static void initWithApiKey(@NonNull Application application, @NonNull String apiKey) {
+        verifyDependencies();
         mClient = new Client.Builder(application).buildWithApiKey(apiKey);
     }
 
@@ -62,7 +65,62 @@ public final class Buglife {
      *                    should belong to you or someone on your team.
      */
     public static void initWithEmail(@NonNull Application application, @NonNull String email) {
+        verifyDependencies();
         mClient = new Client.Builder(application).buildWithEmail(email);
+    }
+
+    public static Builder builder(@NonNull Application application) {
+        return new Builder(application);
+    }
+
+    public static class Builder {
+        @NonNull
+        private Application mApplication;
+        @NonNull
+        private String mServerUrl = NetworkManager.BUGLIFE_URL;
+        @Nullable
+        private SubmitReportProvider mSubmitReportProvider = null;
+
+        /**
+         * Build mechanism to assemble all mandatory and optional parameters when initializing
+         * Buglife service
+         *
+         * @param application Your application subclass, usually <code>this</code>
+         */
+        public Builder(@NonNull Application application) {
+            mApplication = application;
+        }
+
+        public Builder setReportSubmitProvider(@Nullable SubmitReportProvider submitReportProvider) {
+            this.mSubmitReportProvider = submitReportProvider;
+            return this;
+        }
+
+        public Builder setServerUrl(@Nullable String serverUrl) {
+            if (serverUrl == null) {
+                this.mServerUrl = NetworkManager.BUGLIFE_URL;
+            } else {
+                this.mServerUrl = serverUrl;
+            }
+            return this;
+        }
+
+        public void buildWithApiKey(@NonNull String apiKey) {
+            verifyDependencies();
+            Buglife.mServerUrl = mServerUrl;
+            mClient = new Client.Builder(mApplication)
+                    .setReportSubmitProvider(mSubmitReportProvider)
+                    .buildWithApiKey(apiKey);
+        }
+
+        public void buildWithEmail(@NonNull String email) {
+            verifyDependencies();
+            Buglife.mServerUrl = mServerUrl;
+            mClient = new Client.Builder(mApplication)
+                    .setReportSubmitProvider(mSubmitReportProvider)
+                    .buildWithEmail(email);
+        }
+
     }
 
     /**
@@ -246,6 +304,20 @@ public final class Buglife {
         return getClient().getApplicationContext();
     }
 
+    private static void verifyDependencies() {
+        try {
+            Class<?> clazz = Class.forName("com.android.volley.toolbox.JsonObjectRequest");
+        } catch (ClassNotFoundException e) {
+            throw new BuglifeException("Unable to initialize Buglife. Dependency `com.android.volley:volley` not found");
+        }
+
+        try {
+            Class<?> clazz = Class.forName("android.support.v7.app.ActionBar");
+        } catch (ClassNotFoundException e) {
+            throw new BuglifeException("Unable to initialize Buglife. Dependency `com.android.support:appcompat-v7` not found");
+        }
+    }
+
     private static Client getClient() {
         if (mClient == null) {
             // TODO: Change this to a toast + log?
@@ -259,5 +331,15 @@ public final class Buglife {
         public BuglifeException(String message) {
             super(message);
         }
+    }
+
+    @NonNull
+    public static String getServerUrl() {
+        return mServerUrl;
+    }
+
+    @NonNull
+    public static SubmitReportProvider getSubmitReportProvider() {
+        return getClient().getSubmitReportProvider();
     }
 }
