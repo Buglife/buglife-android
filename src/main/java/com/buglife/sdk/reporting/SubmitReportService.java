@@ -25,6 +25,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.widget.Toast;
 
+import com.buglife.sdk.Buglife;
 import com.buglife.sdk.IOUtils;
 import com.buglife.sdk.Log;
 import com.buglife.sdk.R;
@@ -59,7 +60,7 @@ public class SubmitReportService extends JobService {
                     Log.e("Error submitting report!", error);
                     jobFinished(params, false);
                 }
-            });
+            }, Buglife.getSubmitReportProvider());
             task.execute(jsonReport);
             return true;
         } catch (Exception error) {

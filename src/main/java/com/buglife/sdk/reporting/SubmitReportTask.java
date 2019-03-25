@@ -17,6 +17,10 @@
 
 package com.buglife.sdk.reporting;
 
+import android.content.Context;
+import android.support.annotation.NonNull;
+
+import com.buglife.sdk.Buglife;
 import com.buglife.sdk.Log;
 import com.buglife.sdk.NetworkManager;
 
@@ -31,13 +35,16 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public final class SubmitReportTask implements ReportSubmitter {
-    private final NetworkManager mNetworkManager;
+public final class SubmitReportTask implements ISubmitReportTask {
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String BUGLIFE_REPORT_URL = NetworkManager.BUGLIFE_URL+"/api/v1/reports.json";
 
-    public SubmitReportTask() {
-        mNetworkManager = NetworkManager.getInstance();
+    @NonNull private final NetworkManager mNetworkManager;
+    @NonNull private final String url;
+
+    public SubmitReportTask(@NonNull Context context) {
+        this.mNetworkManager = NetworkManager.getInstance();
+        this.url = Buglife.getServerUrl() + "/api/v1/reports";
     }
 
     /**

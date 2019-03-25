@@ -17,6 +17,7 @@
 
 package com.buglife.sdk.reporting;
 
+import com.buglife.sdk.Buglife;
 import com.buglife.sdk.IOUtils;
 import com.buglife.sdk.Log;
 import com.buglife.sdk.R;
@@ -44,7 +45,7 @@ import java.util.List;
 
 public class SubmitReportLegacyService extends IntentService {
     private static final String KEY_EXTRA_REPORT_PATH = "report_path";
-    private SubmitReportTask mTask;
+    private ISubmitReportTask mTask;
 
     public static void start(Context context, File jsonReportFile) {
         Intent intent = new Intent(context, SubmitReportLegacyService.class);
@@ -63,7 +64,7 @@ public class SubmitReportLegacyService extends IntentService {
 
     @Override public void onCreate() {
         super.onCreate();
-        mTask = new SubmitReportTask();
+        mTask = Buglife.getSubmitReportProvider().generateSubmitReport();
     }
 
     @Override protected void onHandleIntent(@Nullable Intent intent) {
