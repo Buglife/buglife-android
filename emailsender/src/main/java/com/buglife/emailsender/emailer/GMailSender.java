@@ -1,5 +1,9 @@
 package com.buglife.emailsender.emailer;
 
+import android.util.Base64;
+
+import com.buglife.emailsender.serialization.ReportAttachment;
+
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
@@ -87,11 +91,14 @@ public class GMailSender extends Authenticator {
             Transport.send(message);
     }
 
-    public void addAttachment(JSONObject jsonObject) throws MessagingException {
+    public void addAttachment(ReportAttachment reportAttachment) throws MessagingException {
         BodyPart messageBodyPart = new MimeBodyPart();
-        ByteArrayDataSource ds = new ByteArrayDataSource(jsonObject.toString().getBytes(), "text/plain");
+        ByteArrayDataSource ds = new ByteArrayDataSource(
+                Base64.decode(reportAttachment.getBase64AttachmentData(), 0),
+                reportAttachment.getMimeType()
+        );
         messageBodyPart.setDataHandler(new DataHandler(ds));
-        messageBodyPart.setFileName("jsonObject");
+        messageBodyPart.setFileName(reportAttachment.getFilename());
         multipart.addBodyPart(messageBodyPart);
     }
 

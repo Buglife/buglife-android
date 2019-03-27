@@ -2,32 +2,33 @@ package com.buglife.emailsender.serialization;
 
 import android.support.annotation.NonNull;
 
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
 
 // Using deserializer to populate
-class ReportData {
-    @SerializedName("what_happened") @NonNull String whatHappened;
-    @NonNull String sdkVersion;
-    @NonNull String sdkName;
-    @NonNull String bundleVersion;
-    @NonNull String operatingSystemVersion;
-    @NonNull String deviceManufacturer;
-    @NonNull String deviceModel;
-    @NonNull String deviceBrand;
-    @NonNull String deviceIdentifier;
-    long totalCapacityBytes;
-    long freeCapacityBytes;
-    long freeMemoryBytes;
-    long totalMemoryBytes;
-    int batteryLevel;
-    int androidMobileNetworkSubtype;
-    boolean wifiConnected;
-    @NonNull String locale;
-    int invocationMethod;
-    int submissionAttempts;
-    @NonNull List<ReportAttachment> attachments;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ReportData {
+    @NonNull private String whatHappened;
+    @NonNull private String sdkVersion;
+    @NonNull private String sdkName;
+    @NonNull private String bundleVersion;
+    @NonNull private String operatingSystemVersion;
+    @NonNull private String deviceManufacturer;
+    @NonNull private String deviceModel;
+    @NonNull private String deviceBrand;
+    @NonNull private String deviceIdentifier;
+    private long totalCapacityBytes;
+    private long freeCapacityBytes;
+    private long freeMemoryBytes;
+    private long totalMemoryBytes;
+    private int batteryLevel;
+    private int androidMobileNetworkSubtype;
+    private boolean wifiConnected;
+    @NonNull private String locale;
+    private int invocationMethod;
+    private int submissionAttempts;
+    @NonNull private List<ReportAttachment> attachments;
 
     @NonNull
     public String getWhatHappened() {
@@ -122,27 +123,27 @@ class ReportData {
 
     @Override
     public String toString() {
-        return "ReportData{" +
-                "whatHappened='" + whatHappened + '\'' +
-                ", sdkVersion='" + sdkVersion + '\'' +
-                ", sdkName='" + sdkName + '\'' +
-                ", bundleVersion='" + bundleVersion + '\'' +
-                ", operatingSystemVersion='" + operatingSystemVersion + '\'' +
-                ", deviceManufacturer='" + deviceManufacturer + '\'' +
-                ", deviceModel='" + deviceModel + '\'' +
-                ", deviceBrand='" + deviceBrand + '\'' +
-                ", deviceIdentifier='" + deviceIdentifier + '\'' +
-                ", totalCapacityBytes=" + totalCapacityBytes +
-                ", freeCapacityBytes=" + freeCapacityBytes +
-                ", freeMemoryBytes=" + freeMemoryBytes +
-                ", totalMemoryBytes=" + totalMemoryBytes +
-                ", batteryLevel=" + batteryLevel +
-                ", androidMobileNetworkSubtype=" + androidMobileNetworkSubtype +
-                ", wifiConnected=" + wifiConnected +
-                ", locale='" + locale + '\'' +
-                ", invocationMethod=" + invocationMethod +
-                ", submissionAttempts=" + submissionAttempts +
-                ", attachments=" + attachments +
-                '}';
+        return "\nReportData{" +
+                "\n\twhatHappened='" + whatHappened + '\'' +
+                "\n\t, sdkVersion='" + sdkVersion + '\'' +
+                "\n\t, sdkName='" + sdkName + '\'' +
+                "\n\t, bundleVersion='" + bundleVersion + '\'' +
+                "\n\t, operatingSystemVersion='" + operatingSystemVersion + '\'' +
+                "\n\t, deviceManufacturer='" + deviceManufacturer + '\'' +
+                "\n\t, deviceModel='" + deviceModel + '\'' +
+                "\n\t, deviceBrand='" + deviceBrand + '\'' +
+                "\n\t, deviceIdentifier='" + deviceIdentifier + '\'' +
+                "\n\t, totalCapacityBytes=" + totalCapacityBytes +
+                "\n\t, freeCapacityBytes=" + freeCapacityBytes +
+                "\n\t, freeMemoryBytes=" + freeMemoryBytes +
+                "\n\t, totalMemoryBytes=" + totalMemoryBytes +
+                "\n\t, batteryLevel=" + batteryLevel +
+                "\n\t, androidMobileNetworkSubtype=" + androidMobileNetworkSubtype +
+                "\n\t, wifiConnected=" + wifiConnected +
+                "\n\t, locale='" + locale + '\'' +
+                "\n\t, invocationMethod=" + invocationMethod +
+                "\n\t, submissionAttempts=" + submissionAttempts +
+                "\n\t, attachments=" + attachments +
+                "\n}";
     }
 }

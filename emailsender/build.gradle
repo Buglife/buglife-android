@@ -1,4 +1,4 @@
-apply plugin: 'com.android.library'
+apply plugin: "com.android.library"
 
 android {
     compileSdkVersion 28
@@ -13,20 +13,22 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: "libs", include: ["*.jar"])
 
     implementation project(":api")
-    implementation 'com.android.support:support-annotations:28.0.0'
-    implementation 'com.sun.mail:android-mail:1.6.3'
-    implementation 'com.sun.mail:android-activation:1.6.3'
-    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation "com.android.support:support-annotations:28.0.0"
+    implementation "com.sun.mail:android-mail:1.6.3"
+    implementation "com.sun.mail:android-activation:1.6.3"
+    implementation "com.fasterxml.jackson.core:jackson-core:2.9.8"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.9.8"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:2.9.8"
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation "junit:junit:4.12"
 }

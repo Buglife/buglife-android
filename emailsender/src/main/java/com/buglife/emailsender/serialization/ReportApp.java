@@ -4,10 +4,10 @@ import android.support.annotation.NonNull;
 
 public class ReportApp {
 
-    @NonNull String bundleVersion;
-    @NonNull String bundleIdentifier;
-    @NonNull String bundleName;
-    @NonNull String platform;
+    @NonNull private String bundleVersion;
+    @NonNull private String bundleIdentifier;
+    @NonNull private String bundleName;
+    @NonNull private String platform;
 
     @NonNull
     public String getBundleVersion() {
@@ -31,11 +31,11 @@ public class ReportApp {
 
     @Override
     public String toString() {
-        return "ReportApp{" +
-                "bundleVersion='" + bundleVersion + '\'' +
-                ", bundleIdentifier='" + bundleIdentifier + '\'' +
-                ", bundleName='" + bundleName + '\'' +
-                ", platform='" + platform + '\'' +
-                '}';
+        return "\nReportApp{" +
+                "\n\tbundleVersion='" + bundleVersion + '\'' +
+                "\n\t, bundleIdentifier='" + bundleIdentifier + '\'' +
+                "\n\t, bundleName='" + bundleName + '\'' +
+                "\n\t, platform='" + platform + '\'' +
+                "\n}";
     }
 }

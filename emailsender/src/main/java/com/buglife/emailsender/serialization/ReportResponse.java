@@ -1,17 +1,21 @@
 package com.buglife.emailsender.serialization;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.StringReader;
 
 /**
  * Defines details for buglife report
  */
 // Using deserializer to populate
 public class ReportResponse {
-    @NonNull ReportData report;
-    @NonNull ReportApp app;
-    @NonNull String email;
+    @NonNull private ReportData report;
+    @NonNull private ReportApp app;
+    @NonNull private String email;
 
     @NonNull
     public ReportData getReport() {
@@ -39,8 +43,14 @@ public class ReportResponse {
 
     //region Factory
 
-    public static ReportResponse fromJson(@NonNull JSONObject jsonObject) {
-        return Deserializer.getInstance().fromJson(jsonObject.toString(), ReportResponse.class);
+    @Nullable public static ReportResponse fromJson(@NonNull JSONObject jsonObject) {
+        try {
+            return Deserializer.getInstance()
+                    .readValue(new StringReader(jsonObject.toString()), ReportResponse.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     //endregion

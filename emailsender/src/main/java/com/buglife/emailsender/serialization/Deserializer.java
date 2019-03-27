@@ -2,22 +2,20 @@ package com.buglife.emailsender.serialization;
 
 import android.support.annotation.NonNull;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
 public class Deserializer {
 
-    private static Gson gson;
+    private static ObjectMapper objectMapper;
 
     @NonNull
-    public static Gson getInstance() {
-        if (gson == null) {
-            gson = new GsonBuilder()
-                    .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                    .create();
+    public static ObjectMapper getInstance() {
+        if (objectMapper == null) {
+            objectMapper = new ObjectMapper();
+            objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         }
-        return gson;
+        return objectMapper;
     }
 
 }
