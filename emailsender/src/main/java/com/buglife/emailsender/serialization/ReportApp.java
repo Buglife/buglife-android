@@ -2,6 +2,9 @@ package com.buglife.emailsender.serialization;
 
 import android.support.annotation.NonNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ReportApp {
 
     @NonNull private String bundleVersion;

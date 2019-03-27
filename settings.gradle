@@ -1,1 +1,1 @@
-include ':example', ':api', ':emailsender'
+include ':example', ':api', ':emailsender', ':example_email'

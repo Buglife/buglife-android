@@ -14,9 +14,6 @@ import com.buglife.sdk.reporting.SubmitReportResult;
 
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.mail.MessagingException;
 
 public final class SubmitReportEmail implements ISubmitReportTask {
@@ -59,7 +56,6 @@ public final class SubmitReportEmail implements ISubmitReportTask {
                 try {
                     sendEmail(report);
                 } catch (MessagingException e) {
-//                    Toast.makeText(context, "Error", Toast.LENGTH_LONG).show();
                     Log.e(Consts.TAG, "Error", e);
                 }
             }
@@ -67,11 +63,11 @@ public final class SubmitReportEmail implements ISubmitReportTask {
     }
 
     private void sendEmail(@NonNull JSONObject report) throws MessagingException {
+        final ReportResponse reportResponse = ReportResponse.fromJson(report);
         GMailSender sender = new GMailSender(
                 credentials.getUsername(),
                 credentials.getPassword()
         );
-        final ReportResponse reportResponse = ReportResponse.fromJson(report);
         final StringBuilder sb = new StringBuilder("Report details:\n\n");
         sb.append(reportResponse.getReport());
         sb.append(reportResponse.getApp());
