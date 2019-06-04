@@ -80,7 +80,7 @@ public final class PermissionHelper extends Fragment {
             return;
         }
 
-        String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE};
+        String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
         if (ActivityUtils.arePermissionsGranted(activity, permissions)) {
             mCallback.onPermissionGranted();
