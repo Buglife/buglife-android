@@ -23,8 +23,6 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Handler;
@@ -49,11 +47,6 @@ import java.util.List;
 
 final class Client implements ForegroundDetector.OnForegroundListener, InvocationMethodManager.OnInvocationMethodTriggeredListener {
     private static final InvocationMethod DEFAULT_INVOCATION_METHOD = InvocationMethod.SHAKE;
-    private static final String PERMISSION_INTERNET = "android.permission.INTERNET";
-    private static final String PERMISSION_WRITE_EXTERNAL_STORAGE = "android.permission.WRITE_EXTERNAL_STORAGE";
-    private static final String PERMISSION_READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
-    private static final String PERMISSION_SYSTEM_ALERT_WINDOW = "android.permission.SYSTEM_ALERT_WINDOW";
-    private static final String PERMISSION_ACCESS_NETWORK_STATE = "android.permission.ACCESS_NETWORK_STATE";
 
     private RetryPolicy mRetryPolicy = RetryPolicy.AUTOMATIC;
     @NonNull private final Context mAppContext;
@@ -86,13 +79,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mQueuedAttachments = new ArrayList<>();
         mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
-
-        boolean hasPermissions = checkPermissions();
-
-        if (!hasPermissions) {
-            Log.e("Android Manifest missing required permissions");
-            throw new Buglife.BuglifeException("Error starting Buglife: Your AndroidManifest.xml is missing one or more permissions");
-        }
 
         setInvocationMethod(DEFAULT_INVOCATION_METHOD);
 
@@ -304,26 +290,6 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         Client buildWithEmail(String email) {
             return new Client(mApplication, new BugReporterImpl(mApplication), new ApiIdentity.EmailAddress(email));
         }
-    }
-
-    private boolean checkPermissions() {
-        PackageInfo packageInfo;
-
-        try {
-            packageInfo = mAppContext.getPackageManager().getPackageInfo(mAppContext.getPackageName(), PackageManager.GET_PERMISSIONS);
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e("Unable to obtain package info", e);
-            return false;
-        }
-
-        List<? extends String> requestedPermissions = Arrays.asList(packageInfo.requestedPermissions);
-        List requiredPermissions;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);
-        } else {
-            requiredPermissions = Arrays.asList(PERMISSION_INTERNET, PERMISSION_WRITE_EXTERNAL_STORAGE, PERMISSION_READ_EXTERNAL_STORAGE, PERMISSION_SYSTEM_ALERT_WINDOW, PERMISSION_ACCESS_NETWORK_STATE);
-        }
-        return requestedPermissions.containsAll(requiredPermissions);
     }
 
     private void onScreenshotTaken(FileAttachment attachment) {
