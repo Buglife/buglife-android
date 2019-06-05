@@ -80,4 +80,20 @@ public class IOUtils {
             // Ignore
         }
     }
+
+    public static void copy(File src, File dst) throws IOException {
+        InputStream in = new FileInputStream(src);
+        // not doing try-with-resources because it requires min API 19
+        try {
+            OutputStream out = new FileOutputStream(dst);
+            try {
+                // Transfer bytes from in to out
+                write(in, out);
+            } finally {
+                out.close();
+            }
+        } finally {
+            in.close();
+        }
+    }
 }

@@ -42,6 +42,7 @@ import com.buglife.sdk.screenrecorder.ScreenRecordingPermissionHelper;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -141,7 +142,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mActualInvocationMethod = InvocationMethod.SCREENSHOT;
         Handler mainHandler = new Handler(mAppContext.getMainLooper());
 
-        final FileAttachment attachment = new FileAttachment(file, MimeTypes.PNG);
+        final FileAttachment attachment = makeCachedScreenshot(file);
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -238,8 +239,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
 
     @Nullable FileAttachment captureScreenshot() {
         Bitmap bitmap = getScreenshot();
-        String filename = "screenshot_" + System.currentTimeMillis() + ".png";
-        File file = new File(mAppContext.getCacheDir(), filename);
+        File file = generateScreenshotFile();
         try {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(file));
             return new FileAttachment(file, MimeTypes.PNG);
@@ -250,6 +250,24 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return null;
     }
 
+    private File generateScreenshotFile() {
+        String filename = "screenshot_" + System.currentTimeMillis() + ".png";
+        File file = new File(mAppContext.getCacheDir(), filename);
+        return file;
+    }
+
+    @Nullable FileAttachment makeCachedScreenshot(File systemScreenshotFile) {
+        File file = generateScreenshotFile();
+        try {
+            IOUtils.copy(systemScreenshotFile, file);
+            return new FileAttachment(file, MimeTypes.PNG);
+        } catch (IOException e) {
+            Log.e("Error copying screenshot!", e);
+            Toast.makeText(mAppContext, R.string.error_copying_screenshot, Toast.LENGTH_LONG).show();
+        }
+        return null;
+    }
+    
     void showReporter() {
         // showReporter() can be called manually, so check to make sure it isn't already visible
         if (mReportFlowVisible) {

@@ -21,5 +21,6 @@
     <string name="error_serialize_report">Failed to serialize bug report!</string>
     <string name="error_process_report">There was an error processing bug report!</string>
     <string name="error_save_screenshot">There was an error saving screenshot!</string>
+    <string name="error_copying_screenshot">There was an error copying the screenshot!</string>
     <string name="summary_field_title">What happened?</string>
 </resources>
