@@ -37,7 +37,7 @@ You can also find Buglife for iOS [here](https://github.com/buglife/buglife-ios)
 
 	```groovy
 	dependencies {
-		implementation 'com.buglife.sdk:buglife-android:1.4.3'
+		implementation 'com.buglife.sdk:buglife-android:1.5.0'
 	}
 	```
 
@@ -135,6 +135,18 @@ Alternatively, you may set a string representing the user’s name, database ID 
 String username = /** Current username */
 Buglife.setUserIdentifier(username);
 ```
+
+### User Location
+
+By default, if your app is granted location permissions, Buglife will include that location in the report. This is useful for tracking down location-relevant bugs, such as services that are erroneously offered or not offered based on location.
+
+You can change this behavior with the following:
+
+```java
+Buglife.setCollectLocationIfPossible(false);
+```
+
+If the app does not request a location permission or the user denies the request, Buglife will not collect or include location data.
 
 ### Custom Attributes
 

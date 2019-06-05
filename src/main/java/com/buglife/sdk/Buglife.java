@@ -132,7 +132,7 @@ public final class Buglife {
 
     /**
      * Returns whether Buglife will collect location in bug reports (if the app permissions allow it).
-     * @return `true` (default) if Buglife will attach location information to bug reports if possible, false otherwise.
+     * @return true (default) if Buglife will attach location information to bug reports if possible, false otherwise.
      */
     public static boolean getCollectLocationIfPossible() {
         return getClient().getCollectLocationIfPossible();
