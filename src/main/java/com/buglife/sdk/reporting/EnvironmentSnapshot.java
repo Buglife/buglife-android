@@ -55,7 +55,7 @@ public final class EnvironmentSnapshot implements Parcelable {
     @Nullable private final Location mLocation;
 
     @SuppressLint("MissingPermission")
-    public EnvironmentSnapshot(Context mContext, @NonNull InvocationMethod invocationMethod) {
+    public EnvironmentSnapshot(Context mContext, @NonNull InvocationMethod invocationMethod, boolean shouldCollectLocation) {
         mBatteryLevel = EnvironmentUtils.getBatteryLevel(mContext);
         ActivityManager.MemoryInfo memoryInfo = EnvironmentUtils.getMemoryInfo(mContext);
         mFreeMemoryBytes = memoryInfo.availMem;
@@ -80,22 +80,22 @@ public final class EnvironmentSnapshot implements Parcelable {
 
         LocationManager locationManager = (LocationManager)mContext.getSystemService(Context.LOCATION_SERVICE);
         Location tempLocation = null;
-        String[] fineLoc = {Manifest.permission.ACCESS_FINE_LOCATION};
-        if (ActivityUtils.arePermissionsGranted(mContext, fineLoc)) {
-            tempLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (tempLocation == null) {
-                // Fall back to network provider
-                tempLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            }
-        }
-        else {
-            String[] coarseLoc = {Manifest.permission.ACCESS_COARSE_LOCATION};
-            if (ActivityUtils.arePermissionsGranted(mContext, coarseLoc)) {
-                tempLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        if (shouldCollectLocation) {
+            String[] fineLoc = {Manifest.permission.ACCESS_FINE_LOCATION};
+            if (ActivityUtils.arePermissionsGranted(mContext, fineLoc)) {
+                tempLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (tempLocation == null) {
+                    // Fall back to network provider
+                    tempLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                }
+            } else {
+                String[] coarseLoc = {Manifest.permission.ACCESS_COARSE_LOCATION};
+                if (ActivityUtils.arePermissionsGranted(mContext, coarseLoc)) {
+                    tempLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                }
             }
         }
         mLocation = tempLocation;
-
     }
 
     public float getBatteryLevel() {

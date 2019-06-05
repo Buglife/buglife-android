@@ -123,6 +123,22 @@ public final class Buglife {
     }
 
     /**
+     * Set whether or not to collect location in bug reports (if the app permissions allows it).
+     * @param shouldCollect whether or not to collect location
+     */
+    public static void setCollectLocationIfPossible(boolean shouldCollect) {
+        getClient().setCollectLocationIfPossible(shouldCollect);
+    }
+
+    /**
+     * Returns whether Buglife will collect location in bug reports (if the app permissions allow it).
+     * @return `true` (default) if Buglife will attach location information to bug reports if possible, false otherwise.
+     */
+    public static boolean getCollectLocationIfPossible() {
+        return getClient().getCollectLocationIfPossible();
+    }
+
+    /**
      * Captures a screenshot of the current activity.
      * Deprecated, use {@link Buglife#captureScreenshot()} instead.
      *

@@ -61,6 +61,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
     @NonNull private final ApiIdentity mApiIdentity;
     @Nullable private BuglifeListener mListener;
     @NonNull private InvocationMethod mInvocationMethod;
+    private boolean mCollectLocationIfPossible;
     @Nullable private InvocationMethodManager mInvocationMethodManager;
     @NonNull private  InvocationMethod mActualInvocationMethod = InvocationMethod.NONE;
     private final ForegroundDetector mForegroundDetector;
@@ -87,6 +88,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         mQueuedAttachments = new ArrayList<>();
         mAttributes = new AttributeMap();
         mForegroundDetector = new ForegroundDetector(application, this);
+        mCollectLocationIfPossible = true;
 
         boolean hasPermissions = checkPermissions();
 
@@ -232,6 +234,14 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         return new ArrayList<>(inputFields);
     }
 
+    void setCollectLocationIfPossible(boolean shouldCollect) {
+        mCollectLocationIfPossible = shouldCollect;
+    }
+
+    boolean getCollectLocationIfPossible() {
+        return mCollectLocationIfPossible;
+    }
+
     Bitmap getScreenshot() {
         Screenshotter screenshotter = new Screenshotter(mForegroundDetector.getCurrentActivity());
         return screenshotter.getBitmap();
@@ -267,7 +277,7 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
         }
         return null;
     }
-    
+
     void showReporter() {
         // showReporter() can be called manually, so check to make sure it isn't already visible
         if (mReportFlowVisible) {
@@ -448,7 +458,8 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
                 .setUserEmail(mUserEmail)
                 .setUserIdentifier(mUserIdentifier)
                 .setApiIdentity(mApiIdentity)
-                .setInvocationMethod(mActualInvocationMethod);
+                .setInvocationMethod(mActualInvocationMethod)
+                .setCollectLocationIfPossible(mCollectLocationIfPossible);
 
         if (mListener != null) {
             mListener.onAttachmentRequest();

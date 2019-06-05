@@ -142,6 +142,7 @@ final class BugContext implements Parcelable {
         private @NonNull String mUserIdentifier;
         private @NonNull ApiIdentity mApiIdentity;
         private @NonNull InvocationMethod mInvocationMethod;
+        private boolean mShouldCollectLocation;
 
         Builder(@NonNull Context context) {
             mContext = context;
@@ -183,9 +184,14 @@ final class BugContext implements Parcelable {
             return this;
         }
 
+        Builder setCollectLocationIfPossible(boolean shouldCollect) {
+            mShouldCollectLocation = shouldCollect;
+            return this;
+        }
+
         public BugContext build() {
             SessionSnapshot sessionSnapshot = new SessionSnapshot(mContext, mUserEmail, mUserIdentifier);
-            EnvironmentSnapshot environment = new EnvironmentSnapshot(mContext, mInvocationMethod);
+            EnvironmentSnapshot environment = new EnvironmentSnapshot(mContext, mInvocationMethod, mShouldCollectLocation);
             DeviceSnapshot deviceSnapshot = new DeviceSnapshot(mContext);
             return new BugContext(mApiIdentity, mAttachments, mAttributeMap, sessionSnapshot, deviceSnapshot, environment);
         }
