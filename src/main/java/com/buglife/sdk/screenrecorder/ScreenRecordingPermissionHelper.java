@@ -78,7 +78,7 @@ public final class ScreenRecordingPermissionHelper extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == SCREEN_OVERLAY_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
+            if (resultCode == Activity.RESULT_OK || Settings.canDrawOverlays(getContext())) {
                 onOverlayPermissionsGranted();
             } else {
                 mPermissionCallback.onPermissionDenied(PermissionType.OVERLAY);
