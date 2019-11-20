@@ -106,7 +106,10 @@ class InvocationMethodManager {
         if (mScreenshotListener == null) {
             mScreenshotListener = new OnScreenshotTakenListener() {
                 @Override public void onScreenshotTaken(File file) {
-                    mListener.onScreenshotInvocationMethodTriggered(file);
+                    if (file.mkdirs())
+                        mListener.onScreenshotInvocationMethodTriggered(file);
+                    else
+                        Log.e("You should add android:requestLegacyExternalStorage=\"true\" into your AndroidManifest.xml");
                 }
             };
         }
