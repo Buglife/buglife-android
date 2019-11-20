@@ -33,6 +33,18 @@ You can also find Buglife for iOS [here](https://github.com/buglife/buglife-ios)
 
 ## Installation
 
+If you use `targetSdkVersion` version 29 or higher, you should add `android:requestLegacyExternalStorage="true"` into your `AndroidManifest.xml`. 
+
+```xml
+<manifest ... >
+  <!-- This attribute is "false" by default on apps targeting
+       Android 10 or higher. -->
+  <application android:requestLegacyExternalStorage="true" ... >
+    ...
+  </application>
+</manifest>
+```
+
 1. Add `buglife-android` as a dependency to your app's `build.gradle`.
 
 	```groovy
