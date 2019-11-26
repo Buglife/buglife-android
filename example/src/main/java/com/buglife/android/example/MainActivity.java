@@ -53,10 +53,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onTouchEvent(MotionEvent event) {
 
         if (!hasStarted) {
-            LocationManager mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+            mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
             // Define a listener that responds to location updates
-            LocationListener mLocationListener = new LocationListener() {
+            mLocationListener = new LocationListener() {
                 public void onLocationChanged(Location location) {
                     // Called when a new location is found by the network location provider.
                 }
