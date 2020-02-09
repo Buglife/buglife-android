@@ -44,9 +44,9 @@ android {
 }
 
 dependencies {
-    implementation "com.android.support:appcompat-v7:$SUPPORT_VERSION"
-    implementation "com.android.support:design:$SUPPORT_VERSION"
-    implementation "com.android.support:support-dynamic-animation:$SUPPORT_VERSION"
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'androidx.dynamicanimation:dynamicanimation:1.0.0'
     implementation "com.squareup.okhttp3:okhttp:3.12.1"
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.assertj:assertj-core:2.8.0'
