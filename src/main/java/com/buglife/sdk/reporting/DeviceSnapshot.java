@@ -22,7 +22,7 @@ import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.provider.Settings;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public final class DeviceSnapshot implements Parcelable {
     private final String mOSVersion;

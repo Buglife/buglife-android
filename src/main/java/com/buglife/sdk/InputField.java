@@ -17,8 +17,8 @@
 
 package com.buglife.sdk;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Represents an input field in the Buglife bug reporter interface.

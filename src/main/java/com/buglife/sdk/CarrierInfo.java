@@ -18,18 +18,8 @@
 package com.buglife.sdk;
 
 import android.content.Context;
-import android.os.Build;
-import android.support.annotation.Nullable;
-import android.telephony.CellInfo;
-import android.telephony.CellInfoGsm;
-import android.telephony.CellSignalStrengthGsm;
-import android.telephony.SubscriptionInfo;
-import android.telephony.SubscriptionManager;
-import android.telephony.TelephonyManager;
 
-import com.buglife.sdk.Log;
-
-import java.util.List;
+import androidx.annotation.Nullable;
 
 final class CarrierInfo {
     /**

@@ -28,13 +28,12 @@ import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.StatFs;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.buglife.sdk.InvocationMethod;
 import com.buglife.sdk.ActivityUtils;
 
-import java.security.Permission;
 import java.util.Date;
 
 /**

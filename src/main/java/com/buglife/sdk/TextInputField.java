@@ -17,7 +17,7 @@
 
 package com.buglife.sdk;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Represents a single- or multi-line text input field in the Buglife bug reporter interface.

@@ -22,8 +22,8 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Build;
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 
 final class ColorPalette {
     private static final String BUGLIFE_ATTRIBUTE_PREFIX = "buglife";

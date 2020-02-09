@@ -19,8 +19,8 @@ package com.buglife.sdk;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Base64;
 
 import org.json.JSONException;
@@ -29,9 +29,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.Serializable;
 
 public class FileAttachment implements Parcelable {
     @NonNull private final File mFile;

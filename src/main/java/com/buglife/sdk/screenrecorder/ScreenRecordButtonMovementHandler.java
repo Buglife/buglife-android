@@ -18,8 +18,8 @@
 package com.buglife.sdk.screenrecorder;
 
 import android.graphics.Rect;
-import android.support.animation.FlingAnimation;
-import android.support.animation.FloatPropertyCompat;
+import androidx.dynamicanimation.animation.FlingAnimation;
+import androidx.dynamicanimation.animation.FloatPropertyCompat;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
