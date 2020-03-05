@@ -1,35 +1,27 @@
-buildscript {
-    repositories {
-        jcenter()
-        mavenCentral()
-        mavenLocal()
-    }
-}
-
 apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.3'
-
-     defaultConfig {
-         minSdkVersion 16
-         targetSdkVersion 28
-     }
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 28
+    }
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-        }
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }
 
 dependencies {
-    implementation rootProject
-    implementation "com.android.support:appcompat-v7:$SUPPORT_VERSION"
-    implementation 'com.android.support.constraint:constraint-layout:2.0.0-alpha3'
-    implementation "com.android.support:design:$SUPPORT_VERSION"
+    implementation 'com.buglife.sdk:buglife-android'
+    implementation "com.android.support:appcompat-v7:28.0.0"
+    implementation 'com.android.support.constraint:constraint-layout:2.0.0-beta4'
+    implementation "com.android.support:design:28.0.0"
+}
+
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module("com.buglife.sdk:buglife-android") because "we work with the unreleased development version" with project(":buglife-android")
+    }
 }

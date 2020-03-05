@@ -23,7 +23,6 @@ import android.os.Bundle;
 
 class ForegroundDetector implements Application.ActivityLifecycleCallbacks {
     private Activity mCurrentActivity = null;
-    private boolean mForegrounded = false;
     private final OnForegroundListener mOnForegroundListener;
 
     interface OnForegroundListener {
@@ -41,7 +40,7 @@ class ForegroundDetector implements Application.ActivityLifecycleCallbacks {
     }
 
     boolean getForegrounded() {
-        return mForegrounded;
+        return mCurrentActivity != null;
     }
 
     @Override
@@ -57,13 +56,12 @@ class ForegroundDetector implements Application.ActivityLifecycleCallbacks {
     @Override
     public void onActivityResumed(Activity activity) {
         mCurrentActivity = activity;
-        mForegrounded = true;
         mOnForegroundListener.onForegroundEvent();
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        mForegrounded = false;
+        mCurrentActivity = null;
         mOnForegroundListener.onBackgroundEvent();
     }
 
