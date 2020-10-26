@@ -77,9 +77,12 @@ class AttachmentAdapter extends BaseAdapter {
         File file = attachment.getFile();
         if (attachment.isImage()) {
             String path = file.getAbsolutePath();
-            // TODO: Optimize bitmap decoding
-            Bitmap scaledBitmap = scaleBitmapForThumbnail(context, BitmapFactory.decodeFile(path));
-            thumbnailView.setImageBitmap(scaledBitmap);
+            // TODO: Optimize bitmap decoding - this method gets called a lot
+            Bitmap bitmap = BitmapFactory.decodeFile(path);
+            if (bitmap != null) {
+                Bitmap scaledBitmap = scaleBitmapForThumbnail(context, bitmap);
+                thumbnailView.setImageBitmap(scaledBitmap);
+            }
         }
         titleView.setText(file.getName());
 
