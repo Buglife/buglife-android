@@ -49,7 +49,7 @@ If you use `targetSdkVersion` version 29 or higher, you should add `android:requ
 
 	```groovy
 	dependencies {
-		implementation 'com.buglife.sdk:buglife-android:1.5.1'
+		implementation 'com.buglife.sdk:buglife-android:1.5.2'
 	}
 	```
 
