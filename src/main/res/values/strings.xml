@@ -23,4 +23,7 @@
     <string name="error_save_screenshot">There was an error saving screenshot!</string>
     <string name="error_copying_screenshot">There was an error copying the screenshot!</string>
     <string name="summary_field_title">What happened?</string>
+    <string name="parameters">Parameters</string>
+    <string name="shake_detector_on">Shake detector ON</string>
+    <string name="shake_detector_off">Shake detector OFF</string>
 </resources>

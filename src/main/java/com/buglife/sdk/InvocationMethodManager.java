@@ -19,6 +19,7 @@ package com.buglife.sdk;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.support.annotation.NonNull;
@@ -81,9 +82,11 @@ class InvocationMethodManager {
         Sensor accelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mShakeDetector = new ShakeDetector(new ShakeDetector.OnShakeListener() {
             @Override public void onShake() {
-                mListener.onShakeInvocationMethodTriggered();
+                SharedPreferences settings = mAttachedActivity.getSharedPreferences(ParametersActivity.PREFS_PARAMETERS_NAME, 0);
+                boolean shake_params = settings.getBoolean(ParametersActivity.PREFS_SHAKE_PARAMETER_NAME, true);
+                if (shake_params) mListener.onShakeInvocationMethodTriggered();
             }
-        });
+        }, mAttachedActivity);
 
         boolean registered = mSensorManager.registerListener(mShakeDetector, accelerometer, SensorManager.SENSOR_DELAY_UI);
         if (registered) {

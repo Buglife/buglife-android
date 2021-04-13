@@ -31,6 +31,13 @@
             android:theme="@style/NoActionBarTheme"
             />
 
+        <activity
+            android:name=".ParametersActivity"
+            android:label="@string/parameters"
+            android:theme="@style/NoActionBarTheme"
+            android:windowSoftInputMode="adjustPan"
+            />
+
         <service
             android:name=".reporting.SubmitReportService"
             android:permission="android.permission.BIND_JOB_SERVICE"/>

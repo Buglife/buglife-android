@@ -490,4 +490,9 @@ final class Client implements ForegroundDetector.OnForegroundListener, Invocatio
             mInvocationMethodManager = null;
         }
     }
+
+    void showParameters() {
+        Intent intent = ParametersActivity.newStartIntent(mAppContext);
+        mForegroundDetector.getCurrentActivity().startActivity(intent);
+    }
 }
