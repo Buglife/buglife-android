@@ -276,4 +276,11 @@ public final class Buglife {
             super(message);
         }
     }
+
+    /**
+     * Manually presents the bug reporter parameters view.
+     */
+    public static void showParameters() {
+        getClient().showParameters();
+    }
 }

@@ -52,6 +52,15 @@
             android:textColor="@android:color/black"
             android:onClick="recordScreenButtonTapped" />
 
+        <Button
+            android:id="@+id/parameters_screen_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Parameters"
+            android:textColor="@android:color/black"
+            android:onClick="parametersButtonTapped" />
+
     </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>

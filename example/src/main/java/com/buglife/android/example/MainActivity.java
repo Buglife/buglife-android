@@ -149,4 +149,8 @@ public class MainActivity extends AppCompatActivity {
                 || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
                 || "google_sdk".equals(Build.PRODUCT);
     }
+
+    public void parametersButtonTapped(View view) {
+        Buglife.showParameters();
+    }
 }

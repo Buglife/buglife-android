@@ -17,6 +17,8 @@
 
 package com.buglife.sdk;
 
+import android.app.Activity;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -25,17 +27,19 @@ import android.hardware.SensorManager;
 final class ShakeDetector implements SensorEventListener {
 
     // g-force required to register a shake event
-    private static final float SHAKE_THRESHOLD = 2.0F;
-    private static final int SHAKE_SLOP_TIME_MS = 500;
-    private static final int SHAKE_COUNT_RESET_TIME_MS = 3000;
-    private static final int MIN_SHAKE_COUNT = 2;
+    public static final float SHAKE_THRESHOLD = 2.5F;
+    public static final int SHAKE_SLOP_TIME_MS = 500;
+    public static final int SHAKE_COUNT_RESET_TIME_MS = 3000;
+    public static final int MIN_SHAKE_COUNT = 2;
 
     private final OnShakeListener mOnShakeListener;
     private long mShakeTimestamp;
     private int mShakeCount;
+    private SharedPreferences settingsPreferences;
 
-    ShakeDetector(OnShakeListener onShakeListener) {
+    ShakeDetector(OnShakeListener onShakeListener, Activity activity) {
         mOnShakeListener = onShakeListener;
+        settingsPreferences = activity.getSharedPreferences(ParametersActivity.PREFS_PARAMETERS_NAME, 0);
     }
 
     interface OnShakeListener {
@@ -54,22 +58,26 @@ final class ShakeDetector implements SensorEventListener {
 
         float gForce = (float)Math.sqrt(gX * gX + gY * gY + gZ * gZ);
 
-        if (gForce > SHAKE_THRESHOLD) {
+        float shake_threshold_params = settingsPreferences.getFloat(ParametersActivity.PREFS_SHAKE_THRESHOLD_PARAMETER_NAME, SHAKE_THRESHOLD);
+        if (gForce > shake_threshold_params) {
             final long now = System.currentTimeMillis();
             // ignore shake events too close to each other
-            if (mShakeTimestamp + SHAKE_SLOP_TIME_MS > now) {
+            int shake_slop_time_ms_params = settingsPreferences.getInt(ParametersActivity.PREFS_SHAKE_SLOP_TIME_MS_PARAMETER_NAME, SHAKE_SLOP_TIME_MS);
+            if (mShakeTimestamp + shake_slop_time_ms_params > now) {
                 return;
             }
 
             // reset the shake count after several seconds of no shakes
-            if (mShakeTimestamp + SHAKE_COUNT_RESET_TIME_MS < now) {
+            int shake_count_reset_time_ms_params = settingsPreferences.getInt(ParametersActivity.PREFS_SHAKE_COUNT_RESET_TIME_MS_PARAMETER_NAME, SHAKE_COUNT_RESET_TIME_MS);
+            if (mShakeTimestamp + shake_count_reset_time_ms_params < now) {
                 mShakeCount = 0;
             }
 
             mShakeTimestamp = now;
             mShakeCount++;
 
-            if (mShakeCount >= MIN_SHAKE_COUNT) {
+            int shake_count_params = settingsPreferences.getInt(ParametersActivity.PREFS_MIN_SHAKE_COUNT_PARAMETER_NAME, MIN_SHAKE_COUNT);
+            if (mShakeCount >= shake_count_params) {
                 mShakeCount = 0;
                 mOnShakeListener.onShake();
             }
