@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        jcenter()
         mavenCentral()
         google()
     }
@@ -13,7 +12,6 @@ apply plugin: 'com.android.library'
 
 allprojects {
     repositories {
-        jcenter()
         mavenCentral()
         google()
     }
@@ -22,10 +20,12 @@ allprojects {
 ext {
     PUBLISH_GROUP_ID = 'com.buglife.sdk'
     PUBLISH_ARTIFACT_ID = 'buglife-android'
-    PUBLISH_VERSION_CODE = 55
-    PUBLISH_VERSION_NAME = '1.5.2'
+    PUBLISH_VERSION_CODE = 56
+    PUBLISH_VERSION_NAME = '1.5.3'
     SUPPORT_VERSION = '28.0.0'
 }
+
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
 
 android {
     compileSdkVersion 28
